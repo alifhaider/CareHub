@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String    @id @default(cuid())
+  email    String    @unique
+  username String    @unique
+  password Password?
+
+  doctor       Doctor?
+  appointments Appointment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Password {
+  hash String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String @unique
+}
+
+model Doctor {
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  education Education[]
+  speciality String
+  bio       String
+
+  schedules Schedule[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Education {
+  id     String  @id @default(cuid())
+  degree String
+  institute String
+  year   String?
+
+  doctor Doctor @relation(fields: [doctorId], references: [userId])
+  doctorId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Schedule {
+  id String @id @default(cuid())
+
+  doctor   Doctor @relation(fields: [doctorId], references: [userId])
+  doctorId String
+
+  location   ScheduleLocation @relation(fields: [locationId], references: [id])
+  locationId String
+
+  day       String
+  startTime DateTime
+  endTime   DateTime
+
+  maxAppointments Int
+  appointments    Appointment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ScheduleLocation {
+  id        String     @id @default(cuid())
+  name      String
+  address   String
+  city      String
+  state     String?
+  zip       String?
+  schedules Schedule[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Appointment {
+  id String @id @default(cuid())
+
+  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+  scheduleId String
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  status String? @default("ACCEPTED")
+
+  date DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -1,3 +1,4 @@
+import { type LinksFunction } from "@remix-run/node";
 import {
   Links,
   Meta,
@@ -5,7 +6,12 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-import "./tailwind.css";
+import stylesheet from "~/tailwind.css?url";
+import Navbar from "./components/navbar";
+
+export const links: LinksFunction = () => [
+  { rel: "stylesheet", href: stylesheet },
+];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -16,8 +22,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
-        {children}
+      <body className="bg-slate-950 text-yellow-100">
+        <div className="max-w-7xl mx-auto">
+        <Navbar />
+          {children}
+        </div>
         <ScrollRestoration />
         <Scripts />
       </body>
