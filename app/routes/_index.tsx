@@ -4,7 +4,7 @@ import { prisma } from "~/db.server";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "CareHub" },
+    { title: "Home/CareHub" },
     { name: "description", content: "Welcome to Remix!" },
   ];
 };
@@ -26,7 +26,6 @@ export default function Index() {
   const doctors = useLoaderData<typeof loader>();
   return (
     <div className="font-sans p-4">
-      <Link to="/login">Login</Link>
 
       <h2 className="text-5xl font-bold">Doctors</h2>
 

@@ -1,14 +1,32 @@
-import { json, LoaderFunctionArgs } from "@remix-run/node";
-import {  Link, useLoaderData } from "@remix-run/react";
+import {
+  json,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from "@remix-run/node";
+import { Link, useLoaderData } from "@remix-run/react";
+import { useState } from "react";
 import { Spacer } from "~/components/spacer";
 import { PageTitle } from "~/components/typography";
 import { prisma } from "~/db.server";
+import { formatTime } from "~/utils/misc";
 
-export async function loader({  params }: LoaderFunctionArgs) {
+export async function loader({ params }: LoaderFunctionArgs) {
   const username = params.username;
   const user = await prisma.user.findUnique({
     where: {
       username,
+    },
+    include: {
+      doctor: {
+        include: {
+          schedules: {
+            include: {
+              location: true,
+            },
+          },
+        },
+      },
+      appointments: true,
     },
   });
 
@@ -16,69 +34,84 @@ export async function loader({  params }: LoaderFunctionArgs) {
     throw new Response("User not found", { status: 404 });
   }
 
-  const doctor = await prisma.doctor.findUnique({
-    where: {
-      userId: user.id,
-    },
-  });
-
-  const appointments = await prisma.appointment.findMany({
-    where: {
-      userId: doctor?.userId,
-    },
-  });
-
-  const schedules = await prisma.schedule.findMany({
-    where: {
-      doctorId: doctor?.userId,
-    },
-    include: {
-      location: true,
-    }
-  });
-
-  return json({ user, doctor, appointments, schedules });
+  return json({ user });
 }
 
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  return [
+    { title: `${data?.user.username}/CareHub` },
+    { name: "description", content: "Welcome to Remix!" },
+  ];
+};
+
 export default function User() {
+  const [showInput, setShowInput] = useState(false);
   const data = useLoaderData<typeof loader>();
-  const isDoctor = data.doctor?.speciality;
+  const isDoctor = data.user?.doctor !== null;
+
   return (
     <div>
       <PageTitle>
         <span className="underline">Username:</span> {data.user.username}
       </PageTitle>
 
-<Spacer variant="sm" />
-      <p>Role: {isDoctor ? "Doctor" : "User"} &#40;{isDoctor && data.doctor?.speciality}&#41;  </p>
+      <Spacer variant="sm" />
+      <p>
+        Role: {isDoctor ? "Doctor" : "User"} &#40;
+        {isDoctor && data.user?.doctor?.speciality}&#41;
+      </p>
 
       <Spacer variant="md" />
-      <h2 className="text-3xl font-medium text-lime-500">Upcoming Appointments</h2>
+      <h2 className="text-3xl font-medium text-lime-500">
+        Upcoming Appointments
+      </h2>
       <ul>
-        {data.appointments.map((appointment) => (
+        {data.user.appointments.map((appointment) => (
           <li key={appointment.id}>{appointment.date}</li>
         ))}
       </ul>
 
       <Spacer variant="md" />
-      <h2 className="text-3xl font-medium text-lime-500">Schedules</h2>
+      <h2 className="text-3xl font-medium text-lime-500 mb-4">Schedules</h2>
       <ul>
-        {data.schedules.map((schedule) => (
-          <li key={schedule.id}>
-            {schedule.day} | {schedule.startTime} - {schedule.endTime} | {schedule.location.name}
+        {data.user.doctor?.schedules.map((schedule) => (
+          <li key={schedule.id} className="flex items-center">
+            <span>
+              {showInput ? (
+                <></>
+              ) : (
+                <>
+                  {schedule.day} | {formatTime(schedule.startTime)} -{" "}
+                  {formatTime(schedule.endTime)} | {schedule.location.name}
+                </>
+              )}
+            </span>
+            <div className="flex gap-2 items-center">
+              <button
+                className="text-xs ml-10 underline text-cyan-400"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowInput(true);
+                }}
+              >
+                Edit
+              </button>
+              <span>|</span>
+              <button className="text-xs underline text-amber-500">
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>
 
-      {isDoctor ? 
+      {isDoctor ? (
         <Link to="/add/schedule">Add Schedule</Link>
-        :
+      ) : (
         <>
-        <Link to="/add/appointment">Add Appointment</Link>
+          <Link to="/add/appointment">Add Appointment</Link>
         </>
-      }
-      
-      
+      )}
     </div>
   );
 }

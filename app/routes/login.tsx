@@ -4,6 +4,7 @@ import type {
   MetaFunction,
 } from "@remix-run/node";
 import { Form, json } from "@remix-run/react";
+import { Button } from "~/components/ui/button";
 import { authenticator } from "~/services/auth.server";
 import { commitSession, getSession } from "~/session.server";
 
@@ -60,7 +61,7 @@ export default function Login() {
           <input type="password" name="password" required />
         </label>
 
-        <button type="submit">Login</button>
+        <Button type="submit">Login</Button>
       </Form>
     </div>
   );

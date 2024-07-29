@@ -35,44 +35,41 @@ authenticator.use(
   "sign-in"
 );
 
-
 export async function requireUserId(
   request: Request,
-  { redirectTo }: { redirectTo?: string | null } = {},
+  { redirectTo }: { redirectTo?: string | null } = {}
 ) {
-  const requestUrl = new URL(request.url)
+  const requestUrl = new URL(request.url);
   redirectTo =
     redirectTo === null
       ? null
-      : redirectTo ?? `${requestUrl.pathname}${requestUrl.search}`
+      : redirectTo ?? `${requestUrl.pathname}${requestUrl.search}`;
   const loginParams = redirectTo
-    ? new URLSearchParams([['redirectTo', redirectTo]])
-    : null
-  const failureRedirect = ['/login', loginParams?.toString()]
+    ? new URLSearchParams([["redirectTo", redirectTo]])
+    : null;
+  const failureRedirect = ["/login", loginParams?.toString()]
     .filter(typedBoolean)
-    .join('?')
+    .join("?");
   const userId = await authenticator.isAuthenticated(request, {
     failureRedirect,
-  })
-  return userId
+  });
+  return userId;
 }
 
 export async function requireDoctor(request: Request) {
-  const user = await requireUserId(request)
+  const user = await requireUserId(request);
   const doctor = await prisma.doctor.findUnique({
     where: {
       userId: user.id,
     },
-  })
+  });
 
   if (!doctor) {
-    throw new Error("You are not authorized to access this page")
+    throw new Error("You are not authorized to access this page");
   }
 
-  return doctor
+  return doctor;
 }
-
-
 
 async function verifyLogin(
   username: User["username"],
