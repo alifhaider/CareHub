@@ -26,7 +26,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
           },
         },
       },
-      appointments: true,
+      bookings: true,
     },
   });
 
@@ -58,7 +58,7 @@ export default function User() {
       <Spacer variant="sm" />
       <p>
         Role: {isDoctor ? "Doctor" : "User"} &#40;
-        {isDoctor && data.user?.doctor?.speciality}&#41;
+        {isDoctor && data.user?.doctor?.specialty}&#41;
       </p>
 
       <Spacer variant="md" />
@@ -66,7 +66,7 @@ export default function User() {
         Upcoming Appointments
       </h2>
       <ul>
-        {data.user.appointments.map((appointment) => (
+        {data.user.bookings.map((appointment) => (
           <li key={appointment.id}>{appointment.date}</li>
         ))}
       </ul>
