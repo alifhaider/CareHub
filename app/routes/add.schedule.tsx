@@ -39,16 +39,6 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (_action === "create_schedule") {
     const userId = await requireUserId(request);
-    await prisma.schedule.create({
-      data: {
-        ...values,
-        doctor: {
-          connect: {
-            userId,
-          },
-        },
-      },
-    });
   }
 
   if (_action === "create_location") {
