@@ -16,8 +16,9 @@ CREATE TABLE "Password" (
 
 -- CreateTable
 CREATE TABLE "Doctor" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "specialty" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "speciality" TEXT NOT NULL,
     "bio" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
@@ -64,16 +65,18 @@ CREATE TABLE "ScheduleLocation" (
 );
 
 -- CreateTable
-CREATE TABLE "Appointment" (
+CREATE TABLE "Booking" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "scheduleId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
+    "doctorId" TEXT NOT NULL,
     "status" TEXT DEFAULT 'ACCEPTED',
     "date" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Appointment_scheduleId_fkey" FOREIGN KEY ("scheduleId") REFERENCES "Schedule" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Appointment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Booking_scheduleId_fkey" FOREIGN KEY ("scheduleId") REFERENCES "Schedule" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Booking_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Booking_doctorId_fkey" FOREIGN KEY ("doctorId") REFERENCES "Doctor" ("userId") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateIndex

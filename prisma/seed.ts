@@ -6,13 +6,13 @@ async function seed() {
   console.time("🌱 Seeding database...");
 
   console.time("🧹 Clean up database...");
-  await prisma.user.deleteMany();
-  await prisma.doctor.deleteMany();
-  await prisma.appointment.deleteMany();
-  await prisma.education.deleteMany();
-  await prisma.password.deleteMany();
-  await prisma.scheduleLocation.deleteMany();
+  await prisma.booking.deleteMany();
   await prisma.schedule.deleteMany();
+  await prisma.scheduleLocation.deleteMany();
+  await prisma.education.deleteMany();
+  await prisma.doctor.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.password.deleteMany();
   console.timeEnd("🧹 Clean up database...");
 
   const totalUsers = 10;
@@ -45,13 +45,13 @@ async function seed() {
     Array.from({ length: totalDoctors }).map(async (_, index) => {
       const doctor = await prisma.doctor.create({
         data: {
-          bio: `bio${index}`,
+          bio: `I am doctor. I have bio for ${index}th-doctor`,
           userId: users[index % totalUsers].id,
-          speciality: `speciality${index}`,
+          specialty: `speciality-${index}`,
           education: {
             create: {
-              degree: `degree${index}`,
-              institute: `school${index}`,
+              degree: `degree-${index}`,
+              institute: `institute-${index}`,
               year: (Math.random() * 10 + 2010).toString(),
             },
           },
@@ -67,9 +67,9 @@ async function seed() {
     Array.from({ length: totalScheduleLocations }).map(async (_, index) => {
       const scheduleLocation = await prisma.scheduleLocation.create({
         data: {
-          name: `name${index}`,
-          address: `address${index}`,
-          city: `city${index}`,
+          name: `location-name-${index}`,
+          address: `address-name-${index}`,
+          city: `city-name-${index}`,
         },
       });
       return scheduleLocation;
@@ -95,10 +95,10 @@ async function seed() {
   );
   console.timeEnd("👨‍⚕️ Creating schedules...");
 
-  console.time("👨‍⚕️ Creating appointments...");
+  console.time("👨‍⚕️ Creating bookings...");
   await Promise.all(
     Array.from({ length: totalAppointments }).map(async (_, index) => {
-      const appointment = await prisma.appointment.create({
+      const appointment = await prisma.booking.create({
         data: {
           date: new Date(
             new Date().setDate(
@@ -108,12 +108,13 @@ async function seed() {
           status: "PENDING",
           scheduleId: schedules[index % totalSchedules].id,
           userId: users[index % totalUsers].id,
+          doctorId: doctors[index % totalDoctors].userId,
         },
       });
       return appointment;
     })
   );
-  console.timeEnd("👨‍⚕️ Creating appointments...");
+  console.timeEnd("👨‍⚕️ Creating bookings...");
 
   console.timeEnd("🌱 Seeding database...");
 }
