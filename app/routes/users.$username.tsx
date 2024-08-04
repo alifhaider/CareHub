@@ -26,7 +26,15 @@ export async function loader({ params }: LoaderFunctionArgs) {
           },
         },
       },
-      bookings: true,
+      bookings: {
+        include: {
+          doctor: {
+            select: {
+              user: true,
+            }
+          }
+        }
+      },
     },
   });
 
@@ -67,7 +75,7 @@ export default function User() {
       </h2>
       <ul>
         {data.user.bookings.map((appointment) => (
-          <li key={appointment.id}>{appointment.date} | { appointment.doctorId}</li>
+          <li key={appointment.id}>{appointment.date} | { appointment.doctor.user.username}</li>
         ))}
       </ul>
 
