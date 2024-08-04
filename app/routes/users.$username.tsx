@@ -67,7 +67,7 @@ export default function User() {
       </h2>
       <ul>
         {data.user.bookings.map((appointment) => (
-          <li key={appointment.id}>{appointment.date}</li>
+          <li key={appointment.id}>{appointment.date} | { appointment.doctorId}</li>
         ))}
       </ul>
 
