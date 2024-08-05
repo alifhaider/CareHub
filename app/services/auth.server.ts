@@ -1,9 +1,9 @@
 import bcrypt from "bcryptjs";
 import { type Password, type User } from "@prisma/client";
-import { Authenticator } from "remix-auth";
+import { Authenticator, AuthorizationError } from "remix-auth";
 import { FormStrategy } from "remix-auth-form";
 import { prisma } from "~/db.server";
-import { authSessionStorage } from "~/session.server";
+import { authSessionStorage } from "~/services/session.server";
 import invariant from "tiny-invariant";
 import { typedBoolean } from "~/utils/misc";
 
@@ -11,6 +11,8 @@ export type { User };
 
 export const authenticator = new Authenticator<User>(authSessionStorage, {
   sessionKey: "token",
+  sessionErrorKey: "session-error-key",
+  throwOnError: true,
 });
 
 // Tell the Authenticator to use the form strategy
@@ -27,7 +29,7 @@ authenticator.use(
 
     const user = await verifyLogin(username, password);
     if (!user) {
-      throw new Error("Invalid username or password");
+      throw new AuthorizationError("Invalid username or password");
     }
 
     return user;
@@ -60,7 +62,7 @@ export async function requireDoctor(request: Request) {
   const user = await requireUserId(request);
   const doctor = await prisma.doctor.findUnique({
     where: {
-      userId: user.id,
+      userId: user?.id,
     },
   });
 

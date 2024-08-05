@@ -1,8 +1,4 @@
-import {
-  json,
-  LoaderFunctionArgs,
-  type LinksFunction,
-} from "@remix-run/node";
+import { json, LoaderFunctionArgs, type LinksFunction } from "@remix-run/node";
 import {
   Links,
   Meta,
@@ -13,7 +9,7 @@ import {
 } from "@remix-run/react";
 import stylesheet from "~/tailwind.css?url";
 import Navbar from "./components/navbar";
-import { themeSessionResolver } from "./session.server";
+import { themeSessionResolver } from "./services/session.server";
 import {
   PreventFlashOnWrongTheme,
   ThemeProvider,

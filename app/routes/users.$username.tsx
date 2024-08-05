@@ -31,9 +31,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
           doctor: {
             select: {
               user: true,
-            }
-          }
-        }
+            },
+          },
+        },
       },
     },
   });
@@ -71,47 +71,56 @@ export default function User() {
 
       <Spacer variant="md" />
       <h2 className="text-3xl font-medium text-lime-500">
-        Upcoming Appointments
+        Booked Appointments
       </h2>
       <ul>
         {data.user.bookings.map((appointment) => (
-          <li key={appointment.id}>{appointment.date} | { appointment.doctor.user.username}</li>
+          <li key={appointment.id}>
+            {appointment.date} |{" "}
+            <Link to={`/users/${appointment.doctor.user.username}`}>
+              {appointment.doctor.user.username}
+            </Link>
+          </li>
         ))}
       </ul>
 
       <Spacer variant="md" />
-      <h2 className="text-3xl font-medium text-lime-500 mb-4">Schedules</h2>
-      <ul>
-        {data.user.doctor?.schedules.map((schedule) => (
-          <li key={schedule.id} className="flex items-center">
-            <span>
-              {showInput ? (
-                <></>
-              ) : (
-                <>
-                  {schedule.day} | {formatTime(schedule.startTime)} -{" "}
-                  {formatTime(schedule.endTime)} | {schedule.location.name}
-                </>
-              )}
-            </span>
-            <div className="flex gap-2 items-center">
-              <button
-                className="text-xs ml-10 underline text-cyan-400"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowInput(true);
-                }}
-              >
-                Edit
-              </button>
-              <span>|</span>
-              <button className="text-xs underline text-amber-500">
-                Delete
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {data.user.doctor ? (
+        <>
+          <h2 className="text-3xl font-medium text-lime-500 mb-4">Programs</h2>
+          <ul>
+            {data.user.doctor?.schedules.map((schedule) => (
+              <li key={schedule.id} className="flex items-center">
+                <span>
+                  {showInput ? (
+                    <></>
+                  ) : (
+                    <>
+                      {schedule.day} | {formatTime(schedule.startTime)} -{" "}
+                      {formatTime(schedule.endTime)} | {schedule.location.name}
+                    </>
+                  )}
+                </span>
+                <div className="flex gap-2 items-center">
+                  <button
+                    className="text-xs ml-10 underline text-cyan-400"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowInput(true);
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <span>|</span>
+                  <button className="text-xs underline text-amber-500">
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
 
       {isDoctor ? (
         <Link to="/add/schedule">Add Schedule</Link>
