@@ -82,7 +82,7 @@ async function seed() {
     Array.from({ length: totalSchedules }).map(async (_, index) => {
       const schedule = await prisma.schedule.create({
         data: {
-          doctorId: doctors[index % totalDoctors].userId,
+          doctorId: doctors[Math.floor(Math.random() * totalDoctors)].userId,
           day: getDay(Math.floor(Math.random() * 7)),
           startTime: new Date(new Date().setHours(Math.random() + 9, 0, 0, 0)),
           endTime: new Date(new Date().setHours(Math.random() + 17, 0, 0, 0)),
@@ -100,15 +100,11 @@ async function seed() {
     Array.from({ length: totalAppointments }).map(async (_, index) => {
       const appointment = await prisma.booking.create({
         data: {
-          date: new Date(
-            new Date().setDate(
-              new Date().getDate() + Math.floor(Math.random() * 7)
-            )
-          ),
+          date: schedules[Math.floor(Math.random() * totalSchedules)].startTime,
           status: "PENDING",
           scheduleId: schedules[index % totalSchedules].id,
           userId: users[index % totalUsers].id,
-          doctorId: doctors[index % totalDoctors].userId,
+          doctorId: doctors[Math.floor(Math.random() * totalDoctors)].userId,
         },
       });
       return appointment;
