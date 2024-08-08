@@ -15,10 +15,10 @@ import { DaySelect } from "~/components/day-input";
 import { PageTitle } from "~/components/typography";
 import { Button } from "~/components/ui/button";
 import { prisma } from "~/db.server";
-import { requireDoctor, requireUserId } from "~/services/auth.server";
+import { getDoctor, requireUserId } from "~/services/auth.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const doctor = await requireDoctor(request);
+  const doctor = await getDoctor(request);
   if (!doctor) {
     redirect("/");
   }

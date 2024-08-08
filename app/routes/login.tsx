@@ -3,18 +3,25 @@ import type {
   LoaderFunctionArgs,
   MetaFunction,
 } from "@remix-run/node";
+import { getFieldsetConstraint, parseWithZod } from "@conform-to/zod";
 import { Form, json, useActionData } from "@remix-run/react";
+import { ErrorList } from "~/components/forms";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { StatusButton } from "~/components/ui/status-button";
 import { authenticator } from "~/services/auth.server";
+import { validateCSRF } from "~/services/csrf.server";
+import { z } from "zod";
+import { checkHoneypot } from "~/services/honeypot.server";
 import { commitSession, getSession } from "~/services/session.server";
 import { invariantResponse, useIsSubmitting } from "~/utils/misc";
+import { PasswordSchema, UsernameSchema } from "~/utils/user-validation";
+import { prisma } from "~/db.server";
 
 export const meta: MetaFunction = () => {
   return [
     { title: "Login / CH" },
-    { name: "description", content: "Welcome to Remix!" },
+    { name: "description", content: "Login to appoint a doctor!" },
   ];
 };
 
@@ -26,8 +33,13 @@ type LoginActionErros = {
   };
 };
 
+const LoginFormSchema = z.object({
+  username: UsernameSchema,
+  password: PasswordSchema,
+});
+
 export async function loader({ request }: LoaderFunctionArgs) {
-  await authenticator.isAuthenticated(request, {
+  const user = await authenticator.isAuthenticated(request, {
     successRedirect: "/",
   });
   const session = await getSession(request.headers.get("cookie"));
@@ -48,9 +60,47 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
+  // await validateCSRF(formData, request.headers)
+  // checkHoneypot(formData)
+  // const submission = await parseWithZod(formData, {
+  // 	schema: intent =>
+  // 		LoginFormSchema.transform(async (data, ctx) => {
+  // 			if (intent !== 'submit') return { ...data, user: null }
+
+  // 			const userWithPassword = await prisma.user.findUnique({
+  // 				select: { id: true, password: { select: { hash: true } } },
+  // 				where: { username: data.username },
+  // 			})
+  // 			if (!userWithPassword || !userWithPassword.password) {
+  // 				ctx.addIssue({
+  // 					code: 'custom',
+  // 					message: 'Invalid username or password',
+  // 				})
+  // 				return z.NEVER
+  // 			}
+
+  // 			const isValid = await bcrypt.compare(
+  // 				data.password,
+  // 				userWithPassword.password.hash,
+  // 			)
+
+  // 			if (!isValid) {
+  // 				ctx.addIssue({
+  // 					code: 'custom',
+  // 					message: 'Invalid username or password',
+  // 				})
+  // 				return z.NEVER
+  // 			}
+
+  // 			return { ...data, user: { id: userWithPassword.id } }
+  // 		}),
+  // 	async: true,
+  // })
+  // // get the password off the payload that's sent back
+  // delete submission.payload.password
+
   const username = formData.get("username");
   const password = formData.get("password");
-
   invariantResponse(typeof username === "string", "Username must be a string");
   invariantResponse(typeof password === "string", "Password must be a string");
 
@@ -83,23 +133,9 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 }
 
-function ErrorList({ errors }: { errors?: Array<string> | null }) {
-  return errors?.length ? (
-    <ul className="flex flex-col gap-1">
-      {errors.map((error, i) => (
-        <li key={i} className="text-[10px] text-destructive">
-          {error}
-        </li>
-      ))}
-    </ul>
-  ) : null;
-}
-
 export default function Login() {
   const actionData = useActionData<typeof action>();
   const isSubmitting = useIsSubmitting();
-
-  const formId = "login";
 
   const fieldErrors =
     actionData?.status === "error" ? actionData.errors.fieldErrors : null;
@@ -109,7 +145,6 @@ export default function Login() {
   return (
     <div className="font-sans p-4">
       <Form
-        id={formId}
         method="POST"
         className="flex max-w-xl mx-auto h-full flex-col gap-y-6 overflow-y-auto overflow-x-hidden px-10 py-12 border rounded-md"
       >
@@ -142,7 +177,6 @@ export default function Login() {
         <ErrorList errors={formErrors} />
 
         <StatusButton
-          form={formId}
           type="submit"
           disabled={isSubmitting}
           status={isSubmitting ? "pending" : "idle"}

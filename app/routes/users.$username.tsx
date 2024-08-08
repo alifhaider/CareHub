@@ -5,6 +5,7 @@ import {
 } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { useState } from "react";
+import Calendar from "~/components/calendar";
 import { Spacer } from "~/components/spacer";
 import { PageTitle } from "~/components/typography";
 import { prisma } from "~/db.server";
@@ -47,15 +48,15 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
-    { title: `${data?.user.username}/CareHub` },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: `${data?.user.username} / CH` },
+    { name: "description", content: `CareHub ${data?.user.username} Profile!` },
   ];
 };
 
 export default function User() {
   const [showInput, setShowInput] = useState(false);
   const data = useLoaderData<typeof loader>();
-  const isDoctor = data.user?.doctor !== null;
+  const isDoctor = data.user?.doctor || false;
 
   return (
     <div>
@@ -87,7 +88,18 @@ export default function User() {
       <Spacer variant="md" />
       {data.user.doctor ? (
         <>
-          <h2 className="text-3xl font-medium text-lime-500 mb-4">Programs</h2>
+          <div className="flex items-center gap-2 text-foreground">
+            <h2 className="text-3xl font-medium text-lime-500 mb-4">
+              Doctor Schedules
+            </h2>
+            <p className="text-sm text-accent-foreground">
+              (You can book any of the schedule)
+            </p>
+          </div>
+          <Calendar />
+          <div>
+            <ul className="flex items-center"></ul>
+          </div>
           <ul>
             {data.user.doctor?.schedules.map((schedule) => (
               <li key={schedule.id} className="flex items-center">

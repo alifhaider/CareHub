@@ -27,7 +27,7 @@ export const authSessionStorage = createCookieSessionStorage({
     path: "/",
     httpOnly: true,
     secrets: [process.env.SESSION_SECRET],
-    secure: process.env.NODE_ENV === "production",
+    secure: isProduction,
   },
 });
 

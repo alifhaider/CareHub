@@ -11,7 +11,6 @@ export type { User };
 
 export const authenticator = new Authenticator<User>(authSessionStorage, {
   sessionKey: "token",
-  sessionErrorKey: "session-error-key",
   throwOnError: true,
 });
 
@@ -20,6 +19,8 @@ authenticator.use(
   new FormStrategy(async ({ form }) => {
     const username = form.get("username");
     const password = form.get("password");
+
+    console.log(username, password, "from authenticator");
 
     invariant(typeof username === "string", "username must be a string");
     invariant(username.length > 0, "username must not be empty");
@@ -58,7 +59,7 @@ export async function requireUserId(
   return userId;
 }
 
-export async function requireDoctor(request: Request) {
+export async function getDoctor(request: Request) {
   const user = await requireUserId(request);
   const doctor = await prisma.doctor.findUnique({
     where: {
@@ -67,7 +68,7 @@ export async function requireDoctor(request: Request) {
   });
 
   if (!doctor) {
-    throw new Error("You are not authorized to access this page");
+    return null;
   }
 
   return doctor;
