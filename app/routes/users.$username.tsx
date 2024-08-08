@@ -105,7 +105,7 @@ export default function User() {
               <li key={schedule.id} className="flex items-center">
                 <span>
                   {showInput ? (
-                    <></>
+                    <>Didn&apos;t set any input fields yet</>
                   ) : (
                     <>
                       {schedule.day} | {formatTime(schedule.startTime)} -{" "}
@@ -118,10 +118,10 @@ export default function User() {
                     className="text-xs ml-10 underline text-cyan-400"
                     onClick={(e) => {
                       e.preventDefault();
-                      setShowInput(true);
+                      setShowInput(t => !t);
                     }}
                   >
-                    Edit
+                    {showInput ? "Cancel" : "Edit"}
                   </button>
                   <span>|</span>
                   <button className="text-xs underline text-amber-500">
