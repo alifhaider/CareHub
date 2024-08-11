@@ -179,7 +179,7 @@ export default function LoginPage() {
 }
 
 export const meta: MetaFunction = () => {
-  return [{ title: "Login to CareHub" }];
+  return [{ title: "Login / CH" }];
 };
 
 export function ErrorBoundary() {
