@@ -41,7 +41,7 @@ function getDatesInView(
 ) {
   const extraSlotsForPrevMonth = currentDate % currentDay;
   const extraSlotsForNextMonth =
-  (extraSlotsForPrevMonth + numberOfDaysInCurrentMonth) % DAYS_PER_WEEK;
+    (extraSlotsForPrevMonth + numberOfDaysInCurrentMonth) % DAYS_PER_WEEK;
   const prevMonthDates = getPrevMonthDates(
     extraSlotsForPrevMonth,
     numberOfDaysInPrevMonth
@@ -50,11 +50,15 @@ function getDatesInView(
     extraSlotsForNextMonth,
     numberOfDaysInNextMonth
   );
-  
+
   const dates = Array.from({ length: numberOfDaysInCurrentMonth }).map(
     (_, i) => i + 1
   );
-  console.log(extraSlotsForPrevMonth, extraSlotsForNextMonth, numberOfDaysInCurrentMonth)
+  console.log(
+    extraSlotsForPrevMonth,
+    extraSlotsForNextMonth,
+    numberOfDaysInCurrentMonth
+  );
   return { prevMonthDates, currentMonthDates: dates, nextMonthDates };
 }
 
@@ -78,7 +82,6 @@ function getNextMonthDates(
 
 export default function Calendar() {
   const [date, setDate] = useState(() => new Date());
-
 
   const today = new Date(); // August 9th, 2024 (Friday)
   const currentDate = date.getDate(); // returns the date 9

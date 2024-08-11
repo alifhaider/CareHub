@@ -1,108 +1,144 @@
-import bcrypt from "bcryptjs";
 import { type Password, type User } from "@prisma/client";
-import { Authenticator } from "remix-auth";
-import { FormStrategy } from "remix-auth-form";
+import { redirect } from "@remix-run/node";
+import bcrypt from "bcryptjs";
+import { safeRedirect } from "remix-utils/safe-redirect";
 import { prisma } from "~/db.server";
-import { authSessionStorage } from "~/services/session.server";
-import invariant from "tiny-invariant";
-import { typedBoolean } from "~/utils/misc";
-export { bcrypt }
+import { combineResponseInits } from "~/utils/misc";
+import { authSessionStorage } from "./session.server";
 
-export type { User };
+const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30;
+export const getSessionExpirationDate = () =>
+  new Date(Date.now() + SESSION_EXPIRATION_TIME);
 
-export const authenticator = new Authenticator<User>(authSessionStorage, {
-  sessionKey: "accessToken",
-  sessionErrorKey: "authError",
-  throwOnError: true,
-});
+export const userIdKey = "userId";
 
-// Tell the Authenticator to use the form strategy
-// authenticator.use(
-//   new FormStrategy(async ({ form }) => {
-//     const username = form.get("username");
-//     const password = form.get("password");
-
-//     console.log(username, password, "from authenticator");
-
-//     invariant(typeof username === "string", "username must be a string");
-//     invariant(username.length > 0, "username must not be empty");
-
-//     invariant(typeof password === "string", "password must be a string");
-//     invariant(password.length > 0, "password must not be empty");
-
-//     const user = await verifyLogin(username, password);
-//     if (!user) {
-//       throw new AuthorizationError("Invalid username or password");
-//     }
-
-//     return user;
-//   }),
-//   "sign-in"
-// );
-
-authenticator.use(
-  new FormStrategy(async ({ form }) => {
-    const username = form.get("username");
-    const password = form.get("password");
-    invariant(typeof username === "string", "username must be a string");
-    invariant(username.length > 0, "username must not be empty");
-
-    invariant(typeof password === "string", "password must be a string");
-    invariant(password.length > 0, "password must not be empty");
-    const user = await verifyLogin(username, password);
-    if (!user) {
-      throw new Error("Invalid username or password");
-    }
-    return user;
-  }),
-  "sign-in"
-);
-
+export async function getUserId(request: Request) {
+  const cookieSession = await authSessionStorage.getSession(
+    request.headers.get("cookie")
+  );
+  const userId = cookieSession.get(userIdKey);
+  if (!userId) return null;
+  const user = await prisma.user.findUnique({
+    select: { id: true },
+    where: { id: userId },
+  });
+  if (!user) {
+    throw await logout({ request });
+  }
+  return user.id;
+}
 
 export async function requireUserId(
   request: Request,
   { redirectTo }: { redirectTo?: string | null } = {}
 ) {
-  const requestUrl = new URL(request.url);
-  redirectTo =
-    redirectTo === null
-      ? null
-      : redirectTo ?? `${requestUrl.pathname}${requestUrl.search}`;
-  const loginParams = redirectTo
-    ? new URLSearchParams([["redirectTo", redirectTo]])
-    : null;
-  const failureRedirect = ["/login", loginParams?.toString()]
-    .filter(typedBoolean)
-    .join("?");
-  const userId = await authenticator.isAuthenticated(request, {
-    failureRedirect,
-  });
+  const userId = await getUserId(request);
+  if (!userId) {
+    const requestUrl = new URL(request.url);
+    redirectTo =
+      redirectTo === null
+        ? null
+        : redirectTo ?? `${requestUrl.pathname}${requestUrl.search}`;
+    const loginParams = redirectTo ? new URLSearchParams({ redirectTo }) : null;
+    const loginRedirect = ["/login", loginParams?.toString()]
+      .filter(Boolean)
+      .join("?");
+    throw redirect(loginRedirect);
+  }
   return userId;
 }
 
-export async function getDoctor(request: Request) {
-  const user = await requireUserId(request);
-  const doctor = await prisma.doctor.findUnique({
-    where: {
-      userId: user?.id,
+export async function requireAnonymous(request: Request) {
+  const userId = await getUserId(request);
+  if (userId) {
+    throw redirect("/");
+  }
+}
+
+export async function requireUser(request: Request) {
+  const userId = await requireUserId(request);
+  const user = await prisma.user.findUnique({
+    select: { id: true, username: true },
+    where: { id: userId },
+  });
+  if (!user) {
+    throw await logout({ request });
+  }
+  return user;
+}
+
+export async function login({
+  username,
+  password,
+}: {
+  username: User["username"];
+  password: string;
+}) {
+  return verifyUserPassword({ username }, password);
+}
+
+export async function signup({
+  email,
+  username,
+  password,
+}: {
+  email: User["email"];
+  username: User["username"];
+  password: string;
+}) {
+  const hashedPassword = await getPasswordHash(password);
+
+  const user = await prisma.user.create({
+    select: { id: true },
+    data: {
+      email: email.toLowerCase(),
+      username: username.toLowerCase(),
+      password: {
+        create: {
+          hash: hashedPassword,
+        },
+      },
     },
   });
 
-  if (!doctor) {
-    return null;
-  }
-
-  return doctor;
+  return user;
 }
 
-async function verifyLogin(
-  username: User["username"],
+export async function logout(
+  {
+    request,
+    redirectTo = "/",
+  }: {
+    request: Request;
+    redirectTo?: string;
+  },
+  responseInit?: ResponseInit
+) {
+  const cookieSession = await authSessionStorage.getSession(
+    request.headers.get("cookie")
+  );
+  throw redirect(
+    safeRedirect(redirectTo),
+    combineResponseInits(responseInit, {
+      headers: {
+        "set-cookie": await authSessionStorage.destroySession(cookieSession),
+      },
+    })
+  );
+}
+
+export async function getPasswordHash(password: string) {
+  const hash = await bcrypt.hash(password, 10);
+  return hash;
+}
+
+export async function verifyUserPassword(
+  where: Pick<User, "username"> | Pick<User, "id">,
   password: Password["hash"]
 ) {
-  // this is a fake function to simulate a login
   const userWithPassword = await prisma.user.findUnique({
-    where: { username },
-    include: { password: true },
+    where,
+    select: { id: true, password: { select: { hash: true } } },
   });
 
   if (!userWithPassword || !userWithPassword.password) {
@@ -118,5 +154,5 @@ async function verifyLogin(
     return null;
   }
 
-  return userWithPassword;
+  return { id: userWithPassword.id };
 }

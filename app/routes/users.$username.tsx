@@ -90,20 +90,18 @@ export default function User() {
       {data.user.doctor ? (
         <>
           <div className="flex items-center gap-2 text-foreground">
-            <h2 className="text-4xl font-semibold text- mb-4">
-              Schedules
-            </h2>
+            <h2 className="text-4xl font-semibold text- mb-4">Schedules</h2>
             <p className="text-sm text-accent-foreground">
               (You can book any of the schedule)
             </p>
           </div>
 
           <Calendar
-    mode="single"
-    selected={date}
-    onSelect={setDate}
-    className="rounded-md border"
-  />
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            className="rounded-md border"
+          />
           <div>
             <ul className="flex items-center"></ul>
           </div>
@@ -125,7 +123,7 @@ export default function User() {
                     className="text-xs ml-10 underline text-cyan-400"
                     onClick={(e) => {
                       e.preventDefault();
-                      setShowInput(t => !t);
+                      setShowInput((t) => !t);
                     }}
                   >
                     {showInput ? "Cancel" : "Edit"}

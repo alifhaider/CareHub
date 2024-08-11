@@ -9,7 +9,10 @@ import {
 } from "@remix-run/react";
 import stylesheet from "~/tailwind.css?url";
 import Navbar from "./components/navbar";
-import { authSessionStorage, themeSessionResolver } from "./services/session.server";
+import {
+  authSessionStorage,
+  themeSessionResolver,
+} from "./services/session.server";
 import {
   PreventFlashOnWrongTheme,
   ThemeProvider,
@@ -24,18 +27,18 @@ export const links: LinksFunction = () => [
 export async function loader({ request }: LoaderFunctionArgs) {
   const { getTheme } = await themeSessionResolver(request);
   const cookieSession = await authSessionStorage.getSession(
-		request.headers.get('cookie'),
-	)
-	const userId = cookieSession.get('userId')
-	const user = userId
-		? await prisma.user.findUnique({
-				select: {
-					id: true,
-					username: true,
-				},
-				where: { id: userId },
-			})
-		: null
+    request.headers.get("cookie")
+  );
+  const userId = cookieSession.get("userId");
+  const user = userId
+    ? await prisma.user.findUnique({
+        select: {
+          id: true,
+          username: true,
+        },
+        where: { id: userId },
+      })
+    : null;
   return json({
     user: user,
     theme: getTheme(),
@@ -52,7 +55,7 @@ export default function AppWithProviders() {
 }
 
 export function App() {
-  const {user, theme: loaderTheme} = useLoaderData<typeof loader>();
+  const { user, theme: loaderTheme } = useLoaderData<typeof loader>();
   const [theme] = useTheme();
   return (
     <html lang="en" data-theme={theme ?? ""}>

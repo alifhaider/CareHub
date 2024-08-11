@@ -19,21 +19,19 @@ export function formatTime(time: string) {
   return `${hours}:${minutes} AM`;
 }
 
-
 export function getErrorMessage(error: unknown) {
-  if (typeof error === 'string') return error
+  if (typeof error === "string") return error;
   if (
     error &&
-    typeof error === 'object' &&
-    'message' in error &&
-    typeof error.message === 'string'
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string"
   ) {
-    return error.message
+    return error.message;
   }
-  console.error('Unable to get error message for error', error)
-  return 'Unknown Error'
+  console.error("Unable to get error message for error", error);
+  return "Unknown Error";
 }
-
 
 /**
  * A handy utility that makes constructing class names easier.
@@ -68,7 +66,7 @@ export function invariantResponse(
       typeof message === "function"
         ? message()
         : message ||
-        "An invariant failed, please provide a message to explain why.",
+          "An invariant failed, please provide a message to explain why.",
       { status: 400, ...responseInit }
     );
   }
@@ -86,23 +84,54 @@ export function invariantResponse(
  */
 export function useIsPending({
   formAction,
-  formMethod = 'POST',
-  state = 'non-idle',
+  formMethod = "POST",
+  state = "non-idle",
 }: {
-  formAction?: string
-  formMethod?: 'POST' | 'GET' | 'PUT' | 'PATCH' | 'DELETE'
-  state?: 'submitting' | 'loading' | 'non-idle'
+  formAction?: string;
+  formMethod?: "POST" | "GET" | "PUT" | "PATCH" | "DELETE";
+  state?: "submitting" | "loading" | "non-idle";
 } = {}) {
-  const contextualFormAction = useFormAction()
-  const navigation = useNavigation()
+  const contextualFormAction = useFormAction();
+  const navigation = useNavigation();
   const isPendingState =
-    state === 'non-idle'
-      ? navigation.state !== 'idle'
-      : navigation.state === state
+    state === "non-idle"
+      ? navigation.state !== "idle"
+      : navigation.state === state;
   return (
     isPendingState &&
     navigation.formAction === (formAction ?? contextualFormAction) &&
     navigation.formMethod === formMethod
-  )
+  );
 }
 
+/**
+ * Combine multiple header objects into one (uses append so headers are not overridden)
+ */
+export function combineHeaders(
+  ...headers: Array<ResponseInit["headers"] | null>
+) {
+  const combined = new Headers();
+  for (const header of headers) {
+    if (!header) continue;
+    for (const [key, value] of new Headers(header).entries()) {
+      combined.append(key, value);
+    }
+  }
+  return combined;
+}
+
+/**
+ * Combine multiple response init objects into one (uses combineHeaders)
+ */
+export function combineResponseInits(
+  ...responseInits: Array<ResponseInit | undefined>
+) {
+  let combined: ResponseInit = {};
+  for (const responseInit of responseInits) {
+    combined = {
+      ...responseInit,
+      headers: combineHeaders(combined.headers, responseInit?.headers),
+    };
+  }
+  return combined;
+}
