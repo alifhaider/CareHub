@@ -9,13 +9,13 @@ import {
 } from "@remix-run/react";
 import stylesheet from "~/tailwind.css?url";
 import Navbar from "./components/navbar";
-import { themeSessionResolver } from "./services/session.server";
+import { authSessionStorage, themeSessionResolver } from "./services/session.server";
 import {
   PreventFlashOnWrongTheme,
   ThemeProvider,
   useTheme,
 } from "remix-themes";
-import { authenticator } from "./services/auth.server";
+import { prisma } from "./db.server";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -23,9 +23,21 @@ export const links: LinksFunction = () => [
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const { getTheme } = await themeSessionResolver(request);
-  const user = await authenticator.isAuthenticated(request);
+  const cookieSession = await authSessionStorage.getSession(
+		request.headers.get('cookie'),
+	)
+	const userId = cookieSession.get('userId')
+	const user = userId
+		? await prisma.user.findUnique({
+				select: {
+					id: true,
+					username: true,
+				},
+				where: { id: userId },
+			})
+		: null
   return json({
-    username: user?.username,
+    user: user,
     theme: getTheme(),
   });
 }
@@ -40,7 +52,7 @@ export default function AppWithProviders() {
 }
 
 export function App() {
-  const data = useLoaderData<typeof loader>();
+  const {user, theme: loaderTheme} = useLoaderData<typeof loader>();
   const [theme] = useTheme();
   return (
     <html lang="en" data-theme={theme ?? ""}>
@@ -48,12 +60,12 @@ export function App() {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
-        <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} />
+        <PreventFlashOnWrongTheme ssrTheme={Boolean(loaderTheme)} />
         <Links />
       </head>
       <body className="bg-background">
         <div className="max-w-7xl mx-auto">
-          <Navbar username={data.username} />
+          <Navbar username={user?.username} />
           <Outlet />
         </div>
         <ScrollRestoration />

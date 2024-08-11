@@ -10,6 +10,7 @@ async function seed() {
   await prisma.schedule.deleteMany();
   await prisma.scheduleLocation.deleteMany();
   await prisma.education.deleteMany();
+  await prisma.review.deleteMany();
   await prisma.doctor.deleteMany();
   await prisma.user.deleteMany();
   await prisma.password.deleteMany();
@@ -20,6 +21,7 @@ async function seed() {
   const totalAppointments = 20;
   const totalScheduleLocations = 10;
   const totalSchedules = 10;
+  const totalReviews = 40;
 
   console.time("👨‍⚕️ Creating users...");
   const users = await Promise.all(

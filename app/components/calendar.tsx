@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 const DAYS = [
   "Sunday",
   "Monday",
@@ -22,7 +24,7 @@ const MONTHS = [
   "December",
 ];
 
-const DAYS_PER_WEEK = 7
+const DAYS_PER_WEEK = 7;
 
 const DATE_RANGES = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
@@ -38,7 +40,8 @@ function getDatesInView(
   numberOfDaysInNextMonth: number
 ) {
   const extraSlotsForPrevMonth = currentDate % currentDay;
-  const extraSlotsForNextMonth = (extraSlotsForPrevMonth + numberOfDaysInCurrentMonth) % DAYS_PER_WEEK;
+  const extraSlotsForNextMonth =
+  (extraSlotsForPrevMonth + numberOfDaysInCurrentMonth) % DAYS_PER_WEEK;
   const prevMonthDates = getPrevMonthDates(
     extraSlotsForPrevMonth,
     numberOfDaysInPrevMonth
@@ -47,8 +50,11 @@ function getDatesInView(
     extraSlotsForNextMonth,
     numberOfDaysInNextMonth
   );
-
-  const dates = Array.from({ length: numberOfDaysInCurrentMonth }).map((_, i) => i + 1);
+  
+  const dates = Array.from({ length: numberOfDaysInCurrentMonth }).map(
+    (_, i) => i + 1
+  );
+  console.log(extraSlotsForPrevMonth, extraSlotsForNextMonth, numberOfDaysInCurrentMonth)
   return { prevMonthDates, currentMonthDates: dates, nextMonthDates };
 }
 
@@ -71,13 +77,14 @@ function getNextMonthDates(
 }
 
 export default function Calendar() {
-  // const [date, setDate] = useState(() => new Date())
+  const [date, setDate] = useState(() => new Date());
+
 
   const today = new Date(); // August 9th, 2024 (Friday)
-  const currentDate = today.getDate(); // returns the date 9
-  const currentMonth = today.getMonth(); // 7
-  const currentYear = today.getFullYear(); // 2024
-  const currentDay = today.getDay(); // 5 -> starts from sunday
+  const currentDate = date.getDate(); // returns the date 9
+  const currentMonth = date.getMonth(); // 7
+  const currentYear = date.getFullYear(); // 2024
+  const currentDay = date.getDay(); // 5 -> starts from sunday
 
   const { prevMonthDates, currentMonthDates, nextMonthDates } = getDatesInView(
     currentDate,
@@ -92,11 +99,21 @@ export default function Calendar() {
       <div className="flex items-center justify-between gap-10">
         <button>{currentYear - 1}</button>
         <div className="flex items-center justify-center gap-4">
-          <button className="text-muted-foreground text-xs">
+          <button
+            className="text-muted-foreground text-xs"
+            onClick={() =>
+              setDate(new Date(new Date().setMonth(currentMonth - 1)))
+            }
+          >
             {getShortendText(MONTHS[currentMonth - 1])}
           </button>
           <span className="text-primary">{MONTHS[currentMonth]}</span>
-          <button className="text-muted-foreground text-xs">
+          <button
+            className="text-muted-foreground text-xs"
+            onClick={() =>
+              setDate(new Date(new Date().setMonth(currentMonth + 1)))
+            }
+          >
             {getShortendText(MONTHS[currentMonth + 1])}
           </button>
         </div>

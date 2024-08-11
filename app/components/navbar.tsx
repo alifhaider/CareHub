@@ -12,7 +12,7 @@ import { Form, Link } from "@remix-run/react";
 export default function Navbar({ username }: { username?: string }) {
   const [, setTheme] = useTheme();
   return (
-    <nav className="flex items-center justify-between p-4">
+    <nav className="flex items-center justify-between py-4 border-b">
       <div>
         <a href="/" className="font-bold text-xl">
           CareHub

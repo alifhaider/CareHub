@@ -1,189 +1,179 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction,
-} from "@remix-run/node";
-import { getFieldsetConstraint, parseWithZod } from "@conform-to/zod";
-import { Form, json, useActionData } from "@remix-run/react";
-import { ErrorList } from "~/components/forms";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { StatusButton } from "~/components/ui/status-button";
-import { authenticator } from "~/services/auth.server";
-import { validateCSRF } from "~/services/csrf.server";
-import { z } from "zod";
-import { checkHoneypot } from "~/services/honeypot.server";
-import { commitSession, getSession } from "~/services/session.server";
-import { invariantResponse, useIsSubmitting } from "~/utils/misc";
-import { PasswordSchema, UsernameSchema } from "~/utils/user-validation";
-import { prisma } from "~/db.server";
-
-export const meta: MetaFunction = () => {
-  return [
-    { title: "Login / CH" },
-    { name: "description", content: "Login to appoint a doctor!" },
-  ];
-};
-
-type LoginActionErros = {
-  formErrors: Array<string>;
-  fieldErrors: {
-    username: Array<string>;
-    password: Array<string>;
-  };
-};
+import {
+	json,
+	redirect,
+	type ActionFunctionArgs,
+	type MetaFunction,
+} from '@remix-run/node'
+import { Form, Link, useActionData } from '@remix-run/react'
+import { z } from 'zod'
+import { parseWithZod } from '@conform-to/zod';
+import { getFormProps, getInputProps, useForm } from '@conform-to/react';
+import { GeneralErrorBoundary } from '~/components/error-boundary'
+import { ErrorList, Field } from '~/components/forms'
+import { StatusButton } from '~/components/ui/status-button'
+import { bcrypt } from '~/services/auth.server'
+import { prisma } from '~/db.server'
+import { useIsPending } from '~/utils/misc'
+import { PasswordSchema, UsernameSchema } from '~/utils/user-validation'
+import { authSessionStorage } from '~/services/session.server'
 
 const LoginFormSchema = z.object({
-  username: UsernameSchema,
-  password: PasswordSchema,
-});
-
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await authenticator.isAuthenticated(request, {
-    successRedirect: "/",
-  });
-  const session = await getSession(request.headers.get("cookie"));
-  const error = session.get(authenticator.sessionErrorKey);
-  let errorMessage: string | null = null;
-  if (typeof error?.message === "string") {
-    errorMessage = error.message;
-  }
-  return json(
-    { formError: errorMessage },
-    {
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    }
-  );
-}
+	username: UsernameSchema,
+	password: PasswordSchema,
+})
 
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  // await validateCSRF(formData, request.headers)
-  // checkHoneypot(formData)
-  // const submission = await parseWithZod(formData, {
-  // 	schema: intent =>
-  // 		LoginFormSchema.transform(async (data, ctx) => {
-  // 			if (intent !== 'submit') return { ...data, user: null }
+	const formData = await request.formData()
+	// await validateCSRF(formData, request.headers)
+	// checkHoneypot(formData)
+	const submission = await parseWithZod(formData, {
+		schema: () =>
+			LoginFormSchema.transform(async (data, ctx) => {
 
-  // 			const userWithPassword = await prisma.user.findUnique({
-  // 				select: { id: true, password: { select: { hash: true } } },
-  // 				where: { username: data.username },
-  // 			})
-  // 			if (!userWithPassword || !userWithPassword.password) {
-  // 				ctx.addIssue({
-  // 					code: 'custom',
-  // 					message: 'Invalid username or password',
-  // 				})
-  // 				return z.NEVER
-  // 			}
+				const userWithPassword = await prisma.user.findUnique({
+					select: { id: true, password: { select: { hash: true } } },
+					where: { username: data.username },
+				})
+				if (!userWithPassword || !userWithPassword.password) {
+					ctx.addIssue({
+						code: 'custom',
+						message: 'Invalid username',
+					})
+					return z.NEVER
+				}
 
-  // 			const isValid = await bcrypt.compare(
-  // 				data.password,
-  // 				userWithPassword.password.hash,
-  // 			)
+				const isValid = await bcrypt.compare(
+					data.password,
+					userWithPassword.password.hash,
+				)
 
-  // 			if (!isValid) {
-  // 				ctx.addIssue({
-  // 					code: 'custom',
-  // 					message: 'Invalid username or password',
-  // 				})
-  // 				return z.NEVER
-  // 			}
+				if (!isValid) {
+					ctx.addIssue({
+						code: 'custom',
+						message: 'Invalid password',
+					})
+					return z.NEVER
+				}
 
-  // 			return { ...data, user: { id: userWithPassword.id } }
-  // 		}),
-  // 	async: true,
-  // })
-  // // get the password off the payload that's sent back
-  // delete submission.payload.password
+				return { ...data, user: { id: userWithPassword.id } }
+			}),
+		async: true,
+	})
+	// // get the password off the payload that's sent back
+	// delete submission.payload.password
 
-  const username = formData.get("username");
-  const password = formData.get("password");
-  invariantResponse(typeof username === "string", "Username must be a string");
-  invariantResponse(typeof password === "string", "Password must be a string");
-
-  const errors: LoginActionErros = {
-    formErrors: [],
-    fieldErrors: {
-      username: [],
-      password: [],
-    },
-  };
-
-  if (username === "") {
-    errors.fieldErrors.username.push("Username is required");
+	// if (submission.intent !== 'submit') {
+	// 	delete submission.value?.password
+	// 	return json({ status: 'idle', submission } as const)
+	// }
+	// if (!submission.value?.user) {
+	// 	return json({ status: 'error', submission } as const, { status: 400 })
+  // }
+  
+    if (submission.status !== 'success') {
+    return json(submission.reply());
   }
 
-  if (password === "") {
-    errors.fieldErrors.password.push("Password is required");
-  }
+	const { user } = submission.value
 
-  const hasErros =
-    errors.formErrors.length ||
-    Object.values(errors.fieldErrors).some((fieldErrors) => fieldErrors.length);
+	const cookieSession = await authSessionStorage.getSession(
+		request.headers.get('cookie'),
+	)
+	cookieSession.set('userId', user.id)
 
-  if (hasErros) {
-    return json({ status: "error", errors } as const, { status: 400 });
-  }
-  return await authenticator.authenticate("sign-in", request, {
-    successRedirect: "/",
-    failureRedirect: "/login",
-  });
+	return redirect('/', {
+		headers: {
+			'set-cookie': await authSessionStorage.commitSession(cookieSession),
+		},
+	})
 }
 
-export default function Login() {
-  const actionData = useActionData<typeof action>();
-  const isSubmitting = useIsSubmitting();
+export default function LoginPage() {
+	const actionData = useActionData<typeof action>()
+	const isPending = useIsPending()
 
-  const fieldErrors =
-    actionData?.status === "error" ? actionData.errors.fieldErrors : null;
-  const formErrors =
-    actionData?.status === "error" ? actionData.errors.formErrors : null;
+	const [form, fields] = useForm({
+		id: 'login-form',
+		lastResult: actionData,
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema: LoginFormSchema })
+		},
+		shouldRevalidate: 'onBlur',
+	})
 
-  return (
-    <div className="font-sans p-4">
-      <Form
-        method="POST"
-        className="flex max-w-xl mx-auto h-full flex-col gap-y-6 overflow-y-auto overflow-x-hidden px-10 py-12 border rounded-md"
-      >
-        <h1 className="text-3xl font-bold text-center">
-          Login to your account
-        </h1>
-        <div className="space-y-1">
-          <Label htmlFor="username">Username</Label>
-          <Input
-            id="username"
-            type="text"
-            name="username"
-            placeholder="Username"
-            required
-          />
-          <ErrorList errors={fieldErrors?.username} />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            name="password"
-            placeholder="Password"
-            required
-          />
-          <ErrorList errors={fieldErrors?.password} />
-        </div>
+	return (
+		<div className="flex min-h-full flex-col justify-center pb-32 pt-20">
+			<div className="mx-auto w-full max-w-md">
+				<div className="flex flex-col gap-3 text-center">
+					<h1 className="text-h1">Welcome back!</h1>
+					<p className="text-body-md text-muted-foreground">
+						Please enter your details.
+					</p>
+				</div>
+				
+        <div className='mt-10' />
 
-        <ErrorList errors={formErrors} />
+				<div>
+					<div className="mx-auto w-full max-w-md px-8">
+						<Form method="POST" {...getFormProps(form)}>
+							{/* <AuthenticityTokenInput /> */}
+							{/* <HoneypotInputs /> */}
+							<Field
+								labelProps={{ children: 'Username' }}
+								inputProps={{
+									...getInputProps(fields.username, {type: 'text'}),
+									autoFocus: true,
+									className: 'lowercase',
+								}}
+								errors={fields.username.errors}
+							/>
 
-        <StatusButton
-          type="submit"
-          disabled={isSubmitting}
-          status={isSubmitting ? "pending" : "idle"}
-        >
-          Login
-        </StatusButton>
-      </Form>
-    </div>
-  );
+							<Field
+								labelProps={{ children: 'Password' }}
+								inputProps={{...getInputProps(fields.password, {type: 'password'})}}
+								errors={fields.password.errors}
+							/>
+
+							<div className="flex justify-between">
+								<div />
+								<div>
+									<Link
+										to="/forgot-password"
+										className="text-body-xs font-semibold"
+									>
+										Forgot password?
+									</Link>
+								</div>
+							</div>
+
+							<ErrorList errors={form.errors} id={form.errorId} />
+
+							<div className="flex items-center justify-between gap-6 pt-3">
+								<StatusButton
+									className="w-full"
+									status={isPending ? 'pending' : actionData?.status ?? 'idle'}
+									type="submit"
+									disabled={isPending}
+								>
+									Log in
+								</StatusButton>
+							</div>
+						</Form>
+						<div className="flex items-center justify-center gap-2 pt-6">
+							<span className="text-muted-foreground">New here?</span>
+							<Link to="/signup">Create an account</Link>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+export const meta: MetaFunction = () => {
+	return [{ title: 'Login to CareHub' }]
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

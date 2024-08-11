@@ -1,27 +1,44 @@
-import { isRouteErrorResponse, useRouteError } from "@remix-run/react";
+import {
+	isRouteErrorResponse,
+	useParams,
+	useRouteError,
+	type ErrorResponse,
+} from '@remix-run/react'
+import { getErrorMessage } from '~/utils/misc'
 
-export function ErrorBoundary() {
-  const error = useRouteError();
+type StatusHandler = (info: {
+	error: ErrorResponse
+	params: Record<string, string | undefined>
+}) => JSX.Element | null
 
-  if (isRouteErrorResponse(error)) {
-    return (
-      <div>
-        <h1>
-          {error.status} {error.statusText}
-        </h1>
-        <p>{error.data}</p>
-      </div>
-    );
-  } else if (error instanceof Error) {
-    return (
-      <div>
-        <h1>Error</h1>
-        <p>{error.message}</p>
-        <p>The stack trace is:</p>
-        <pre>{error.stack}</pre>
-      </div>
-    );
-  } else {
-    return <h1>Unknown Error</h1>;
-  }
+export function GeneralErrorBoundary({
+	defaultStatusHandler = ({ error }) => (
+		<p>
+			{error.status} {getErrorMessage(error.data)}
+		</p>
+	),
+	statusHandlers,
+	unexpectedErrorHandler = error => <p>{getErrorMessage(error)}</p>,
+}: {
+	defaultStatusHandler?: StatusHandler
+	statusHandlers?: Record<number, StatusHandler>
+	unexpectedErrorHandler?: (error: unknown) => JSX.Element | null
+}) {
+	const error = useRouteError()
+	const params = useParams()
+
+	if (typeof document !== 'undefined') {
+		console.error(error)
+	}
+
+	return (
+		<div className="container flex h-full w-full items-center justify-center bg-destructive p-20 text-h2 text-destructive-foreground">
+			{isRouteErrorResponse(error)
+				? (statusHandlers?.[error.status] ?? defaultStatusHandler)({
+						error,
+						params,
+					})
+				: unexpectedErrorHandler(error)}
+		</div>
+	)
 }

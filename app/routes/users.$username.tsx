@@ -5,9 +5,9 @@ import {
 } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { useState } from "react";
-import Calendar from "~/components/calendar";
 import { Spacer } from "~/components/spacer";
 import { PageTitle } from "~/components/typography";
+import { Calendar } from "~/components/ui/calendar";
 import { prisma } from "~/db.server";
 import { formatTime } from "~/utils/misc";
 
@@ -54,6 +54,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 };
 
 export default function User() {
+  const [date, setDate] = useState<Date | undefined>(new Date());
   const [showInput, setShowInput] = useState(false);
   const data = useLoaderData<typeof loader>();
   const isDoctor = data.user?.doctor || false;
@@ -89,14 +90,20 @@ export default function User() {
       {data.user.doctor ? (
         <>
           <div className="flex items-center gap-2 text-foreground">
-            <h2 className="text-3xl font-medium text-lime-500 mb-4">
-              Doctor Schedules
+            <h2 className="text-4xl font-semibold text- mb-4">
+              Schedules
             </h2>
             <p className="text-sm text-accent-foreground">
               (You can book any of the schedule)
             </p>
           </div>
-          <Calendar />
+
+          <Calendar
+    mode="single"
+    selected={date}
+    onSelect={setDate}
+    className="rounded-md border"
+  />
           <div>
             <ul className="flex items-center"></ul>
           </div>
