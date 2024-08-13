@@ -10,6 +10,9 @@ const config = {
   ],
   prefix: "",
   theme: {
+    fontFamily: {
+      lato: ["Lato", "sans-serif"],
+    },
     container: {
       center: true,
       padding: "2rem",

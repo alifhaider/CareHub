@@ -7,8 +7,6 @@ import {
   type MetaFunction,
 } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
-import { AuthenticityTokenInput } from "remix-utils/csrf/react";
-import { HoneypotInputs } from "remix-utils/honeypot/react";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "~/db.server";

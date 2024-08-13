@@ -9,11 +9,16 @@ import { Spacer } from "~/components/spacer";
 import { PageTitle } from "~/components/typography";
 import { Calendar } from "~/components/ui/calendar";
 import { prisma } from "~/db.server";
-import { formatTime } from "~/utils/misc";
+import { authSessionStorage } from "~/services/session.server";
+import { formatTime, invariantResponse } from "~/utils/misc";
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const username = params.username;
-  const user = await prisma.user.findUnique({
+  const cookieSession = await authSessionStorage.getSession(
+    request.headers.get("cookie")
+  );
+  const loggedInUserId = cookieSession.get("userId");
+  const user = await prisma.user.findFirst({
     where: {
       username,
     },
@@ -39,11 +44,11 @@ export async function loader({ params }: LoaderFunctionArgs) {
     },
   });
 
-  if (!user) {
-    throw new Response("User not found", { status: 404 });
-  }
+  invariantResponse(user, "User not found", { status: 404 });
+  const isOwner = user?.id === loggedInUserId;
+  const isDoctor = user?.doctor || false;
 
-  return json({ user });
+  return json({ user, isOwner, isDoctor });
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -56,19 +61,19 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export default function User() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showInput, setShowInput] = useState(false);
-  const data = useLoaderData<typeof loader>();
-  const isDoctor = data.user?.doctor || false;
+  const { isDoctor, isOwner, user } = useLoaderData<typeof loader>();
 
   return (
-    <div>
-      <PageTitle>
-        <span className="underline">Username:</span> {data.user.username}
-      </PageTitle>
+    <div className="py-10">
+      <div className="flex gap-10">
+        <div className="w-32 h-32 bg-primary-foreground rounded-sm shadow-sm" />
+        <PageTitle>@{user.username}</PageTitle>
+      </div>
 
       <Spacer variant="sm" />
       <p>
         Role: {isDoctor ? "Doctor" : "User"} &#40;
-        {isDoctor && data.user?.doctor?.specialty}&#41;
+        {isDoctor && user?.doctor?.specialty}&#41;
       </p>
 
       <Spacer variant="md" />
@@ -76,7 +81,7 @@ export default function User() {
         Booked Appointments
       </h2>
       <ul>
-        {data.user.bookings.map((appointment) => (
+        {user.bookings.map((appointment) => (
           <li key={appointment.id}>
             {appointment.date} |{" "}
             <Link to={`/users/${appointment.doctor.user.username}`}>
@@ -87,26 +92,14 @@ export default function User() {
       </ul>
 
       <Spacer variant="md" />
-      {data.user.doctor ? (
+      {isDoctor ? (
         <>
-          <div className="flex items-center gap-2 text-foreground">
-            <h2 className="text-4xl font-semibold text- mb-4">Schedules</h2>
-            <p className="text-sm text-accent-foreground">
-              (You can book any of the schedule)
-            </p>
-          </div>
+          <h2 className="text-5xl font-semibold underline mb-4">
+            Available Schedules
+          </h2>
 
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            className="rounded-md border"
-          />
-          <div>
-            <ul className="flex items-center"></ul>
-          </div>
           <ul>
-            {data.user.doctor?.schedules.map((schedule) => (
+            {user.doctor?.schedules.map((schedule) => (
               <li key={schedule.id} className="flex items-center">
                 <span>
                   {showInput ? (
@@ -118,34 +111,39 @@ export default function User() {
                     </>
                   )}
                 </span>
-                <div className="flex gap-2 items-center">
-                  <button
-                    className="text-xs ml-10 underline text-cyan-400"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setShowInput((t) => !t);
-                    }}
-                  >
-                    {showInput ? "Cancel" : "Edit"}
-                  </button>
-                  <span>|</span>
-                  <button className="text-xs underline text-amber-500">
-                    Delete
-                  </button>
-                </div>
+                {isOwner && (
+                  <div className="flex gap-2 items-center">
+                    <button
+                      className="text-xs ml-10 underline text-cyan-400"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowInput((t) => !t);
+                      }}
+                    >
+                      {showInput ? "Cancel" : "Edit"}
+                    </button>
+                    <span>|</span>
+                    <button className="text-xs underline text-amber-500">
+                      Delete
+                    </button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
+
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            className="rounded-md border"
+          />
         </>
       ) : null}
 
-      {isDoctor ? (
+      {isDoctor && isOwner ? (
         <Link to="/add/schedule">Add Schedule</Link>
-      ) : (
-        <>
-          <Link to="/add/appointment">Add Appointment</Link>
-        </>
-      )}
+      ) : null}
     </div>
   );
 }

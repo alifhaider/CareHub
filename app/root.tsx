@@ -19,9 +19,11 @@ import {
   useTheme,
 } from "remix-themes";
 import { prisma } from "./db.server";
+import fontStyles from "~/fonts.css?url";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
+  { rel: "stylesheet", href: fontStyles },
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -67,7 +69,7 @@ export function App() {
         <Links />
       </head>
       <body className="bg-background">
-        <div className="max-w-7xl mx-auto">
+        <div>
           <Navbar username={user?.username} />
           <Outlet />
         </div>

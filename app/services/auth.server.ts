@@ -48,6 +48,7 @@ export async function requireUserId(
   return userId;
 }
 
+// throws a redirect to / if authenticated
 export async function requireAnonymous(request: Request) {
   const userId = await getUserId(request);
   if (userId) {
@@ -55,6 +56,7 @@ export async function requireAnonymous(request: Request) {
   }
 }
 
+// returns user if authenticated, otherwise throws a redirect to login
 export async function requireUser(request: Request) {
   const userId = await requireUserId(request);
   const user = await prisma.user.findUnique({
