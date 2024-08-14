@@ -3,45 +3,45 @@ import {
   json,
   LoaderFunctionArgs,
   redirect,
-} from "@remix-run/node";
+} from '@remix-run/node'
 import {
   Form,
   useActionData,
   useFetcher,
   useLoaderData,
-} from "@remix-run/react";
-import { useState } from "react";
-import { DaySelect } from "~/components/day-input";
-import { PageTitle } from "~/components/typography";
-import { Button } from "~/components/ui/button";
-import { prisma } from "~/db.server";
-import { getDoctor, requireUserId } from "~/services/auth.server";
+} from '@remix-run/react'
+import { useState } from 'react'
+import { DaySelect } from '~/components/day-input'
+import { PageTitle } from '~/components/typography'
+import { Button } from '~/components/ui/button'
+import { prisma } from '~/db.server'
+import { getDoctor, requireUserId } from '~/services/auth.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const doctor = await getDoctor(request);
+  const doctor = await getDoctor(request)
   if (!doctor) {
-    redirect("/");
+    redirect('/')
   }
-  const serviceLocations = await prisma.scheduleLocation.findMany();
-  return json({ doctor, serviceLocations });
+  const serviceLocations = await prisma.scheduleLocation.findMany()
+  return json({ doctor, serviceLocations })
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const { _action, ...values } = Object.fromEntries(formData);
-  const name = String(values.name);
-  const address = String(values.address);
-  const city = String(values.city);
-  const state = String(values.state);
-  const zip = String(values.zip);
-  const serviceLocationId = String(values.serviceLocationId);
-  const day = String();
+  const formData = await request.formData()
+  const { _action, ...values } = Object.fromEntries(formData)
+  const name = String(values.name)
+  const address = String(values.address)
+  const city = String(values.city)
+  const state = String(values.state)
+  const zip = String(values.zip)
+  const serviceLocationId = String(values.serviceLocationId)
+  const day = String()
 
-  if (_action === "create_schedule") {
-    const userId = await requireUserId(request);
+  if (_action === 'create_schedule') {
+    const userId = await requireUserId(request)
   }
 
-  if (_action === "create_location") {
+  if (_action === 'create_location') {
     const location = await prisma.scheduleLocation.create({
       data: {
         name,
@@ -50,24 +50,24 @@ export async function action({ request }: ActionFunctionArgs) {
         state,
         zip,
       },
-    });
-    return location;
+    })
+    return location
   }
 }
 
 export default function AddSchedule() {
-  const data = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
-  const locationFetcher = useFetcher();
+  const data = useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>()
+  const locationFetcher = useFetcher()
   const days = [
-    "saturday",
-    "sunday",
-    "monday",
-    "wednesday",
-    "thursday",
-    "friday",
-  ];
-  const [openLocationForm, setOpenLocationForm] = useState(false);
+    'saturday',
+    'sunday',
+    'monday',
+    'wednesday',
+    'thursday',
+    'friday',
+  ]
+  const [openLocationForm, setOpenLocationForm] = useState(false)
   return (
     <div>
       <PageTitle>Add Schedule</PageTitle>
@@ -79,7 +79,7 @@ export default function AddSchedule() {
           <label>
             Hospital Name
             <select name="serviceLocationId" required>
-              {data.serviceLocations.map((location) => (
+              {data.serviceLocations.map(location => (
                 <option key={location.id} value={location.id}>
                   {location.name}
                 </option>
@@ -91,7 +91,7 @@ export default function AddSchedule() {
           <label>
             Day
             <select name="day" required>
-              {days.map((day) => (
+              {days.map(day => (
                 <option key={day} value={day}>
                   {day}
                 </option>
@@ -118,7 +118,7 @@ export default function AddSchedule() {
           </Button>
         </Form>
         <div className="w-1/3">
-          <Button onClick={() => setOpenLocationForm((t) => !t)}>
+          <Button onClick={() => setOpenLocationForm(t => !t)}>
             Add a service Location
           </Button>
           {openLocationForm ? (
@@ -159,5 +159,5 @@ export default function AddSchedule() {
 
       {actionData && <p>{actionData.name} has been added</p>}
     </div>
-  );
+  )
 }

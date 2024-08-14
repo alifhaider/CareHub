@@ -1,4 +1,4 @@
-import { json, LoaderFunctionArgs, type LinksFunction } from "@remix-run/node";
+import { json, LoaderFunctionArgs, type LinksFunction } from '@remix-run/node'
 import {
   Links,
   Meta,
@@ -6,32 +6,28 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
-} from "@remix-run/react";
-import stylesheet from "~/tailwind.css?url";
-import Navbar from "./components/navbar";
+} from '@remix-run/react'
+import stylesheet from '~/tailwind.css?url'
+import Navbar from './components/navbar'
 import {
   authSessionStorage,
   themeSessionResolver,
-} from "./services/session.server";
-import {
-  PreventFlashOnWrongTheme,
-  ThemeProvider,
-  useTheme,
-} from "remix-themes";
-import { prisma } from "./db.server";
-import fontStyles from "~/fonts.css?url";
+} from './services/session.server'
+import { PreventFlashOnWrongTheme, ThemeProvider, useTheme } from 'remix-themes'
+import { prisma } from './db.server'
+import fontStyles from '~/fonts.css?url'
 
 export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: stylesheet },
-  { rel: "stylesheet", href: fontStyles },
-];
+  { rel: 'stylesheet', href: stylesheet },
+  { rel: 'stylesheet', href: fontStyles },
+]
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { getTheme } = await themeSessionResolver(request);
+  const { getTheme } = await themeSessionResolver(request)
   const cookieSession = await authSessionStorage.getSession(
-    request.headers.get("cookie")
-  );
-  const userId = cookieSession.get("userId");
+    request.headers.get('cookie'),
+  )
+  const userId = cookieSession.get('userId')
   const user = userId
     ? await prisma.user.findUnique({
         select: {
@@ -40,27 +36,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
         },
         where: { id: userId },
       })
-    : null;
+    : null
   return json({
     user: user,
     theme: getTheme(),
-  });
+  })
 }
 
 export default function AppWithProviders() {
-  const data = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof loader>()
   return (
     <ThemeProvider specifiedTheme={data.theme} themeAction="/action/set-theme">
       <App />
     </ThemeProvider>
-  );
+  )
 }
 
 export function App() {
-  const { user, theme: loaderTheme } = useLoaderData<typeof loader>();
-  const [theme] = useTheme();
+  const { user, theme: loaderTheme } = useLoaderData<typeof loader>()
+  const [theme] = useTheme()
   return (
-    <html lang="en" data-theme={theme ?? ""}>
+    <html lang="en" data-theme={theme ?? ''}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -77,5 +73,5 @@ export function App() {
         <Scripts />
       </body>
     </html>
-  );
+  )
 }

@@ -1,36 +1,36 @@
-import { useFormAction, useNavigation } from "@remix-run/react";
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { useFormAction, useNavigation } from '@remix-run/react'
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
 export function typedBoolean<T>(
-  value: T
-): value is Exclude<T, false | null | undefined | "" | 0> {
-  return Boolean(value);
+  value: T,
+): value is Exclude<T, false | null | undefined | '' | 0> {
+  return Boolean(value)
 }
 
 export function formatTime(time: string) {
-  const t = new Date(time);
+  const t = new Date(time)
 
-  const hours = t.getHours();
-  const minutes = t.getMinutes();
+  const hours = t.getHours()
+  const minutes = t.getMinutes()
   if (hours > 12) {
-    return `${hours - 12}:${minutes} PM`;
+    return `${hours - 12}:${minutes} PM`
   }
-  return `${hours}:${minutes} AM`;
+  return `${hours}:${minutes} AM`
 }
 
 export function getErrorMessage(error: unknown) {
-  if (typeof error === "string") return error;
+  if (typeof error === 'string') return error
   if (
     error &&
-    typeof error === "object" &&
-    "message" in error &&
-    typeof error.message === "string"
+    typeof error === 'object' &&
+    'message' in error &&
+    typeof error.message === 'string'
   ) {
-    return error.message;
+    return error.message
   }
-  console.error("Unable to get error message for error", error);
-  return "Unknown Error";
+  console.error('Unable to get error message for error', error)
+  return 'Unknown Error'
 }
 
 /**
@@ -38,7 +38,7 @@ export function getErrorMessage(error: unknown) {
  * It also merges tailwind classes.
  */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
 /**
@@ -59,16 +59,16 @@ export function cn(...inputs: ClassValue[]) {
 export function invariantResponse(
   condition: any,
   message?: string | (() => string),
-  responseInit?: ResponseInit
+  responseInit?: ResponseInit,
 ): asserts condition {
   if (!condition) {
     throw new Response(
-      typeof message === "function"
+      typeof message === 'function'
         ? message()
         : message ||
-          "An invariant failed, please provide a message to explain why.",
-      { status: 400, ...responseInit }
-    );
+          'An invariant failed, please provide a message to explain why.',
+      { status: 400, ...responseInit },
+    )
   }
 }
 
@@ -84,40 +84,40 @@ export function invariantResponse(
  */
 export function useIsPending({
   formAction,
-  formMethod = "POST",
-  state = "non-idle",
+  formMethod = 'POST',
+  state = 'non-idle',
 }: {
-  formAction?: string;
-  formMethod?: "POST" | "GET" | "PUT" | "PATCH" | "DELETE";
-  state?: "submitting" | "loading" | "non-idle";
+  formAction?: string
+  formMethod?: 'POST' | 'GET' | 'PUT' | 'PATCH' | 'DELETE'
+  state?: 'submitting' | 'loading' | 'non-idle'
 } = {}) {
-  const contextualFormAction = useFormAction();
-  const navigation = useNavigation();
+  const contextualFormAction = useFormAction()
+  const navigation = useNavigation()
   const isPendingState =
-    state === "non-idle"
-      ? navigation.state !== "idle"
-      : navigation.state === state;
+    state === 'non-idle'
+      ? navigation.state !== 'idle'
+      : navigation.state === state
   return (
     isPendingState &&
     navigation.formAction === (formAction ?? contextualFormAction) &&
     navigation.formMethod === formMethod
-  );
+  )
 }
 
 /**
  * Combine multiple header objects into one (uses append so headers are not overridden)
  */
 export function combineHeaders(
-  ...headers: Array<ResponseInit["headers"] | null>
+  ...headers: Array<ResponseInit['headers'] | null>
 ) {
-  const combined = new Headers();
+  const combined = new Headers()
   for (const header of headers) {
-    if (!header) continue;
+    if (!header) continue
     for (const [key, value] of new Headers(header).entries()) {
-      combined.append(key, value);
+      combined.append(key, value)
     }
   }
-  return combined;
+  return combined
 }
 
 /**
@@ -126,12 +126,12 @@ export function combineHeaders(
 export function combineResponseInits(
   ...responseInits: Array<ResponseInit | undefined>
 ) {
-  let combined: ResponseInit = {};
+  let combined: ResponseInit = {}
   for (const responseInit of responseInits) {
     combined = {
       ...responseInit,
       headers: combineHeaders(combined.headers, responseInit?.headers),
-    };
+    }
   }
-  return combined;
+  return combined
 }

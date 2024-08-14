@@ -1,30 +1,30 @@
-import React, { useId, useRef } from "react";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { CheckboxProps } from "@radix-ui/react-checkbox";
-import { useInputControl } from "@conform-to/react";
-import { Checkbox } from "./ui/checkbox";
+import React, { useId, useRef } from 'react'
+import { Input } from './ui/input'
+import { Label } from './ui/label'
+import { CheckboxProps } from '@radix-ui/react-checkbox'
+import { useInputControl } from '@conform-to/react'
+import { Checkbox } from './ui/checkbox'
 
-export type ListOfErrors = Array<string | null | undefined> | null | undefined;
+export type ListOfErrors = Array<string | null | undefined> | null | undefined
 
 export function ErrorList({
   id,
   errors,
 }: {
-  errors?: ListOfErrors;
-  id?: string;
+  errors?: ListOfErrors
+  id?: string
 }) {
-  const errorsToRender = errors?.filter(Boolean);
-  if (!errorsToRender?.length) return null;
+  const errorsToRender = errors?.filter(Boolean)
+  if (!errorsToRender?.length) return null
   return (
     <ul id={id} className="flex flex-col gap-1">
-      {errorsToRender.map((e) => (
+      {errorsToRender.map(e => (
         <li key={e} className="text-[10px] text-foreground-destructive">
           {e}
         </li>
       ))}
     </ul>
-  );
+  )
 }
 
 export function Field({
@@ -33,14 +33,14 @@ export function Field({
   errors,
   className,
 }: {
-  labelProps: React.LabelHTMLAttributes<HTMLLabelElement>;
-  inputProps: React.InputHTMLAttributes<HTMLInputElement>;
-  errors?: ListOfErrors;
-  className?: string;
+  labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
+  inputProps: React.InputHTMLAttributes<HTMLInputElement>
+  errors?: ListOfErrors
+  className?: string
 }) {
-  const fallbackId = useId();
-  const id = inputProps.id ?? fallbackId;
-  const errorId = errors?.length ? `${id}-error` : undefined;
+  const fallbackId = useId()
+  const id = inputProps.id ?? fallbackId
+  const errorId = errors?.length ? `${id}-error` : undefined
   return (
     <div className={className}>
       <Label htmlFor={id} {...labelProps} />
@@ -54,7 +54,7 @@ export function Field({
         {errorId ? <ErrorList id={errorId} errors={errors} /> : null}
       </div>
     </div>
-  );
+  )
 }
 
 // export function TextareaField({
@@ -93,19 +93,19 @@ export function CheckboxField({
   errors,
   className,
 }: {
-  labelProps: JSX.IntrinsicElements["label"];
-  buttonProps: CheckboxProps;
-  errors?: ListOfErrors;
-  className?: string;
+  labelProps: JSX.IntrinsicElements['label']
+  buttonProps: CheckboxProps
+  errors?: ListOfErrors
+  className?: string
 }) {
-  const fallbackId = useId();
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const fallbackId = useId()
+  const buttonRef = useRef<HTMLButtonElement>(null)
   const control = useInputControl({
-    name: buttonProps.name ?? "",
-    formId: buttonProps.form ?? "",
-  });
-  const id = buttonProps.id ?? buttonProps.name ?? fallbackId;
-  const errorId = errors?.length ? `${id}-error` : undefined;
+    name: buttonProps.name ?? '',
+    formId: buttonProps.form ?? '',
+  })
+  const id = buttonProps.id ?? buttonProps.name ?? fallbackId
+  const errorId = errors?.length ? `${id}-error` : undefined
   return (
     <div className={className}>
       <div className="flex items-center gap-2">
@@ -115,17 +115,17 @@ export function CheckboxField({
           aria-invalid={errorId ? true : undefined}
           aria-describedby={errorId}
           {...buttonProps}
-          onCheckedChange={(state) => {
-            control.change(String(state.valueOf()));
-            buttonProps.onCheckedChange?.(state);
+          onCheckedChange={state => {
+            control.change(String(state.valueOf()))
+            buttonProps.onCheckedChange?.(state)
           }}
-          onFocus={(event) => {
-            control.focus();
-            buttonProps.onFocus?.(event);
+          onFocus={event => {
+            control.focus()
+            buttonProps.onFocus?.(event)
           }}
-          onBlur={(event) => {
-            control.blur();
-            buttonProps.onBlur?.(event);
+          onBlur={event => {
+            control.blur()
+            buttonProps.onBlur?.(event)
           }}
           type="button"
         />
@@ -139,5 +139,5 @@ export function CheckboxField({
         {errorId ? <ErrorList id={errorId} errors={errors} /> : null}
       </div>
     </div>
-  );
+  )
 }

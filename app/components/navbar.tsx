@@ -1,16 +1,16 @@
-import { Theme, useTheme } from "remix-themes";
+import { Theme, useTheme } from 'remix-themes'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { Button } from "./ui/button";
-import { Moon, Sun } from "lucide-react";
-import { Form, Link } from "@remix-run/react";
+} from './ui/dropdown-menu'
+import { Button } from './ui/button'
+import { Moon, Sun } from 'lucide-react'
+import { Form, Link } from '@remix-run/react'
 
 export default function Navbar({ username }: { username?: string }) {
-  const [, setTheme] = useTheme();
+  const [, setTheme] = useTheme()
   return (
     <nav className="flex items-center justify-between py-4 border-b max-w-7xl mx-auto">
       <div>
@@ -57,5 +57,5 @@ export default function Navbar({ username }: { username?: string }) {
         </DropdownMenu>
       </div>
     </nav>
-  );
+  )
 }

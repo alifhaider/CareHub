@@ -4,94 +4,94 @@ import {
   redirect,
   type ActionFunctionArgs,
   type MetaFunction,
-} from "@remix-run/node";
-import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
-import { z } from "zod";
-import { parseWithZod } from "@conform-to/zod";
-import { getFormProps, getInputProps, useForm } from "@conform-to/react";
-import { GeneralErrorBoundary } from "~/components/error-boundary";
-import { CheckboxField, ErrorList, Field } from "~/components/forms";
-import { StatusButton } from "~/components/ui/status-button";
+} from '@remix-run/node'
+import { Form, Link, useActionData, useSearchParams } from '@remix-run/react'
+import { z } from 'zod'
+import { parseWithZod } from '@conform-to/zod'
+import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
+import { CheckboxField, ErrorList, Field } from '~/components/forms'
+import { StatusButton } from '~/components/ui/status-button'
 import {
   getSessionExpirationDate,
   login,
   requireAnonymous,
-} from "~/services/auth.server";
-import { useIsPending } from "~/utils/misc";
-import { PasswordSchema, UsernameSchema } from "~/utils/user-validation";
-import { authSessionStorage } from "~/services/session.server";
-import { safeRedirect } from "remix-utils/safe-redirect";
+} from '~/services/auth.server'
+import { useIsPending } from '~/utils/misc'
+import { PasswordSchema, UsernameSchema } from '~/utils/user-validation'
+import { authSessionStorage } from '~/services/session.server'
+import { safeRedirect } from 'remix-utils/safe-redirect'
 
 const LoginFormSchema = z.object({
   username: UsernameSchema,
   password: PasswordSchema,
   redirectTo: z.string().optional(),
   remember: z.boolean().optional(),
-});
+})
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireAnonymous(request);
-  return json({});
+  await requireAnonymous(request)
+  return json({})
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  await requireAnonymous(request);
-  const formData = await request.formData();
+  await requireAnonymous(request)
+  const formData = await request.formData()
   // await validateCSRF(formData, request.headers)
   // checkHoneypot(formData)
   const submission = await parseWithZod(formData, {
     schema: () =>
       LoginFormSchema.transform(async (data, ctx) => {
-        const user = await login(data);
+        const user = await login(data)
 
         if (!user) {
           ctx.addIssue({
-            code: "custom",
-            message: "Invalid password",
-          });
-          return z.NEVER;
+            code: 'custom',
+            message: 'Invalid password',
+          })
+          return z.NEVER
         }
 
-        return { ...data, user };
+        return { ...data, user }
       }),
     async: true,
-  });
+  })
 
-  if (submission.status !== "success") {
-    return json(submission.reply());
+  if (submission.status !== 'success') {
+    return json(submission.reply())
   }
 
-  const { user, remember, redirectTo } = submission.value;
+  const { user, remember, redirectTo } = submission.value
 
   const cookieSession = await authSessionStorage.getSession(
-    request.headers.get("cookie")
-  );
-  cookieSession.set("userId", user.id);
+    request.headers.get('cookie'),
+  )
+  cookieSession.set('userId', user.id)
 
   return redirect(safeRedirect(redirectTo), {
     headers: {
-      "set-cookie": await authSessionStorage.commitSession(cookieSession, {
+      'set-cookie': await authSessionStorage.commitSession(cookieSession, {
         expires: remember ? getSessionExpirationDate() : undefined,
       }),
     },
-  });
+  })
 }
 
 export default function LoginPage() {
-  const actionData = useActionData<typeof action>();
-  const isPending = useIsPending();
-  const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo");
+  const actionData = useActionData<typeof action>()
+  const isPending = useIsPending()
+  const [searchParams] = useSearchParams()
+  const redirectTo = searchParams.get('redirectTo')
 
   const [form, fields] = useForm({
-    id: "login-form",
+    id: 'login-form',
     lastResult: actionData,
     defaultValue: { redirectTo },
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: LoginFormSchema });
+      return parseWithZod(formData, { schema: LoginFormSchema })
     },
-    shouldRevalidate: "onBlur",
-  });
+    shouldRevalidate: 'onBlur',
+  })
 
   return (
     <div className="flex min-h-full flex-col justify-center pb-32 pt-20">
@@ -111,19 +111,19 @@ export default function LoginPage() {
               {/* <AuthenticityTokenInput /> */}
               {/* <HoneypotInputs /> */}
               <Field
-                labelProps={{ children: "Username" }}
+                labelProps={{ children: 'Username' }}
                 inputProps={{
-                  ...getInputProps(fields.username, { type: "text" }),
+                  ...getInputProps(fields.username, { type: 'text' }),
                   autoFocus: true,
-                  className: "lowercase",
+                  className: 'lowercase',
                 }}
                 errors={fields.username.errors}
               />
 
               <Field
-                labelProps={{ children: "Password" }}
+                labelProps={{ children: 'Password' }}
                 inputProps={{
-                  ...getInputProps(fields.password, { type: "password" }),
+                  ...getInputProps(fields.password, { type: 'password' }),
                 }}
                 errors={fields.password.errors}
               />
@@ -132,11 +132,11 @@ export default function LoginPage() {
                 <CheckboxField
                   labelProps={{
                     htmlFor: fields.remember.id,
-                    children: "Remember me",
+                    children: 'Remember me',
                   }}
                   buttonProps={{
                     ...getInputProps(fields.remember, {
-                      type: "checkbox",
+                      type: 'checkbox',
                     }),
                   }}
                   errors={fields.remember.errors}
@@ -152,14 +152,16 @@ export default function LoginPage() {
               </div>
 
               <input
-                {...getInputProps(fields.redirectTo, { type: "hidden" })}
+                {...getInputProps(fields.redirectTo, { type: 'hidden' })}
               />
               <ErrorList errors={form.errors} id={form.errorId} />
 
               <div className="flex items-center justify-between gap-6 pt-3">
                 <StatusButton
                   className="w-full"
-                  status={isPending ? "pending" : actionData?.status ?? "idle"}
+                  status={
+                    isPending ? 'pending' : (actionData?.status ?? 'idle')
+                  }
                   type="submit"
                   disabled={isPending}
                 >
@@ -175,13 +177,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 export const meta: MetaFunction = () => {
-  return [{ title: "Login / CH" }];
-};
+  return [{ title: 'Login / CH' }]
+}
 
 export function ErrorBoundary() {
-  return <GeneralErrorBoundary />;
+  return <GeneralErrorBoundary />
 }

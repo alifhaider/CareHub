@@ -1,14 +1,14 @@
-export function Spacer({ variant }: { variant: "sm" | "md" | "lg" }) {
+export function Spacer({ variant }: { variant: 'sm' | 'md' | 'lg' }) {
   if (!variant) {
-    return null;
+    return null
   }
 
-  if (variant === "sm") {
-    return <div className="h-4" />;
+  if (variant === 'sm') {
+    return <div className="h-4" />
   }
-  if (variant === "md") {
-    return <div className="h-8" />;
+  if (variant === 'md') {
+    return <div className="h-8" />
   }
 
-  return <div className="h-16" />;
+  return <div className="h-16" />
 }

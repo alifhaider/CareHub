@@ -6,17 +6,17 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@radix-ui/react-select";
+} from '@radix-ui/react-select'
 
 export function DaySelect() {
   const days = [
-    "saturday",
-    "sunday",
-    "monday",
-    "wednesday",
-    "thursday",
-    "friday",
-  ];
+    'saturday',
+    'sunday',
+    'monday',
+    'wednesday',
+    'thursday',
+    'friday',
+  ]
   return (
     <>
       <Select>
@@ -40,5 +40,5 @@ export function DaySelect() {
         </option>
       ))} */}
     </>
-  );
+  )
 }
