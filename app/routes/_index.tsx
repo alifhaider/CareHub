@@ -70,13 +70,11 @@ export default function Index() {
             doctors across various specialties. Read patient reviews and ratings
             to choose the best healthcare professional for your needs.
           </p>
-          <ul className="mt-6 grid grid-cols-4 gap-6">
+          <ul className="mt-6 grid grid-cols-4 items-stretch gap-6">
             {users.map(({ id, username, doctor }) => (
-              <li key={id} className="rounded-sm border bg-background py-2 hover:shadow-lg">
-                <Link
-                  to={`/users/${username}`}
-                  
-                >
+              <li key={id} className='h-full'>
+                <Link to={`/users/${username}`}>
+                  <div  className="rounded-sm border bg-background hover:shadow-lg py-2 h-full">
                   <div className="mx-auto h-20 w-20 rounded-sm bg-secondary"></div>
                   <h3 className="mt-2 flex items-end justify-center px-4 text-lg font-semibold">
                     {doctor?.fullName ?? username}
@@ -85,7 +83,7 @@ export default function Index() {
                       {doctor?.rating}
                     </span>
                   </h3>
-                  <ul className="flex flex-wrap justify-between text-sm">
+                  <ul className="flex mt-4 flex-wrap justify-between text-sm">
                     {doctor?.specialties.map(specialty => (
                             <li
                         key={specialty.id}
@@ -95,7 +93,8 @@ export default function Index() {
                         {specialty.name}
                       </li>
                     ))}
-                  </ul>
+                    </ul>
+                    </div>
                 </Link>
               </li>
             ))}
@@ -108,7 +107,11 @@ export default function Index() {
       </section>
 
       <section className="mx-auto max-w-7xl space-y-6 py-20">
+
         <SectionTitle>Simple and Fast Booking Process</SectionTitle>
+        <div className='flex'>
+          <div className='w-2/3'>
+            
         <p className="mt-6 w-3/4 text-xl">
           Schedule appointments with just a few clicks. Our streamlined booking
           system ensures you can find an available slot that fits your schedule
@@ -123,7 +126,13 @@ export default function Index() {
           Keep track of your upcoming appointments, reschedule or cancel if
           needed, and receive reminders—all from your personalized dashboard.
         </p>
-        <Button>Book Appointment Now</Button>
+          <Button className='mt-10'>Book Appointment Now</Button>
+</div>
+          <div className='flex-1 -ml-10'>
+
+          <img src="/images/health.png" alt="health" />
+          </div>
+        </div>
       </section>
     </div>
   )
