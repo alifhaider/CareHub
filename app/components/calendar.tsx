@@ -98,12 +98,12 @@ export default function Calendar() {
   )
 
   return (
-    <div className="max-w-3xl border rounded-lg p-2">
+    <div className="max-w-3xl rounded-lg border p-2">
       <div className="flex items-center justify-between gap-10">
         <button>{currentYear - 1}</button>
         <div className="flex items-center justify-center gap-4">
           <button
-            className="text-muted-foreground text-xs"
+            className="text-xs text-muted-foreground"
             onClick={() =>
               setDate(new Date(new Date().setMonth(currentMonth - 1)))
             }
@@ -112,7 +112,7 @@ export default function Calendar() {
           </button>
           <span className="text-primary">{MONTHS[currentMonth]}</span>
           <button
-            className="text-muted-foreground text-xs"
+            className="text-xs text-muted-foreground"
             onClick={() =>
               setDate(new Date(new Date().setMonth(currentMonth + 1)))
             }
@@ -122,7 +122,7 @@ export default function Calendar() {
         </div>
         <button>{currentYear + 1}</button>
       </div>
-      <div className="text-sm mt-4">
+      <div className="mt-4 text-sm">
         <Weeks days={DAYS} currentDay={currentDay} />
 
         <ul className="grid grid-cols-7">
@@ -130,7 +130,7 @@ export default function Calendar() {
             return (
               <li
                 key={index}
-                className="text-center py-2 text-muted-foreground"
+                className="py-2 text-center text-muted-foreground"
               >
                 <PrevDate date={date} />
               </li>
@@ -140,16 +140,16 @@ export default function Calendar() {
             return (
               <li
                 key={index}
-                className={`text-center py-2 ${
+                className={`py-2 text-center ${
                   date === currentDate
-                    ? 'text-primary bg-secondary font-medium underline'
+                    ? 'bg-secondary font-medium text-primary underline'
                     : 'text-muted-foreground'
                 }`}
               >
                 {date < currentDate ? (
                   <PrevDate date={date} />
                 ) : (
-                  <button className="w-full h-full">{date}</button>
+                  <button className="h-full w-full">{date}</button>
                 )}
               </li>
             )
@@ -158,13 +158,13 @@ export default function Calendar() {
             return (
               <li
                 key={index}
-                className={`text-center py-2 ${
+                className={`py-2 text-center ${
                   date === currentDate
-                    ? 'text-primary bg-secondary font-medium underline'
+                    ? 'bg-secondary font-medium text-primary underline'
                     : 'text-muted-foreground'
                 }`}
               >
-                <button className="w-full h-full">{date}</button>
+                <button className="h-full w-full">{date}</button>
               </li>
             )
           })}
@@ -187,7 +187,7 @@ const Weeks = ({ days, currentDay }: WeeksProps) => {
           key={day}
           className={`text-center ${
             day === days[currentDay]
-              ? 'text-primary font-medium'
+              ? 'font-medium text-primary'
               : 'text-muted-foreground'
           }`}
         >
@@ -202,7 +202,7 @@ const PrevDate = ({ date }: { date: number }) => {
   return (
     <span
       title="Past days are not allowed"
-      className="cursor-not-allowed line-through text-destructive"
+      className="cursor-not-allowed text-destructive line-through"
     >
       {date}
     </span>

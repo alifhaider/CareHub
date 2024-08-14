@@ -73,7 +73,7 @@ export default function AddSchedule() {
       <PageTitle>Add Schedule</PageTitle>
 
       <div className="flex">
-        <Form method="POST" className="w-2/3 flex flex-col gap-10 py-10">
+        <Form method="POST" className="flex w-2/3 flex-col gap-10 py-10">
           <input type="hidden" name="userId" value={data.doctor.userId} />
 
           <label>
@@ -124,7 +124,7 @@ export default function AddSchedule() {
           {openLocationForm ? (
             <locationFetcher.Form
               method="POST"
-              className="flex flex-col gap-10 max-w-xl border p-10"
+              className="flex max-w-xl flex-col gap-10 border p-10"
             >
               <label>
                 Location Name

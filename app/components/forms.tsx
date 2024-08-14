@@ -19,7 +19,7 @@ export function ErrorList({
   return (
     <ul id={id} className="flex flex-col gap-1">
       {errorsToRender.map(e => (
-        <li key={e} className="text-[10px] text-foreground-destructive">
+        <li key={e} className="text-foreground-destructive text-[10px]">
           {e}
         </li>
       ))}
@@ -132,7 +132,7 @@ export function CheckboxField({
         <label
           htmlFor={id}
           {...labelProps}
-          className="self-center text-body-xs text-muted-foreground"
+          className="text-body-xs self-center text-muted-foreground"
         />
       </div>
       <div className="px-4 pb-3 pt-1">

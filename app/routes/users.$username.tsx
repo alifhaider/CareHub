@@ -95,17 +95,17 @@ export default function User() {
   )
 
   return (
-    <div className="py-10 max-w-7xl mx-auto">
+    <div className="mx-auto max-w-7xl py-10">
       <div className="flex gap-6">
-        <div className="w-32 h-32 bg-primary-foreground rounded-sm shadow-sm" />
+        <div className="h-32 w-32 rounded-sm bg-primary-foreground shadow-sm" />
         <div>
           <SectionTitle>{user.doctor?.fullName ?? user.username}</SectionTitle>
-          <ul className="flex items-center gap-4 mt-2">
+          <ul className="mt-2 flex items-center gap-4">
             {isDoctor ? (
               <>
                 {user.doctor?.specialties.map(specialty => (
                   <li key={specialty.id} className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-amber-300"></div>
+                    <div className="h-2 w-2 rounded-full bg-amber-300"></div>
                     {specialty.name}
                   </li>
                 ))}
@@ -147,28 +147,28 @@ export default function User() {
       <Spacer variant="md" />
       {isDoctor ? (
         <>
-          <h2 className="text-5xl font-bold underline mb-4">
+          <h2 className="mb-4 text-5xl font-bold underline">
             Book Appointment
           </h2>
           <ul>
             {scheduleLocations?.map(location => (
               <li
                 key={location.name}
-                className="flex items-center border rounded-md hover:shadow-md transition-all"
+                className="flex items-center rounded-md border transition-all hover:shadow-md"
               >
-                <button className="px-4 py-6 w-full h-full">
-                  <h6 className="text-2xl font-bold flex items-center gap-2">
+                <button className="h-full w-full px-4 py-6">
+                  <h6 className="flex items-center gap-2 text-2xl font-bold">
                     <MapPin />
                     {location.name}
                   </h6>
                   <span></span>
                   {!isOwner && !isDoctor && (
-                    <button className="text-xs underline text-cyan-400">
+                    <button className="text-xs text-cyan-400 underline">
                       Book
                     </button>
                   )}
                   {isOwner && (
-                    <button className="text-xs underline text-amber-500">
+                    <button className="text-xs text-amber-500 underline">
                       Delete
                     </button>
                   )}
@@ -188,9 +188,9 @@ export default function User() {
                   )}
                 </span>
                 {isOwner && (
-                  <div className="flex gap-2 items-center">
+                  <div className="flex items-center gap-2">
                     <button
-                      className="text-xs ml-10 underline text-cyan-400"
+                      className="ml-10 text-xs text-cyan-400 underline"
                       onClick={e => {
                         e.preventDefault()
                         setShowInput(t => !t)
@@ -199,7 +199,7 @@ export default function User() {
                       {showInput ? 'Cancel' : 'Edit'}
                     </button>
                     <span>|</span>
-                    <button className="text-xs underline text-amber-500">
+                    <button className="text-xs text-amber-500 underline">
                       Delete
                     </button>
                   </div>
@@ -228,7 +228,7 @@ export default function User() {
 
 export function ErrorBoundary() {
   return (
-    <div className="container mx-auto flex items-center justify-center p-20 text-h2">
+    <div className="text-h2 container mx-auto flex items-center justify-center p-20">
       <PageTitle>404</PageTitle>
       <p className="text-center">User not found</p>
     </div>
