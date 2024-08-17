@@ -33,9 +33,10 @@ model Password {
 
 model Doctor {
   id      String  @id @default(cuid())
-  specialties DoctorSpecialty[]
   fullName   String?
+  phone    String?
   
+  specialties DoctorSpecialty[]
 
   user      User   @relation(fields: [userId], references: [id])
   userId    String @unique
@@ -74,6 +75,8 @@ model Schedule {
 
   location   ScheduleLocation @relation(fields: [locationId], references: [id])
   locationId String
+
+  fees       Fee[]
 
   day       String
   startTime DateTime
@@ -139,6 +142,20 @@ model DoctorSpecialty {
   doctorId String
 
   name String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Fee {
+  id String @id @default(cuid())
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+  scheduleId String
+
+  serial Int?
+  discount Int?
+  visit Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

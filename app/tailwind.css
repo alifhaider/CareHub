@@ -66,4 +66,8 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  .page-container {
+    @apply mx-auto max-w-7xl px-6 py-10 lg:px-0;
+  }
 }

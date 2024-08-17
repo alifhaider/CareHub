@@ -1,7 +1,137 @@
+import { json, LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
+import { Form, useLoaderData, useSearchParams } from '@remix-run/react'
+import invariant from 'tiny-invariant'
+import Card from '~/components/card'
+import { PageTitle } from '~/components/typography'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { prisma } from '~/db.server'
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Search / CH' },
+    { name: 'description', content: 'Search Doctors!' },
+  ]
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const searchParams = new URL(request.url).searchParams
+  const query = searchParams.get('s') ?? ''
+  const specialtiesQuery = searchParams.get('specialties') ?? ''
+  const locationQuery = searchParams.get('location') ?? ''
+  const users = await prisma.doctor.findMany({
+    where: {
+      OR: [
+        {
+          fullName: {
+            contains: query,
+          },
+          user: {
+            username: {
+              contains: query,
+            },
+          },
+        },
+        {
+          specialties: {
+            some: {
+              name: {
+                contains: query,
+              },
+            },
+          },
+        },
+        {
+          schedules: {
+            some: {
+              location: {
+                OR: [
+                  {
+                    name: {
+                      contains: locationQuery,
+                    },
+                  },
+                  {
+                    address: {
+                      contains: locationQuery,
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      ],
+    },
+    include: {
+      user: {
+        include: {
+          doctor: {
+            select: {
+              fullName: true,
+              bio: true,
+              rating: true,
+              specialties: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              _count: {
+                select: {
+                  schedules: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+  return json({ users })
+}
+
 export default function Search() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const { users } = useLoaderData<typeof loader>()
   return (
-    <div>
-      <h1>Search</h1>
+    <div className="page-container">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end">
+        <PageTitle>Doctors</PageTitle>
+        <Form
+          method="GET"
+          action="/search"
+          className="mb-1 flex w-full flex-col md:flex-row md:items-center flex-1"
+        >
+          <Input
+            name="s"
+            type="search"
+            className="w-full rounded-b-none rounded-t-3xl focus-visible:ring-offset-0 md:w-1/2 md:rounded-l-3xl md:rounded-r-none"
+            placeholder="Search for doctors, specialties, and more"
+            defaultValue={searchParams.get('s') ?? ''}
+          />
+          <div className="flex flex-1">
+            <Input
+              name="specialties"
+              type="search"
+              className="w-1/2 rounded-es-3xl rounded-ss-none rounded-r-none focus-visible:ring-offset-0 md:rounded-none"
+              placeholder="Specialty"
+            />
+
+            <Input
+              name="location"
+              type="search"
+              className="w-1/2 rounded-l-none md:rounded-r-3xl focus-visible:ring-offset-0 rounded-ee-3xl rounded-se-none"
+              placeholder="Location"
+            />
+          </div>
+        </Form>
+      </div>
+      <ul className="mt-6 grid grid-cols-1 items-stretch gap-6 md:grid-cols-3 lg:grid-cols-4">
+        {users.map(({ id, user }) => (
+          <Card key={id} doctor={user.doctor} username={user.username} />
+        ))}
+      </ul>
     </div>
   )
 }
