@@ -19,7 +19,7 @@ export default function Navbar({ username }: { username?: string }) {
   )
   const [, setTheme] = useTheme()
   return (
-    <nav className="mx-auto flex max-w-7xl items-center justify-between border-b py-4  px-6 lg:px-0">
+    <nav className="mx-auto flex max-w-7xl items-center justify-between border-b px-6 py-4 lg:px-0">
       <div className="flex w-full items-center justify-between">
         <a href="/" className="text-xl font-bold">
           Care<span className="text-lime-500">Hub</span>

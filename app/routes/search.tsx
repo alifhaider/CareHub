@@ -101,7 +101,7 @@ export default function Search() {
         <Form
           method="GET"
           action="/search"
-          className="mb-1 flex w-full flex-col md:flex-row md:items-center flex-1"
+          className="mb-1 flex w-full flex-1 flex-col md:flex-row md:items-center"
         >
           <Input
             name="s"
@@ -114,14 +114,14 @@ export default function Search() {
             <Input
               name="specialties"
               type="search"
-              className="w-1/2 rounded-es-3xl rounded-ss-none rounded-r-none focus-visible:ring-offset-0 md:rounded-none"
+              className="w-1/2 rounded-r-none rounded-es-3xl rounded-ss-none focus-visible:ring-offset-0 md:rounded-none"
               placeholder="Specialty"
             />
 
             <Input
               name="location"
               type="search"
-              className="w-1/2 rounded-l-none md:rounded-r-3xl focus-visible:ring-offset-0 rounded-ee-3xl rounded-se-none"
+              className="w-1/2 rounded-l-none rounded-ee-3xl rounded-se-none focus-visible:ring-offset-0 md:rounded-r-3xl"
               placeholder="Location"
             />
           </div>

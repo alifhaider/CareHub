@@ -14,34 +14,32 @@ import { authSessionStorage } from '~/services/session.server'
 import { formatTime, invariantResponse } from '~/utils/misc'
 
 type Location = {
-  id: string;
-  address: string;
-  name: string;
-  city: string | null;
-  state: string | null;
-  zip: string | null;
-};
+  id: string
+  address: string
+  name: string
+  city: string | null
+  state: string | null
+  zip: string | null
+}
 
-
-  type GroupedSchedule = {
-  location: Location;
+type GroupedSchedule = {
+  location: Location
   times: {
-    day: string;
-    startTime: string;
-    endTime: string;
-    maxAppointments: number;
-  }[];
-};
+    day: string
+    startTime: string
+    endTime: string
+    maxAppointments: number
+  }[]
+}
 
-
-  // appointments
-  // {location: 'ibna sina hospital', day: 'Monday', startTime: '9:00', endTime: '12:00'}
-  // {location: 'ibna sina hospital', day: 'Monday', startTime: '13:00', endTime: '17:00'}
-  // {location: 'ibna sina hospital', day: 'Tuesday', startTime: '9:00', endTime: '12:00'}
-  // {location: 'ibna sina hospital', day: 'Tuesday', startTime: '13:00', endTime: '17:00'}
-  // i want output like this
-  // {location: 'ibna sina hospital', day: 'Monday', startTime: '9:00', endTime: '12:00'}
-  // {location: 'ibna sina hospital', day: 'Monday', startTime: '13:00', endTime: '17:00'}
+// appointments
+// {location: 'ibna sina hospital', day: 'Monday', startTime: '9:00', endTime: '12:00'}
+// {location: 'ibna sina hospital', day: 'Monday', startTime: '13:00', endTime: '17:00'}
+// {location: 'ibna sina hospital', day: 'Tuesday', startTime: '9:00', endTime: '12:00'}
+// {location: 'ibna sina hospital', day: 'Tuesday', startTime: '13:00', endTime: '17:00'}
+// i want output like this
+// {location: 'ibna sina hospital', day: 'Monday', startTime: '9:00', endTime: '12:00'}
+// {location: 'ibna sina hospital', day: 'Monday', startTime: '13:00', endTime: '17:00'}
 
 //   const mockData = [
 //     {
@@ -95,18 +93,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   )
   const loggedInUserId = cookieSession.get('userId')
   const user = await prisma.user.findFirst({
-    where: {
-      username,
-    },
+    where: { username },
     include: {
       doctor: {
         include: {
-          specialties: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
+          specialties: { select: { id: true, name: true } },
           education: {
             select: {
               id: true,
@@ -133,15 +124,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       },
       bookings: {
         include: {
-          doctor: {
-            select: {
-              user: {
-                select: {
-                  username: true,
-                },
-              },
-            },
-          },
+          doctor: { select: { user: { select: { username: true } } } },
         },
       },
     },
@@ -165,31 +148,32 @@ export default function User() {
   const [showInput, setShowInput] = useState(false)
   const { isDoctor, isOwner, user } = useLoaderData<typeof loader>()
 
-  
   function groupSchedulesByLocation() {
-  const schedules = user.doctor?.schedules ?? [];
-    const groupedByLocation = schedules?.reduce<Record<string, GroupedSchedule>>((acc, schedule) => {
-    const locationId = schedule.location.id;
+    const schedules = user.doctor?.schedules ?? []
+    const groupedByLocation = schedules?.reduce<
+      Record<string, GroupedSchedule>
+    >((acc, schedule) => {
+      const locationId = schedule.location.id
 
-    if (!acc[locationId]) {
-      acc[locationId] = {
-        location: schedule.location,
-        times: []
-      };
-    }
+      if (!acc[locationId]) {
+        acc[locationId] = {
+          location: schedule.location,
+          times: [],
+        }
+      }
 
-    acc[locationId].times.push({
-      day: schedule.day,
-      startTime: schedule.startTime,
-      endTime: schedule.endTime,
-      maxAppointments: schedule.maxAppointments
-    });
+      acc[locationId].times.push({
+        day: schedule.day,
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        maxAppointments: schedule.maxAppointments,
+      })
 
-    return acc;
-  }, {});
+      return acc
+    }, {})
 
-  return Object.values(groupedByLocation);
-}
+    return Object.values(groupedByLocation)
+  }
 
   function getHours(time: string) {
     const date = new Date(time)
@@ -228,7 +212,7 @@ export default function User() {
                 {user.doctor?.education.map(education => (
                   <li key={education.id}>
                     {education.degree} | {education.institute}
-                    <span className="text-sm ml-1">({education.year})</span>
+                    <span className="ml-1 text-sm">({education.year})</span>
                   </li>
                 ))}
               </>
@@ -236,7 +220,6 @@ export default function User() {
           </ul>
         </div>
       </div>
-
 
       <Spacer variant="md" />
       {isDoctor ? (
@@ -257,15 +240,15 @@ export default function User() {
                       <h6 className="flex items-end text-2xl font-bold">
                         {schedule.location.name}{' '}
                         <span className="mb-0.5 text-sm font-normal">
-                          /{schedule.times.map(time => {
+                          /
+                          {schedule.times.map(time => {
                             return (
                               <span key={time.startTime}>
                                 {time.day} ({getHours(time.startTime)}-
                                 {getHours(time.endTime)})
                               </span>
                             )
-                          }
-                          )}
+                          })}
                         </span>
                       </h6>
                     </div>
@@ -296,8 +279,6 @@ export default function User() {
       {isDoctor && isOwner ? (
         <Link to="/add/schedule">Add Schedule</Link>
       ) : null}
-
-      
 
       <Spacer variant="md" />
       <h2 className="text-3xl font-medium text-lime-500">
