@@ -17,6 +17,8 @@ CREATE TABLE "Password" (
 -- CreateTable
 CREATE TABLE "Doctor" (
     "id" TEXT NOT NULL PRIMARY KEY,
+    "fullName" TEXT,
+    "phone" TEXT,
     "userId" TEXT NOT NULL,
     "bio" TEXT NOT NULL,
     "rating" INTEGER NOT NULL DEFAULT 0,
@@ -98,6 +100,18 @@ CREATE TABLE "DoctorSpecialty" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "DoctorSpecialty_doctorId_fkey" FOREIGN KEY ("doctorId") REFERENCES "Doctor" ("userId") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Fee" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "scheduleId" TEXT NOT NULL,
+    "serial" INTEGER,
+    "discount" INTEGER,
+    "visit" INTEGER,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Fee_scheduleId_fkey" FOREIGN KEY ("scheduleId") REFERENCES "Schedule" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateIndex
