@@ -288,7 +288,7 @@ export default function User() {
         {user.bookings.map(appointment => (
           <li key={appointment.id}>
             {appointment.date} |{' '}
-            <Link to={`/users/${appointment.doctor.user.username}`}>
+            <Link to={`/profile/${appointment.doctor.user.username}`}>
               {appointment.doctor.user.username}
             </Link>
           </li>

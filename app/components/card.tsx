@@ -24,7 +24,7 @@ export default function Card({ doctor, username }: CardProps) {
       <div className="flex h-full flex-col justify-between rounded-sm border bg-background py-4 hover:shadow-lg">
         <div className="mx-auto h-20 w-20 rounded-sm bg-secondary"></div>
         <Link
-          to={`/users/${username}`}
+          to={`/profile/${username}`}
           className="group mt-2 flex items-end justify-center px-4"
         >
           <h3 className="text-lg font-semibold group-hover:underline">
@@ -50,7 +50,7 @@ export default function Card({ doctor, username }: CardProps) {
           Schedules: {doctor?._count.schedules}
         </p>
         <Button asChild className="mx-4 mt-4">
-          <Link to={`/users/${username}/book`}>Book appointment</Link>
+          <Link to={`/profile/${username}/book`}>Book appointment</Link>
         </Button>
       </div>
     </li>
