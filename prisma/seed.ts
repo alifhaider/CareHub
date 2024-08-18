@@ -92,8 +92,8 @@ async function seed() {
   console.time('🌱 Seeding database...')
 
   console.time('🧹 Clean up database...')
-  await prisma.booking.deleteMany()
   await prisma.schedule.deleteMany()
+  await prisma.booking.deleteMany()
   await prisma.doctorSpecialty.deleteMany()
   await prisma.scheduleLocation.deleteMany()
   await prisma.education.deleteMany()
@@ -138,6 +138,7 @@ async function seed() {
           bio: `Doctors bio-${index}`,
           userId: users[index].id,
           fullName: `Dr. User ${index}`,
+          phone: `+8801${Math.floor(Math.random() * 1000000000)}`,
           specialties: {
             createMany: {
               data: Array.from({
