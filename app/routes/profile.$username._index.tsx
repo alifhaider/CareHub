@@ -8,6 +8,7 @@ import { MapPin } from 'lucide-react'
 import { useState } from 'react'
 import { Spacer } from '~/components/spacer'
 import { PageTitle, SectionTitle } from '~/components/typography'
+import { Button } from '~/components/ui/button'
 import { Calendar } from '~/components/ui/calendar'
 import { prisma } from '~/db.server'
 import { authSessionStorage } from '~/services/session.server'
@@ -237,27 +238,35 @@ export default function User() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <MapPin />
-                      <h6 className="flex items-end text-2xl font-bold">
-                        {schedule.location.name}{' '}
-                        <span className="mb-0.5 text-sm font-normal">
-                          /
-                          {schedule.times.map(time => {
-                            return (
-                              <span key={time.startTime}>
-                                {time.day} ({getHours(time.startTime)}-
-                                {getHours(time.endTime)})
-                              </span>
-                            )
-                          })}
-                        </span>
-                      </h6>
+                      <div>
+                        <h6 className="flex items-end text-2xl font-bold">
+                          {schedule.location.name}{' '}
+                          <span className="mb-0.5 text-sm font-normal">
+                            /
+                            {schedule.times.map(time => {
+                              return (
+                                <span key={time.startTime}>
+                                  {time.day} ({getHours(time.startTime)}-
+                                  {getHours(time.endTime)})
+                                </span>
+                              )
+                            })}
+                          </span>
+                        </h6>
+                        <div className="mt-2 text-sm text-accent-foreground">
+                          {schedule.location.address}, {schedule.location.city},{' '}
+                          {schedule.location.state}, {schedule.location.zip}
+                        </div>
+                        <div className='mt-2'>
+                          
+                          <Link to={`/profile/${user.username}/book`} className='py-1 px-2 bg-amber-300 text-secondary rounded-md flex items-start w-max'>
+                            Book Now
+                          </Link>
+ </div>
+                      </div>
                     </div>
                     <div className="text-xl font-bold">Fee: 2000tk</div>
                   </div>
-                  <span className="text-sm text-accent-foreground">
-                    {schedule.location.address}, {schedule.location.city},{' '}
-                    {schedule.location.state}, {schedule.location.zip}
-                  </span>
                   <span></span>
                   {!isOwner && !isDoctor && (
                     <button className="text-xs text-cyan-400 underline">
@@ -281,6 +290,8 @@ export default function User() {
       ) : null}
 
       <Spacer variant="md" />
+      {isOwner ? (
+<>
       <h2 className="text-3xl font-medium text-lime-500">
         Booked Appointments
       </h2>
@@ -294,15 +305,21 @@ export default function User() {
           </li>
         ))}
       </ul>
+        </>
+      ): null}
     </div>
   )
 }
 
 export function ErrorBoundary() {
   return (
-    <div className="text-h2 container mx-auto flex items-center justify-center p-20">
+    <div className="container mx-auto flex flex-col items-center justify-center p-20">
       <PageTitle>404</PageTitle>
-      <p className="text-center">User not found</p>
+      <p className="text-center text-4xl font-bold">User not found</p>
+      <Link to="/search" className="text-center text-lg underline">
+        {' '}
+        Go back
+      </Link>
     </div>
   )
 }

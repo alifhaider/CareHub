@@ -93,6 +93,7 @@ async function seed() {
 
   console.time('🧹 Clean up database...')
   await prisma.booking.deleteMany()
+  await prisma.fee.deleteMany()
   await prisma.schedule.deleteMany()
   await prisma.doctorSpecialty.deleteMany()
   await prisma.scheduleLocation.deleteMany()
@@ -101,6 +102,7 @@ async function seed() {
   await prisma.doctor.deleteMany()
   await prisma.user.deleteMany()
   await prisma.password.deleteMany()
+
 
   console.timeEnd('🧹 Clean up database...')
 
@@ -116,8 +118,8 @@ async function seed() {
     Array.from({ length: totalUsers }).map(async (_, index) => {
       const user = await prisma.user.create({
         data: {
-          email: `user-${index}@gmail.com`,
-          username: `user-${index}`,
+          email: `user${index}@gmail.com`,
+          username: `user${index}`,
           password: {
             create: {
               hash: bcrypt.hashSync(`user-${index}`, 10),
@@ -135,7 +137,7 @@ async function seed() {
     Array.from({ length: totalDoctors }).map(async (_, index) => {
       const doctor = await prisma.doctor.create({
         data: {
-          bio: `Doctors bio-${index}`,
+          bio: `Doctor's bio ${index}`,
           userId: users[index].id,
           fullName: `Dr. User ${index}`,
           phone: `+8801${Math.floor(Math.random() * 1000000000)}`,
@@ -202,6 +204,13 @@ async function seed() {
           endTime: new Date(new Date().setHours(Math.random() + 17, 0, 0, 0)),
           locationId: scheduleLocations[index % totalScheduleLocations].id,
           maxAppointments: Math.floor(Math.random() * 10),
+          fees: {
+            create: {
+              serial: Math.floor(Math.random() * 100),
+              visit: Math.floor(Math.random() * 1000),
+              discount: Math.floor(Math.random() * 100),
+            }
+          }
         },
       })
       return schedule
