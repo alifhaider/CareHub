@@ -92,8 +92,8 @@ async function seed() {
   console.time('🌱 Seeding database...')
 
   console.time('🧹 Clean up database...')
-  await prisma.schedule.deleteMany()
   await prisma.booking.deleteMany()
+  await prisma.schedule.deleteMany()
   await prisma.doctorSpecialty.deleteMany()
   await prisma.scheduleLocation.deleteMany()
   await prisma.education.deleteMany()
