@@ -2,10 +2,12 @@ import {
   ActionFunctionArgs,
   json,
   LoaderFunctionArgs,
+  MetaFunction,
   redirect,
 } from '@remix-run/node'
 import {
   Form,
+  Link,
   useActionData,
   useFetcher,
   useLoaderData,
@@ -15,49 +17,52 @@ import { DaySelect } from '~/components/day-input'
 import { PageTitle } from '~/components/typography'
 import { Button } from '~/components/ui/button'
 import { prisma } from '~/db.server'
-import { getDoctor, requireUserId } from '~/services/auth.server'
+import { requireDoctor } from '~/services/auth.server'
+
+export const meta: MetaFunction = () => {
+  return [{ title: 'Schedule / CH' }]
+}
+
+
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const doctor = await getDoctor(request)
-  if (!doctor) {
-    redirect('/')
-  }
+  const doctor = await requireDoctor(request)
   const serviceLocations = await prisma.scheduleLocation.findMany()
   return json({ doctor, serviceLocations })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData()
-  const { _action, ...values } = Object.fromEntries(formData)
-  const name = String(values.name)
-  const address = String(values.address)
-  const city = String(values.city)
-  const state = String(values.state)
-  const zip = String(values.zip)
-  const serviceLocationId = String(values.serviceLocationId)
-  const day = String()
+// export async function action({ request }: ActionFunctionArgs) {
+//   const formData = await request.formData()
+//   const { _action, ...values } = Object.fromEntries(formData)
+//   const name = String(values.name)
+//   const address = String(values.address)
+//   const city = String(values.city)
+//   const state = String(values.state)
+//   const zip = String(values.zip)
+//   const serviceLocationId = String(values.serviceLocationId)
+//   const day = String()
 
-  if (_action === 'create_schedule') {
-    const userId = await requireUserId(request)
-  }
+//   if (_action === 'create_schedule') {
+//     const userId = await requireUserId(request)
+//   }
 
-  if (_action === 'create_location') {
-    const location = await prisma.scheduleLocation.create({
-      data: {
-        name,
-        address,
-        city,
-        state,
-        zip,
-      },
-    })
-    return location
-  }
-}
+//   if (_action === 'create_location') {
+//     const location = await prisma.scheduleLocation.create({
+//       data: {
+//         name,
+//         address,
+//         city,
+//         state,
+//         zip,
+//       },
+//     })
+//     return location
+//   }
+// }
 
 export default function AddSchedule() {
   const data = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
+  // const actionData = useActionData<typeof action>()
   const locationFetcher = useFetcher()
   const days = [
     'saturday',
@@ -69,7 +74,7 @@ export default function AddSchedule() {
   ]
   const [openLocationForm, setOpenLocationForm] = useState(false)
   return (
-    <div>
+    <div className='max-w-7xl mx-auto py-10'>
       <PageTitle>Add Schedule</PageTitle>
 
       <div className="flex">
@@ -119,7 +124,7 @@ export default function AddSchedule() {
         </Form>
         <div className="w-1/3">
           <Button onClick={() => setOpenLocationForm(t => !t)}>
-            Add a service Location
+            Register a new location
           </Button>
           {openLocationForm ? (
             <locationFetcher.Form
@@ -157,7 +162,20 @@ export default function AddSchedule() {
         </div>
       </div>
 
-      {actionData && <p>{actionData.name} has been added</p>}
+      {/* {actionData && <p>{actionData.name} has been added</p>} */}
+    </div>
+  )
+}
+
+
+export function ErrorBoundary() {
+  return (
+    <div className="container mx-auto flex flex-col items-center justify-center p-20">
+      <PageTitle>404</PageTitle>
+      <p className="text-center text-4xl font-bold">Content not found</p>
+      <Link to="/" className="text-center text-lg underline">
+        Go back
+      </Link>
     </div>
   )
 }

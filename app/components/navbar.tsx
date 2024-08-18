@@ -43,11 +43,14 @@ export default function Navbar({ username }: { username?: string }) {
         )}
         <div className="flex items-center gap-4">
           {username ? (
+            <>
+              <Link to={`/profile/${username}`}>Profile</Link>
             <Form action="/logout" method="POST">
               <Button variant="destructive" type="submit">
                 Logout {username}
               </Button>
             </Form>
+            </>
           ) : (
             <>
               <Link to="/login" className="mr-4">

@@ -5,14 +5,20 @@ import {
 } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { MapPin } from 'lucide-react'
-import { useState } from 'react'
 import { Spacer } from '~/components/spacer'
 import { PageTitle, SectionTitle } from '~/components/typography'
-import { Button } from '~/components/ui/button'
-import { Calendar } from '~/components/ui/calendar'
 import { prisma } from '~/db.server'
 import { authSessionStorage } from '~/services/session.server'
-import { formatTime, invariantResponse } from '~/utils/misc'
+import {  invariantResponse } from '~/utils/misc'
+
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  return [
+    { title: `${data?.user.username} / CH` },
+    { name: 'description', content: `CareHub ${data?.user.username} Profile!` },
+  ]
+}
+
 
 type Location = {
   id: string
@@ -138,15 +144,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return json({ user, isOwner, isDoctor })
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [
-    { title: `${data?.user.username} / CH` },
-    { name: 'description', content: `CareHub ${data?.user.username} Profile!` },
-  ]
-}
-
 export default function User() {
-  const [showInput, setShowInput] = useState(false)
+  // const [showInput, setShowInput] = useState(false)
   const { isDoctor, isOwner, user } = useLoaderData<typeof loader>()
 
   function groupSchedulesByLocation() {
@@ -286,7 +285,7 @@ export default function User() {
       ) : null}
 
       {isDoctor && isOwner ? (
-        <Link to="/add/schedule">Add Schedule</Link>
+        <Link to="/add/schedule">Add a new Schedule</Link>
       ) : null}
 
       <Spacer variant="md" />
@@ -317,7 +316,6 @@ export function ErrorBoundary() {
       <PageTitle>404</PageTitle>
       <p className="text-center text-4xl font-bold">User not found</p>
       <Link to="/search" className="text-center text-lg underline">
-        {' '}
         Go back
       </Link>
     </div>
