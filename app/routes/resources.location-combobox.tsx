@@ -1,6 +1,7 @@
 import { ScheduleLocation } from '@prisma/client'
+import { SelectContent } from '@radix-ui/react-select'
 import { json, LoaderFunctionArgs } from '@remix-run/node'
-import { useFetcher, useSearchParams } from '@remix-run/react'
+import { useFetcher } from '@remix-run/react'
 import clsx from 'clsx'
 import { useCombobox } from 'downshift'
 import { useId } from 'react'
@@ -10,7 +11,6 @@ import { Input } from '~/components/ui/input'
 import { prisma } from '~/db.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  console.log('running location-combobox loader')
   const searchParams = new URL(request.url).searchParams
   const query = searchParams.get('query')?.toLocaleLowerCase() ?? ''
   const locations = await prisma.scheduleLocation.findMany({
@@ -21,35 +21,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
         { city: { contains: query } },
         { state: { contains: query } },
         { zip: { contains: query } },
-      ]
+      ],
     },
     select: {
       id: true,
       name: true,
+      address: true,
     },
   })
-  console.log('locations', locations)
   return json({ items: locations })
 }
 
 export function LocationCombobox() {
-  const [searchParams, setSearchParams] = useSearchParams()
   const locationFetcher = useFetcher<typeof loader>()
   const id = useId()
 
   // TODO: make this type better
   const items = locationFetcher.data?.items ?? []
 
-  const cb = useCombobox<Pick<ScheduleLocation, 'id' | 'name'>>({
+  const cb = useCombobox<Pick<ScheduleLocation, 'id' | 'name' | 'address'>>({
     id,
-    onSelectedItemChange: ({ selectedItem }) => {
-      if (selectedItem) {
-        const newSP = new URLSearchParams({
-          locationId: selectedItem.id.toString(),
-        })
-        setSearchParams(newSP)
-      }
-    },
     items,
     itemToString: item => (item ? item.name : ''),
     onInputValueChange: changes => {
@@ -62,7 +53,7 @@ export function LocationCombobox() {
 
   const displayMenu = cb.isOpen && items.length > 0
   const menuClassName =
-    'absolute z-10 mt-4 min-w-[448px] max-h-[336px] bg-white text-night-400 shadow-lg rounded-3xl w-full overflow-scroll divide-solid divide-night-100 divide-y'
+    'absolute z-10 mt-4 min-w-[448px] max-h-[336px] bg-white shadow-lg rounded-3xl w-full overflow-y-scroll'
 
   const busy = locationFetcher.state !== 'idle'
   const showSpinner = useSpinDelay(busy, {
@@ -71,21 +62,22 @@ export function LocationCombobox() {
   })
   return (
     <div className="relative">
-      <div className="group">
-        <label
-          htmlFor={id}
-        >
-          Location Name
+      <div className="group relative space-y-1">
+        <label className="text-sm font-bold" htmlFor={id}>
+          Location
         </label>
-        <Input
-          className="relative placeholder:text-foreground focus:border-accent-purple focus:text-night-500 focus:placeholder:text-night-500 caret-black outline-none focus:bg-white"
-          {...cb.getInputProps({ id, placeholder: 'Choose a location' })}
-        />
-        <div className="absolute right-4 top-[44px]">
-          <Spinner showSpinner={showSpinner} />
+        <div className="relative">
+          <Input
+            className="focus:border-accent-purple focus:text-night-500 focus:placeholder:text-night-500 relative caret-black outline-none placeholder:text-foreground focus:bg-white"
+            {...cb.getInputProps({ id, placeholder: 'Choose a location' })}
+          />
+          <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center">
+            <Spinner showSpinner={showSpinner} />
+          </div>
         </div>
         {/* TODO: display errors */}
       </div>
+
       <ul
         {...cb.getMenuProps({
           className: clsx(menuClassName, { hidden: !displayMenu }),
@@ -94,7 +86,7 @@ export function LocationCombobox() {
         {displayMenu
           ? items.map((item, index) => (
               <li
-                className="mx-6 cursor-pointer py-2"
+                className="my-2 cursor-pointer px-6 py-1 hover:bg-primary-foreground"
                 key={item.id}
                 {...cb.getItemProps({ item: item, index })}
               >
@@ -103,12 +95,24 @@ export function LocationCombobox() {
                     cb.highlightedIndex === index ? 'bg-night-100' : ''
                   }`}
                 >
-                  <div className="flex items-center gap-4">{item.name}</div>
+                  <div className="flex items-end">
+                    <strong>{item.name}</strong>/
+                    <span className="mb-0.5 text-xs text-secondary-foreground">
+                      {item.address}
+                    </span>
+                  </div>
                 </div>
               </li>
             ))
           : null}
       </ul>
+
+      <input type="hidden" name="locationId" value={cb.selectedItem?.id} />
+
+      <p className="mt-0.5 text-xs">
+        <strong>Hint:</strong> If you don&apos;t see the location you&apos;re
+        looking for, try typing or add a new location.
+      </p>
     </div>
   )
 }

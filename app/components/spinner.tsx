@@ -1,7 +1,7 @@
 export function Spinner({ showSpinner }: { showSpinner: boolean }) {
   return (
     <div
-      className={`absolute right-0 top-[6px] transition-opacity ${
+      className={`transition-opacity ${
         showSpinner ? 'opacity-100' : 'opacity-0'
       }`}
     >
