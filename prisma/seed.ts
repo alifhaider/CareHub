@@ -103,7 +103,6 @@ async function seed() {
   await prisma.user.deleteMany()
   await prisma.password.deleteMany()
 
-
   console.timeEnd('🧹 Clean up database...')
 
   const totalUsers = 40
@@ -209,8 +208,8 @@ async function seed() {
               serial: Math.floor(Math.random() * 100),
               visit: Math.floor(Math.random() * 1000),
               discount: Math.floor(Math.random() * 100),
-            }
-          }
+            },
+          },
         },
       })
       return schedule

@@ -1,5 +1,5 @@
-import { LoaderFunctionArgs } from "@remix-run/node"
-import { requireUser } from "~/services/auth.server"
+import { LoaderFunctionArgs } from '@remix-run/node'
+import { requireUser } from '~/services/auth.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUser(request)

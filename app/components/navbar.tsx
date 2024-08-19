@@ -45,11 +45,11 @@ export default function Navbar({ username }: { username?: string }) {
           {username ? (
             <>
               <Link to={`/profile/${username}`}>Profile</Link>
-            <Form action="/logout" method="POST">
-              <Button variant="destructive" type="submit">
-                Logout {username}
-              </Button>
-            </Form>
+              <Form action="/logout" method="POST">
+                <Button variant="destructive" type="submit">
+                  Logout {username}
+                </Button>
+              </Form>
             </>
           ) : (
             <>

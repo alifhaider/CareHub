@@ -23,8 +23,6 @@ export const meta: MetaFunction = () => {
   return [{ title: 'Schedule / CH' }]
 }
 
-
-
 export async function loader({ request }: LoaderFunctionArgs) {
   const doctor = await requireDoctor(request)
   const serviceLocations = await prisma.scheduleLocation.findMany()
@@ -74,7 +72,7 @@ export default function AddSchedule() {
   ]
   const [openLocationForm, setOpenLocationForm] = useState(false)
   return (
-    <div className='max-w-7xl mx-auto py-10'>
+    <div className="mx-auto max-w-7xl py-10">
       <PageTitle>Add Schedule</PageTitle>
 
       <div className="flex">
@@ -119,7 +117,7 @@ export default function AddSchedule() {
             <input type="number" name="maxAppointments" required />
           </label>
           <Button type="submit" name="_action" value="create_schedule">
-            Add Schedule
+            Create Schedule
           </Button>
         </Form>
         <div className="w-1/3">
@@ -166,7 +164,6 @@ export default function AddSchedule() {
     </div>
   )
 }
-
 
 export function ErrorBoundary() {
   return (

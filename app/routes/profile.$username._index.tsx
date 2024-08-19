@@ -3,14 +3,15 @@ import {
   type LoaderFunctionArgs,
   type MetaFunction,
 } from '@remix-run/node'
-import { Link, useLoaderData } from '@remix-run/react'
+import { Form, Link, useLoaderData } from '@remix-run/react'
 import { MapPin } from 'lucide-react'
 import { Spacer } from '~/components/spacer'
 import { PageTitle, SectionTitle } from '~/components/typography'
+import { Button } from '~/components/ui/button'
 import { prisma } from '~/db.server'
+import { requireDoctor } from '~/services/auth.server'
 import { authSessionStorage } from '~/services/session.server'
-import {  invariantResponse } from '~/utils/misc'
-
+import { invariantResponse } from '~/utils/misc'
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -18,7 +19,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { name: 'description', content: `CareHub ${data?.user.username} Profile!` },
   ]
 }
-
 
 type Location = {
   id: string
@@ -30,6 +30,7 @@ type Location = {
 }
 
 type GroupedSchedule = {
+  id: string
   location: Location
   times: {
     day: string
@@ -144,6 +145,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return json({ user, isOwner, isDoctor })
 }
 
+export async function action({ request }: LoaderFunctionArgs) {
+  await requireDoctor(request)
+  const formData = await request.formData()
+  const scheduleId = formData.get('scheduleId')
+
+  if (scheduleId) {
+    await prisma.schedule.delete({ where: { id: String(scheduleId) } })
+  }
+
+  return json({ status: 'success' })
+}
+
 export default function User() {
   // const [showInput, setShowInput] = useState(false)
   const { isDoctor, isOwner, user } = useLoaderData<typeof loader>()
@@ -157,6 +170,7 @@ export default function User() {
 
       if (!acc[locationId]) {
         acc[locationId] = {
+          id: schedule.id,
           location: schedule.location,
           times: [],
         }
@@ -185,8 +199,6 @@ export default function User() {
     const minutesString = minutes < 10 ? `0${minutes}` : minutes
     return `${hoursString}:${minutesString}${hours > 12 ? 'PM' : 'AM'}`
   }
-
-  console.log(groupSchedulesByLocation())
 
   return (
     <div className="page-container">
@@ -256,26 +268,37 @@ export default function User() {
                           {schedule.location.address}, {schedule.location.city},{' '}
                           {schedule.location.state}, {schedule.location.zip}
                         </div>
-                        <div className='mt-2'>
-                          
-                          <Link to={`/profile/${user.username}/book`} className='py-1 px-2 bg-amber-300 text-secondary rounded-md flex items-start w-max'>
-                            Book Now
-                          </Link>
- </div>
+                        {!isOwner && (
+                          <div className="mt-2">
+                            <Link
+                              to={`/profile/${user.username}/book`}
+                              className="flex w-max items-start rounded-md bg-amber-300 px-2 py-1 text-secondary"
+                            >
+                              Book Now
+                            </Link>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="text-xl font-bold">Fee: 2000tk</div>
                   </div>
                   <span></span>
                   {!isOwner && !isDoctor && (
-                    <button className="text-xs text-cyan-400 underline">
+                    <Button className="text-xs text-cyan-400 underline">
                       Book
-                    </button>
+                    </Button>
                   )}
                   {isOwner && (
-                    <button className="text-xs text-amber-500 underline">
-                      Delete
-                    </button>
+                    <Form method="POST">
+                      <input
+                        type="hidden"
+                        name="scheduleId"
+                        value={schedule.id}
+                      />
+                      <Button variant="destructive" className="py-1">
+                        Remove Schedule
+                      </Button>
+                    </Form>
                   )}
                 </button>
               </li>
@@ -290,22 +313,22 @@ export default function User() {
 
       <Spacer variant="md" />
       {isOwner ? (
-<>
-      <h2 className="text-3xl font-medium text-lime-500">
-        Booked Appointments
-      </h2>
-      <ul>
-        {user.bookings.map(appointment => (
-          <li key={appointment.id}>
-            {appointment.date} |{' '}
-            <Link to={`/profile/${appointment.doctor.user.username}`}>
-              {appointment.doctor.user.username}
-            </Link>
-          </li>
-        ))}
-      </ul>
+        <>
+          <h2 className="text-3xl font-medium text-lime-500">
+            Booked Appointments
+          </h2>
+          <ul>
+            {user.bookings.map(appointment => (
+              <li key={appointment.id}>
+                {appointment.date} |{' '}
+                <Link to={`/profile/${appointment.doctor.user.username}`}>
+                  {appointment.doctor.user.username}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </>
-      ): null}
+      ) : null}
     </div>
   )
 }
