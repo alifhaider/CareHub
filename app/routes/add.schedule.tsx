@@ -18,6 +18,7 @@ import { PageTitle } from '~/components/typography'
 import { Button } from '~/components/ui/button'
 import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
+import { LocationCombobox } from './resources.location-combobox'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Schedule / CH' }]
@@ -75,22 +76,11 @@ export default function AddSchedule() {
     <div className="mx-auto max-w-7xl py-10">
       <PageTitle>Add Schedule</PageTitle>
 
-      <div className="flex">
-        <Form method="POST" className="flex w-2/3 flex-col gap-10 py-10">
+        <Form method="POST" className="grid grid-cols-1 md:grid-cols-2 mt-10 gap-8">
           <input type="hidden" name="userId" value={data.doctor.userId} />
 
-          <label>
-            Hospital Name
-            <select name="serviceLocationId" required>
-              {data.serviceLocations.map(location => (
-                <option key={location.id} value={location.id}>
-                  {location.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <LocationCombobox />
 
-          <DaySelect />
           <label>
             Day
             <select name="day" required>
@@ -119,8 +109,8 @@ export default function AddSchedule() {
           <Button type="submit" name="_action" value="create_schedule">
             Create Schedule
           </Button>
-        </Form>
-        <div className="w-1/3">
+      </Form>
+          <div className="w-1/3">
           <Button onClick={() => setOpenLocationForm(t => !t)}>
             Register a new location
           </Button>
@@ -157,8 +147,8 @@ export default function AddSchedule() {
               </Button>
             </locationFetcher.Form>
           ) : null}
-        </div>
       </div>
+    
 
       {/* {actionData && <p>{actionData.name} has been added</p>} */}
     </div>
