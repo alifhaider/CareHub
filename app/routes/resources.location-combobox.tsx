@@ -1,5 +1,4 @@
 import { ScheduleLocation } from '@prisma/client'
-import { SelectContent } from '@radix-ui/react-select'
 import { json, LoaderFunctionArgs } from '@remix-run/node'
 import { useFetcher } from '@remix-run/react'
 import clsx from 'clsx'
@@ -68,7 +67,7 @@ export function LocationCombobox() {
         </label>
         <div className="relative">
           <Input
-            className="focus:border-accent-purple focus:text-night-500 focus:placeholder:text-night-500 relative caret-black outline-none placeholder:text-foreground focus:bg-white"
+            className="relative caret-black outline-none"
             {...cb.getInputProps({ id, placeholder: 'Choose a location' })}
           />
           <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center">
