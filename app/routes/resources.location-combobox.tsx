@@ -75,7 +75,7 @@ export function LocationCombobox() {
         <label
           htmlFor={id}
         >
-          Hospital Name
+          Location Name
         </label>
         <Input
           className="relative placeholder:text-foreground focus:border-accent-purple focus:text-night-500 focus:placeholder:text-night-500 caret-black outline-none focus:bg-white"
