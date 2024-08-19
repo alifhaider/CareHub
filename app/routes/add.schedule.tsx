@@ -5,15 +5,25 @@ import {
   MetaFunction,
   redirect,
 } from '@remix-run/node'
-import { Form, Link, useFetcher, useLoaderData } from '@remix-run/react'
-import { useState } from 'react'
+import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
 import { PageTitle } from '~/components/typography'
-import { Button } from '~/components/ui/button'
 import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
 import { LocationCombobox } from './resources.location-combobox'
+import {
+  getFieldsetProps,
+  getFormProps,
+  getInputProps,
+  useForm,
+} from '@conform-to/react'
+import { parseWithZod } from '@conform-to/zod'
+import { z } from 'zod'
+import { CheckboxField, ErrorList, Field } from '~/components/forms'
+import { StatusButton } from '~/components/ui/status-button'
+import { useIsPending } from '~/utils/misc'
+import { Label } from '~/components/ui/label'
 import { Checkbox } from '~/components/ui/checkbox'
-import { Input } from '~/components/ui/input'
+import { Button } from '~/components/ui/button'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Schedule / CH' }]
@@ -21,13 +31,72 @@ export const meta: MetaFunction = () => {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const doctor = await requireDoctor(request)
-  const serviceLocations = await prisma.scheduleLocation.findMany()
-  return json({ doctor, serviceLocations })
+  return json({ doctor })
 }
 
+const DAYS = [
+  'saturday',
+  'sunday',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+] as const
+const DaysEnum = z.enum(DAYS)
+type DaysEnum = z.infer<typeof DaysEnum>
+
+const CreateScheduleSchema = z
+  .object({
+    days: z
+      .array(DaysEnum)
+      .min(1, { message: 'Please select at least one day' })
+      .max(7, { message: 'Please select at most 7 days' }),
+    startTime: z.string({ message: 'Please provide your schedule start time' }),
+    endTime: z.string({ message: 'Please provide your schedule end time' }),
+    maxAppointment: z
+      .number()
+      .gt(0, { message: 'Maximum appointments must be greater than 0' }),
+    repeat: z.boolean().optional(),
+  })
+  .superRefine(({ startTime, endTime }, ctx) => {
+    if (startTime >= endTime) {
+      ctx.addIssue({
+        path: ['endTime'],
+        code: 'custom',
+        message: 'Start time must be before the End time',
+      })
+    }
+  })
+
+// TODO: Make this work and add validation
+
 export async function action({ request }: ActionFunctionArgs) {
-  console.log('action')
+  console.log('calling action')
   const formData = await request.formData()
+  const submission = await parseWithZod(formData, {
+    schema: () =>
+      CreateScheduleSchema.transform(async (data, ctx) => {
+        const schedule = { id: 1 }
+
+        if (!schedule) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Could not create schedule',
+          })
+          return z.NEVER
+        }
+
+        return { ...data, schedule }
+      }),
+    async: true,
+  })
+
+  if (submission.status !== 'success') {
+    return json(submission.reply())
+  }
+
+  const { days, endTime, startTime, maxAppointment, repeat } = submission.value
   console.log('formData', formData.get('locationId'))
   console.log('days', formData.getAll('days'))
   console.log('startTime', formData.get('startTime'))
@@ -37,135 +106,104 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirect('/add/schedule')
 }
 
-// export async function action({ request }: ActionFunctionArgs) {
-//   const formData = await request.formData()
-//   const { _action, ...values } = Object.fromEntries(formData)
-//   const name = String(values.name)
-//   const address = String(values.address)
-//   const city = String(values.city)
-//   const state = String(values.state)
-//   const zip = String(values.zip)
-//   const serviceLocationId = String(values.serviceLocationId)
-//   const day = String()
-
-//   if (_action === 'create_schedule') {
-//     const userId = await requireUserId(request)
-//   }
-
-//   if (_action === 'create_location') {
-//     const location = await prisma.scheduleLocation.create({
-//       data: {
-//         name,
-//         address,
-//         city,
-//         state,
-//         zip,
-//       },
-//     })
-//     return location
-//   }
-// }
-
 export default function AddSchedule() {
   const data = useLoaderData<typeof loader>()
-  // const actionData = useActionData<typeof action>()
-  const days = [
-    'saturday',
-    'sunday',
-    'monday',
-    'wednesday',
-    'thursday',
-    'friday',
-  ]
+  const actionData = useActionData<typeof action>()
+
+  const [form, fields] = useForm({
+    lastResult: actionData,
+    onValidate({ formData }) {
+      console.log(
+        formData.getAll('days'),
+        formData.get('startTime'),
+        formData.get('endTime'),
+        formData.get('maxAppointment'),
+        formData.get('repeat'),
+      )
+      return parseWithZod(formData, { schema: CreateScheduleSchema })
+    },
+    shouldRevalidate: 'onSubmit',
+  })
+
+  const isPending = useIsPending()
   return (
     <div className="mx-auto max-w-7xl py-10">
       <PageTitle>Add Schedule</PageTitle>
 
-      <Form method="POST" className="mt-10">
+      <Form method="post" className="mt-10" {...getFormProps(form)}>
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
           <input type="hidden" name="userId" value={data.doctor.userId} />
-
-          <LocationCombobox />
+          <div>
+            <LocationCombobox />
+          </div>
           <div>
             <div className="space-y-1">
-              <label className="text-sm font-bold" htmlFor="days">
-                Days
-              </label>
+              <Label className="text-sm font-bold">Days</Label>
 
               <fieldset>
                 <ul className="grid grid-cols-3 gap-x-4 gap-y-2">
-                  {days.map(day => (
-                    <li key={day} className="items-top flex space-x-2">
-                      <Checkbox name="days" id={day} value={day} />
-                      <div className="grid gap-1.5 leading-none">
-                        <label
-                          htmlFor={day}
-                          className="text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {day}
-                        </label>
-                      </div>
+                  {DAYS.map(day => (
+                    <li key={day} className="flex space-x-2">
+                      <label className="space-x-2 flex items-center text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        <Checkbox
+                          {...getInputProps(fields.days, {
+                            type: 'checkbox',
+                            value: day,
+                          })}
+                        />
+                        <span>{day}</span>
+                      </label>
                     </li>
                   ))}
                 </ul>
+                <div className="px-4 pb-3 pt-1">
+                  <ErrorList errors={fields.days.errors} />
+                </div>
               </fieldset>
             </div>
-            <div className="mt-4 flex items-center space-x-2">
-              <Checkbox
-                name="days"
-                id="repeat"
-                value="repeat"
-                className="h-3 w-3"
-              />
-              <div className="grid gap-1.5 leading-none">
-                <label
-                  htmlFor="repeat"
-                  className="text-xs font-bold capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Repeat this schedule for every week
-                </label>
-              </div>
+            <div className="items-top flex space-x-2">
+
+            <label
+              htmlFor={fields.repeat.id}
+              className="space-x-1 flex items-center text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              <Checkbox {...getInputProps(fields.repeat, { type: 'checkbox' })} />
+              <span> Repeat this schedule for every week</span>
+            </label>
             </div>
           </div>
           <div className="flex items-center justify-between gap-8">
-            <div className="space-y-1">
-              <label className="text-sm font-bold" htmlFor="startTime">
-                Start Time
-              </label>
-
-              <Input
-                type="time"
-                name="startTime"
-                className="w-max"
-                defaultValue="10:00"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-bold" htmlFor="endTime">
-                End Time
-              </label>
-              <div className="relative">
-                <Input
-                  type="time"
-                  name="endTime"
-                  className="w-max"
-                  defaultValue="17:00"
-                />
-              </div>
-            </div>
-
-            <div className="flex-1 space-y-1">
-              <label className="text-sm font-bold" htmlFor="maxAppointment">
-                Maximum Appointments per day
-              </label>
-
-              <Input type="number" name="maxAppointment" />
-            </div>
+            <Field
+              labelProps={{ children: 'Start time' }}
+              inputProps={{
+                defaultValue: '10:00',
+                ...getInputProps(fields.startTime, { type: 'time' }),
+              }}
+              errors={fields.startTime.errors}
+            />
+            <Field
+              labelProps={{ children: 'End time' }}
+              inputProps={{
+                defaultValue: '17:00',
+                ...getInputProps(fields.endTime, { type: 'time' }),
+              }}
+              errors={fields.endTime.errors}
+            />
+            <Field
+              labelProps={{ children: 'Maximum Appointments per day' }}
+              inputProps={{
+                defaultValue: 10,
+                ...getInputProps(fields.maxAppointment, { type: 'number' }),
+              }}
+              errors={fields.maxAppointment.errors}
+            />
           </div>
         </div>
 
         <div className="mt-12 flex items-center justify-center">
-          <Button type="submit">Create Schedule</Button>
+          <Button type="submit" disabled={isPending}>
+            Create Schedule
+          </Button>
         </div>
       </Form>
       {/* <div className="w-1/3">
