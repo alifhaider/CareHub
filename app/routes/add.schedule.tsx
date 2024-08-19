@@ -5,20 +5,15 @@ import {
   MetaFunction,
   redirect,
 } from '@remix-run/node'
-import {
-  Form,
-  Link,
-  useActionData,
-  useFetcher,
-  useLoaderData,
-} from '@remix-run/react'
+import { Form, Link, useFetcher, useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
-import { DaySelect } from '~/components/day-input'
 import { PageTitle } from '~/components/typography'
 import { Button } from '~/components/ui/button'
 import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
 import { LocationCombobox } from './resources.location-combobox'
+import { Checkbox } from '~/components/ui/checkbox'
+import { Input } from '~/components/ui/input'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Schedule / CH' }]
@@ -28,6 +23,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const doctor = await requireDoctor(request)
   const serviceLocations = await prisma.scheduleLocation.findMany()
   return json({ doctor, serviceLocations })
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  console.log('action')
+  const formData = await request.formData()
+  console.log('formData', formData.get('locationId'))
+  console.log('days', formData.getAll('days'))
+  console.log('startTime', formData.get('startTime'))
+  console.log('endTime', formData.get('endTime'))
+  console.log('maxAppointment', formData.get('maxAppointment'))
+
+  return redirect('/add/schedule')
 }
 
 // export async function action({ request }: ActionFunctionArgs) {
@@ -62,7 +69,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function AddSchedule() {
   const data = useLoaderData<typeof loader>()
   // const actionData = useActionData<typeof action>()
-  const locationFetcher = useFetcher()
   const days = [
     'saturday',
     'sunday',
@@ -71,84 +77,135 @@ export default function AddSchedule() {
     'thursday',
     'friday',
   ]
-  const [openLocationForm, setOpenLocationForm] = useState(false)
   return (
     <div className="mx-auto max-w-7xl py-10">
       <PageTitle>Add Schedule</PageTitle>
 
-        <Form method="POST" className="grid grid-cols-1 md:grid-cols-2 mt-10 gap-8">
+      <Form method="POST" className="mt-10">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
           <input type="hidden" name="userId" value={data.doctor.userId} />
 
           <LocationCombobox />
+          <div>
+            <div className="space-y-1">
+              <label className="text-sm font-bold" htmlFor="days">
+                Days
+              </label>
 
-          <label>
-            Day
-            <select name="day" required>
-              {days.map(day => (
-                <option key={day} value={day}>
-                  {day}
-                </option>
-              ))}
-            </select>
-          </label>
+              <fieldset>
+                <ul className="grid grid-cols-3 gap-x-4 gap-y-2">
+                  {days.map(day => (
+                    <li key={day} className="items-top flex space-x-2">
+                      <Checkbox name="days" id={day} value={day} />
+                      <div className="grid gap-1.5 leading-none">
+                        <label
+                          htmlFor={day}
+                          className="text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {day}
+                        </label>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </fieldset>
+            </div>
+            <div className="mt-4 flex items-center space-x-2">
+              <Checkbox
+                name="days"
+                id="repeat"
+                value="repeat"
+                className="h-3 w-3"
+              />
+              <div className="grid gap-1.5 leading-none">
+                <label
+                  htmlFor="repeat"
+                  className="text-xs font-bold capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Repeat this schedule for every week
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-8">
+            <div className="space-y-1">
+              <label className="text-sm font-bold" htmlFor="startTime">
+                Start Time
+              </label>
 
-          <label>
-            Start Time
-            <input type="time" name="time" required />
-          </label>
+              <Input
+                type="time"
+                name="startTime"
+                className="w-max"
+                defaultValue="10:00"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-bold" htmlFor="endTime">
+                End Time
+              </label>
+              <div className="relative">
+                <Input
+                  type="time"
+                  name="endTime"
+                  className="w-max"
+                  defaultValue="17:00"
+                />
+              </div>
+            </div>
 
-          <label>
-            End Time
-            <input type="time" name="time" required />
-          </label>
+            <div className="flex-1 space-y-1">
+              <label className="text-sm font-bold" htmlFor="maxAppointment">
+                Maximum Appointments per day
+              </label>
 
-          <label>
-            Maximum appointments
-            <input type="number" name="maxAppointments" required />
-          </label>
-          <Button type="submit" name="_action" value="create_schedule">
-            Create Schedule
-          </Button>
+              <Input type="number" name="maxAppointment" />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-12 flex items-center justify-center">
+          <Button type="submit">Create Schedule</Button>
+        </div>
       </Form>
-          <div className="w-1/3">
-          <Button onClick={() => setOpenLocationForm(t => !t)}>
-            Register a new location
-          </Button>
-          {openLocationForm ? (
-            <locationFetcher.Form
-              method="POST"
-              className="flex max-w-xl flex-col gap-10 border p-10"
-            >
-              <label>
-                Location Name
-                <input type="text" name="name" required />
-              </label>
+      {/* <div className="w-1/3">
+        <Button onClick={() => setOpenLocationForm(t => !t)}>
+          Register a new location
+        </Button>
+        {openLocationForm ? (
+          <locationFetcher.Form
+            method="POST"
+            className="flex max-w-xl flex-col gap-10 border p-10"
+          >
+            <label>
+              Location Name
+              <input type="text" name="name" />
+            </label>
 
-              <label>
-                Address
-                <input type="text" name="address" required />
-              </label>
+            <label>
+              Address
+              <input type="text" name="address" required />
+            </label>
 
-              <label>
-                City
-                <input type="text" name="city" required />
-              </label>
-              <label>
-                State
-                <input type="state" name="state" />
-              </label>
-              <label>
-                Zip
-                <input type="text" name="zip" />
-              </label>
+            <label>
+              City
+              <input type="text" name="city" required />
+            </label>
+            <label>
+              State
+              <input type="state" name="state" />
+            </label>
+            <label>
+              Zip
+              <input type="text" name="zip" />
+            </label>
 
-              <Button type="submit" value="create_location" name="_action">
-                Add Service Location
-              </Button>
-            </locationFetcher.Form>
-          ) : null}
-      </div>
-    
+            <Button type="submit" value="create_location" name="_action">
+              Add Service Location
+            </Button>
+          </locationFetcher.Form>
+        ) : null}
+      </div> */}
 
       {/* {actionData && <p>{actionData.name} has been added</p>} */}
     </div>
