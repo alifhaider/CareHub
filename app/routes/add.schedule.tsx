@@ -125,7 +125,6 @@ export default function AddSchedule() {
     shouldRevalidate: 'onSubmit',
   })
 
-  const isPending = useIsPending()
   return (
     <div className="mx-auto max-w-7xl py-10">
       <PageTitle>Add Schedule</PageTitle>
@@ -201,7 +200,7 @@ export default function AddSchedule() {
         </div>
 
         <div className="mt-12 flex items-center justify-center">
-          <Button type="submit" disabled={isPending}>
+          <Button type="submit">
             Create Schedule
           </Button>
         </div>
