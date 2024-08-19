@@ -245,14 +245,14 @@ export default function User() {
                 key={schedule.location.id}
                 className="flex items-center rounded-md border transition-all hover:shadow-md"
               >
-                <button className="h-full w-full px-4 py-6">
+                <div className="h-full w-full px-4 py-6">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <MapPin />
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-8 w-8" />
                       <div>
-                        <h6 className="flex items-end text-2xl font-bold">
+                        <h6 className="flex items-end text-2xl font-bold leading-none">
                           {schedule.location.name}{' '}
-                          <span className="mb-0.5 text-sm font-normal">
+                          <span className="text-sm font-normal">
                             /
                             {schedule.times.map(time => {
                               return (
@@ -268,39 +268,33 @@ export default function User() {
                           {schedule.location.address}, {schedule.location.city},{' '}
                           {schedule.location.state}, {schedule.location.zip}
                         </div>
-                        {!isOwner && (
-                          <div className="mt-2">
+                        <div className="mt-4">
+                          {!isOwner && (
                             <Link
                               to={`/profile/${user.username}/book`}
                               className="flex w-max items-start rounded-md bg-amber-300 px-2 py-1 text-secondary"
                             >
                               Book Now
                             </Link>
-                          </div>
-                        )}
+                          )}
+                          {isOwner && isDoctor && (
+                            <Form method="POST">
+                              <input
+                                type="hidden"
+                                name="scheduleId"
+                                value={schedule.id}
+                              />
+                              <button className="flex w-max items-start rounded-md bg-rose-700 px-2 py-1 text-secondary dark:text-secondary-foreground">
+                                Remove Schedule
+                              </button>
+                            </Form>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="text-xl font-bold">Fee: 2000tk</div>
                   </div>
-                  <span></span>
-                  {!isOwner && !isDoctor && (
-                    <Button className="text-xs text-cyan-400 underline">
-                      Book
-                    </Button>
-                  )}
-                  {isOwner && (
-                    <Form method="POST">
-                      <input
-                        type="hidden"
-                        name="scheduleId"
-                        value={schedule.id}
-                      />
-                      <Button variant="destructive" className="py-1">
-                        Remove Schedule
-                      </Button>
-                    </Form>
-                  )}
-                </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -308,7 +302,9 @@ export default function User() {
       ) : null}
 
       {isDoctor && isOwner ? (
-        <Link to="/add/schedule">Add a new Schedule</Link>
+        <Button asChild variant="outline" className="mt-6">
+          <Link to="/add/schedule">Create a new Schedule</Link>
+        </Button>
       ) : null}
 
       <Spacer variant="md" />
