@@ -7,6 +7,7 @@ import { useId } from 'react'
 import { useSpinDelay } from 'spin-delay'
 import { Spinner } from '~/components/spinner'
 import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 import { prisma } from '~/db.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -62,9 +63,7 @@ export function LocationCombobox() {
   return (
     <div className="relative">
       <div className="group relative space-y-1">
-        <label className="text-sm font-bold" htmlFor={id}>
-          Location
-        </label>
+        <Label htmlFor={id}>Location</Label>
         <div className="relative">
           <Input
             className="relative caret-black outline-none"
