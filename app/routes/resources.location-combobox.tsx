@@ -1,3 +1,4 @@
+import { type FieldMetadata, getInputProps } from '@conform-to/react'
 import { ScheduleLocation } from '@prisma/client'
 import { json, LoaderFunctionArgs } from '@remix-run/node'
 import { useFetcher } from '@remix-run/react'
@@ -5,6 +6,7 @@ import clsx from 'clsx'
 import { useCombobox } from 'downshift'
 import { useId } from 'react'
 import { useSpinDelay } from 'spin-delay'
+import { ErrorList } from '~/components/forms'
 import { Spinner } from '~/components/spinner'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
@@ -32,11 +34,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ items: locations })
 }
 
-export function LocationCombobox() {
+
+export function LocationCombobox({ field }: { field: FieldMetadata }) {
   const locationFetcher = useFetcher<typeof loader>()
   const id = useId()
 
-  // TODO: make this type better
   const items = locationFetcher.data?.items ?? []
 
   const cb = useCombobox<Pick<ScheduleLocation, 'id' | 'name' | 'address'>>({
@@ -105,7 +107,13 @@ export function LocationCombobox() {
           : null}
       </ul>
 
-      <input type="hidden" name="locationId" value={cb.selectedItem?.id} />
+      <input
+        {...getInputProps(field, {
+          type: 'hidden',
+          defaultValue: cb.selectedItem?.id ?? '',
+        })}
+      />
+      <ErrorList errors={field.errors} />
 
       <p className="mt-0.5 text-xs">
         <strong>Hint:</strong> If you don&apos;t see the location you&apos;re

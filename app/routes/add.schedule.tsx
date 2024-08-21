@@ -62,6 +62,7 @@ type DaysEnum = z.infer<typeof DaysEnum>
 
 const CreateScheduleSchema = z
   .object({
+    locationId: z.string({ message: 'Please, Select a location' }),
     days: z
       .array(DaysEnum)
       .min(1, { message: 'Please select at least one day' })
@@ -87,12 +88,12 @@ const CreateScheduleSchema = z
 // TODO: Make this work and add validation
 
 export async function action({ request }: ActionFunctionArgs) {
-  console.log('calling action')
   const formData = await request.formData()
+
   const submission = await parseWithZod(formData, {
     schema: () =>
       CreateScheduleSchema.transform(async (data, ctx) => {
-        const schedule = { id: 1 }
+        const schedule = { id: 1 } // perform schedule create here
 
         if (!schedule) {
           ctx.addIssue({
@@ -152,7 +153,7 @@ export default function AddSchedule() {
       <Form method="post" className="mt-10" {...getFormProps(form)}>
         <div className="grid grid-cols-1 gap-12 align-top md:grid-cols-2">
           <input type="hidden" name="userId" value={data.doctor.userId} />
-          <LocationCombobox />
+          <LocationCombobox field={fields.locationId} />
           <div className="space-y-1">
             <Label htmlFor="scheduleType">Schedule Type</Label>
             <Select
