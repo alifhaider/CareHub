@@ -10,16 +10,20 @@ export type ListOfErrors = Array<string | null | undefined> | null | undefined
 export function ErrorList({
   id,
   errors,
+  size,
 }: {
   errors?: ListOfErrors
-  id?: string
-}) {
+    id?: string
+    size?: 'sm' | 'lg'
+  }) {
+  
   const errorsToRender = errors?.filter(Boolean)
   if (!errorsToRender?.length) return null
+  const sizeClass = size === "lg" ? "text-sm" : "text-[10px]" 
   return (
     <ul id={id} className="flex flex-col gap-1">
       {errorsToRender.map(e => (
-        <li key={e} className="text-foreground-destructive text-[10px]">
+        <li key={e} className={`text-destructive ${sizeClass} `}>
           {e}
         </li>
       ))}

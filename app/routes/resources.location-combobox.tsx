@@ -1,7 +1,7 @@
 import { type FieldMetadata, getInputProps } from '@conform-to/react'
 import { ScheduleLocation } from '@prisma/client'
 import { json, LoaderFunctionArgs } from '@remix-run/node'
-import { useFetcher } from '@remix-run/react'
+import { Link, useFetcher } from '@remix-run/react'
 import clsx from 'clsx'
 import { useCombobox } from 'downshift'
 import { useId } from 'react'
@@ -34,7 +34,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ items: locations })
 }
 
-
 export function LocationCombobox({ field }: { field: FieldMetadata }) {
   const locationFetcher = useFetcher<typeof loader>()
   const id = useId()
@@ -55,7 +54,7 @@ export function LocationCombobox({ field }: { field: FieldMetadata }) {
 
   const displayMenu = cb.isOpen && items.length > 0
   const menuClassName =
-    'absolute z-10 mt-4 min-w-[448px] max-h-[336px] bg-white shadow-lg rounded-3xl w-full overflow-y-scroll'
+    'absolute z-10 mt-4 min-w-[448px] max-h-[336px] bg-background shadow-lg rounded-3xl w-full overflow-y-scroll'
 
   const busy = locationFetcher.state !== 'idle'
   const showSpinner = useSpinDelay(busy, {
@@ -108,16 +107,21 @@ export function LocationCombobox({ field }: { field: FieldMetadata }) {
       </ul>
 
       <input
+        className="sr-only"
         {...getInputProps(field, {
           type: 'hidden',
-          defaultValue: cb.selectedItem?.id ?? '',
+          value: true,
         })}
       />
       <ErrorList errors={field.errors} />
 
       <p className="mt-0.5 text-xs">
         <strong>Hint:</strong> If you don&apos;t see the location you&apos;re
-        looking for, try typing or add a new location.
+        looking for, try typing or{' '}
+        <Link className="underline" to="/add/location">
+          add a new location
+        </Link>
+        .
       </p>
     </div>
   )

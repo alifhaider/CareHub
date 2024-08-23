@@ -33,6 +33,12 @@ import {
 } from '~/components/ui/popover'
 import { format } from 'date-fns'
 import { Calendar } from '~/components/ui/calendar'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '~/components/ui/accordion'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Schedule / CH' }]
@@ -62,13 +68,13 @@ type DaysEnum = z.infer<typeof DaysEnum>
 
 const CreateScheduleSchema = z
   .object({
-    locationId: z.string({ message: 'Please, Select a location' }),
+    locationId: z.string({ message: 'Select a location' }),
     days: z
       .array(DaysEnum)
-      .min(1, { message: 'Please select at least one day' })
-      .max(7, { message: 'Please select at most 7 days' }),
-    startTime: z.string({ message: 'Please provide your schedule start time' }),
-    endTime: z.string({ message: 'Please provide your schedule end time' }),
+      .min(1, { message: 'Select at least one day' })
+      .max(7, { message: 'Select at most 7 days' }),
+    startTime: z.string({ message: 'Provide your schedule start time' }),
+    endTime: z.string({ message: 'Provide your schedule end time' }),
     maxAppointment: z
       .number()
       .gt(0, { message: 'Maximum appointments must be greater than 0' }),
@@ -109,17 +115,8 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (submission.status !== 'success') {
-    return json(submission.reply())
+    return json(submission.reply({ formErrors: ['Could not create schedule'] }))
   }
-
-  const { days, endTime, startTime, maxAppointment, repeat } = submission.value
-  console.log('formData', formData.get('locationId'))
-  console.log('days', formData.getAll('days'))
-  console.log('repeatMonths', formData.get('repeatMonths'))
-  console.log('startTime', formData.get('startTime'))
-  console.log('endTime', formData.get('endTime'))
-  console.log('maxAppointment', formData.get('maxAppointment'))
-
   return redirect('/add/schedule')
 }
 
@@ -135,6 +132,7 @@ export default function AddSchedule() {
     lastResult: actionData,
     onValidate({ formData }) {
       console.log(
+        formData.get('locationId'),
         formData.getAll('days'),
         formData.get('startTime'),
         formData.get('endTime'),
@@ -148,7 +146,7 @@ export default function AddSchedule() {
 
   return (
     <div className="mx-auto max-w-7xl py-10">
-      <PageTitle>Add Schedule</PageTitle>
+      <PageTitle>Add Schedule_</PageTitle>
       <HelpText />
       <Form method="post" className="mt-10" {...getFormProps(form)}>
         <div className="grid grid-cols-1 gap-12 align-top md:grid-cols-2">
@@ -277,46 +275,6 @@ export default function AddSchedule() {
           <Button type="submit">Create Schedule</Button>
         </div>
       </Form>
-      {/* <div className="w-1/3">
-        <Button onClick={() => setOpenLocationForm(t => !t)}>
-          Register a new location
-        </Button>
-        {openLocationForm ? (
-          <locationFetcher.Form
-            method="POST"
-            className="flex max-w-xl flex-col gap-10 border p-10"
-          >
-            <label>
-              Location Name
-              <input type="text" name="name" />
-            </label>
-
-            <label>
-              Address
-              <input type="text" name="address" required />
-            </label>
-
-            <label>
-              City
-              <input type="text" name="city" required />
-            </label>
-            <label>
-              State
-              <input type="state" name="state" />
-            </label>
-            <label>
-              Zip
-              <input type="text" name="zip" />
-            </label>
-
-            <Button type="submit" value="create_location" name="_action">
-              Add Service Location
-            </Button>
-          </locationFetcher.Form>
-        ) : null}
-      </div> */}
-
-      {/* {actionData && <p>{actionData.name} has been added</p>} */}
     </div>
   )
 }
@@ -329,38 +287,47 @@ type CheckboxProps = {
 function HelpText() {
   return (
     <div className="mt-6 max-w-5xl space-y-1 text-sm text-secondary-foreground">
-      <p>
-        A schedule is a set of days and times when you are available for
-        appointments. You can create multiple schedules for different locations.
-      </p>
-      <p>
-        For example, you can{' '}
-        <strong className="text-base">
-          create a schedule for your office location and another schedule for
-          your home location.
-        </strong>
-      </p>
-      <p>
-        Each schedule can have{' '}
-        <strong className="text-base">
-          {' '}
-          different days, times, and maximum appointments per day.
-        </strong>
-      </p>
-      <p>
-        When you create a schedule, patients can book appointments with you
-        during the times you have set. In between{' '}
-        <strong className="text-base">Start Time</strong> and{' '}
-        <strong className="text-base">End Time</strong> are the times when you
-        are available for appointments.
-      </p>
-      <p>
-        Once you create a schedule, you can view and edit it on your{' '}
-        <strong className="text-base">profile page.</strong>
-      </p>
-      <p>
-        While creating a schedule you need to provide the following information:
-      </p>
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="item-1">
+          <AccordionTrigger className='text-lg'>How create schedule works?</AccordionTrigger>
+          <AccordionContent className='space-y-2'>
+            <p>
+              A schedule is a set of days and times when you are available for
+              appointments. You can create multiple schedules for different
+              locations.
+            </p>
+            <p>
+              For example, you can{' '}
+              <strong className="text-base">
+                create a schedule for your office location and another schedule
+                for your home location.
+              </strong>
+            </p>
+            <p>
+              Each schedule can have{' '}
+              <strong className="text-base">
+                {' '}
+                different days, times, and maximum appointments per day.
+              </strong>
+            </p>
+            <p>
+              When you create a schedule, patients can book appointments with
+              you during the times you have set. In between{' '}
+              <strong className="text-base">Start Time</strong> and{' '}
+              <strong className="text-base">End Time</strong> are the times when
+              you are available for appointments.
+            </p>
+            <p>
+              Once you create a schedule, you can view and edit it on your{' '}
+              <strong className="text-base">profile page.</strong>
+            </p>
+            <p>
+              While creating a schedule you need to provide the following
+              information:
+            </p>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   )
 }
