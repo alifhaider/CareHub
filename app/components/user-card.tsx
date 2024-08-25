@@ -2,7 +2,7 @@ import { Link } from '@remix-run/react'
 import { Star } from 'lucide-react'
 import { Button } from './ui/button'
 
-type CardProps = {
+type UserCardProps = {
   username: string
   doctor: {
     fullName: string | null
@@ -18,7 +18,7 @@ type CardProps = {
   } | null
 }
 
-export default function Card({ doctor, username }: CardProps) {
+export default function UserCard({ doctor, username }: UserCardProps) {
   return (
     <li className="h-full">
       <div className="flex h-full flex-col justify-between rounded-sm border bg-background py-4 hover:shadow-lg">
@@ -47,7 +47,7 @@ export default function Card({ doctor, username }: CardProps) {
         <p className="mt-4 px-4 text-sm">{doctor?.bio}</p>
 
         <p className="mt-4 px-4 text-sm">
-          Schedules: {doctor?._count.schedules}
+          <strong>Total schedules:</strong> {doctor?._count.schedules}
         </p>
         <Button asChild className="mx-4 mt-4">
           <Link to={`/profile/${username}/book`}>Book appointment</Link>

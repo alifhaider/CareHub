@@ -10,7 +10,12 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 import { ErrorList, Field } from '~/components/forms'
 import { PageTitle } from '~/components/typography'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '~/components/ui/accordion'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '~/components/ui/accordion'
 import { Button } from '~/components/ui/button'
 import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
@@ -73,16 +78,16 @@ function CreateLocationSchema(
             .then(isUnique => {
               console.log({ isUnique })
               if (!isUnique) {
-                console.log("I am exist")
+                console.log('I am exist')
                 ctx.addIssue({
                   code: 'custom',
-                  path: ["form"],
+                  path: ['form'],
                   message: 'Location already exists',
                 })
               }
             })
         }),
-  )
+    )
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -112,10 +117,10 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (submission.status !== 'success') {
-    const customError = submission.error?.form 
+    const customError = submission.error?.form
     return json(
       submission.reply({
-        formErrors:  customError ?? ['There was an error creating the location'],
+        formErrors: customError ?? ['There was an error creating the location'],
       }),
     )
   }
@@ -193,34 +198,36 @@ export default function AddLocation() {
             }}
             errors={fields.zip.errors}
           />
-
         </div>
-        <div className='flex flex-col gap-4 items-center justify-center'>
-          <div className='h-4'>
-          <ErrorList size="lg" errors={form.errors} />
+        <div className="flex flex-col items-center justify-center gap-4">
+          <div className="h-4">
+            <ErrorList size="lg" errors={form.errors} />
           </div>
-        <Button type="submit">Create Location</Button>
-
+          <Button type="submit">Create Location</Button>
         </div>
       </Form>
     </div>
   )
 }
 
-
-
 function HelpText() {
   return (
     <div className="mt-6 max-w-5xl space-y-1 text-sm text-secondary-foreground">
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="item-1">
-          <AccordionTrigger className='text-lg'>How registering location works?</AccordionTrigger>
-          <AccordionContent className='space-y-2'>
+          <AccordionTrigger className="text-lg">
+            How registering location works?
+          </AccordionTrigger>
+          <AccordionContent className="space-y-2">
             <p>
-              You need to provide the name of the chamber or hospital, address, city, state, and zip code. And then by submitting the form, the location will be registered to our database.
+              You need to provide the name of the chamber or hospital, address,
+              city, state, and zip code. And then by submitting the form, the
+              location will be registered to our database.
             </p>
             <p>
-              That&apos;s why short location address isn&apos;t allowed. You need to provide the full address of the location. Cause we check the uniqueness of the location by the full address. 
+              That&apos;s why short location address isn&apos;t allowed. You
+              need to provide the full address of the location. Cause we check
+              the uniqueness of the location by the full address.
             </p>
           </AccordionContent>
         </AccordionItem>

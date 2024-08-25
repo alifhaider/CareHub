@@ -13,13 +13,12 @@ export function ErrorList({
   size,
 }: {
   errors?: ListOfErrors
-    id?: string
-    size?: 'sm' | 'lg'
-  }) {
-  
+  id?: string
+  size?: 'sm' | 'lg'
+}) {
   const errorsToRender = errors?.filter(Boolean)
   if (!errorsToRender?.length) return null
-  const sizeClass = size === "lg" ? "text-sm" : "text-[10px]" 
+  const sizeClass = size === 'lg' ? 'text-sm' : 'text-[10px]'
   return (
     <ul id={id} className="flex flex-col gap-1">
       {errorsToRender.map(e => (

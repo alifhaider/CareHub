@@ -1,11 +1,9 @@
 import { json, LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { Form, useLoaderData, useSearchParams } from '@remix-run/react'
-import invariant from 'tiny-invariant'
-import Card from '~/components/card'
 import { PageTitle } from '~/components/typography'
-import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { prisma } from '~/db.server'
+import UserCard from '~/components/user-card'
 
 export const meta: MetaFunction = () => {
   return [
@@ -92,7 +90,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function Search() {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const { users } = useLoaderData<typeof loader>()
   return (
     <div className="page-container">
@@ -129,7 +127,7 @@ export default function Search() {
       </div>
       <ul className="mt-6 grid grid-cols-1 items-stretch gap-6 md:grid-cols-3 lg:grid-cols-4">
         {users.map(({ id, user }) => (
-          <Card key={id} doctor={user.doctor} username={user.username} />
+          <UserCard key={id} doctor={user.doctor} username={user.username} />
         ))}
       </ul>
     </div>

@@ -289,8 +289,10 @@ function HelpText() {
     <div className="mt-6 max-w-5xl space-y-1 text-sm text-secondary-foreground">
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="item-1">
-          <AccordionTrigger className='text-lg'>How create schedule works?</AccordionTrigger>
-          <AccordionContent className='space-y-2'>
+          <AccordionTrigger className="text-lg">
+            How create schedule works?
+          </AccordionTrigger>
+          <AccordionContent className="space-y-2">
             <p>
               A schedule is a set of days and times when you are available for
               appointments. You can create multiple schedules for different

@@ -20,80 +20,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ]
 }
 
-type Location = {
-  id: string
-  address: string
-  name: string
-  city: string | null
-  state: string | null
-  zip: string | null
-}
-
-type GroupedSchedule = {
-  id: string
-  location: Location
-  times: {
-    day: string
-    startTime: string
-    endTime: string
-    maxAppointments: number
-  }[]
-}
-
-// appointments
-// {location: 'ibna sina hospital', day: 'Monday', startTime: '9:00', endTime: '12:00'}
-// {location: 'ibna sina hospital', day: 'Monday', startTime: '13:00', endTime: '17:00'}
-// {location: 'ibna sina hospital', day: 'Tuesday', startTime: '9:00', endTime: '12:00'}
-// {location: 'ibna sina hospital', day: 'Tuesday', startTime: '13:00', endTime: '17:00'}
-// i want output like this
-// {location: 'ibna sina hospital', day: 'Monday', startTime: '9:00', endTime: '12:00'}
-// {location: 'ibna sina hospital', day: 'Monday', startTime: '13:00', endTime: '17:00'}
-
-//   const mockData = [
-//     {
-//       "location": {
-//         "id": "clztvw8om004gv802suqqe2j4",
-//         "address": "House- 01, Road- 04, Dhanmondi, Dhaka 1205",
-//         "name": "Labaid Hospital",
-//         "city": "Dhaka",
-//         "state": "Dhaka",
-//         "zip": "1205"
-//       },
-//       "times": [
-//         {
-//           "day": "WEDNESDAY",
-//           "startTime": "2024-08-14T03:00:00.000Z",
-//           "endTime": "2024-08-14T11:00:00.000Z",
-//           "maxAppointments": 5
-//         },
-//         {
-//           "day": "SATURDAY",
-//           "startTime": "2024-08-14T03:00:00.000Z",
-//           "endTime": "2024-08-14T11:00:00.000Z",
-//           "maxAppointments": 6
-//         }
-//       ]
-//     },
-//     {
-//       "location": {
-//         "id": "clztvw8om004jv802djp3ampi",
-//         "address": "18/F West Panthapath, Dhaka 1205",
-//         "name": "Square Hospital",
-//         "city": "Dhaka",
-//         "state": "Dhaka",
-//         "zip": "1205"
-//       },
-//       "times": [
-//         {
-//           "day": "TUESDAY",
-//           "startTime": "2024-08-14T03:00:00.000Z",
-//           "endTime": "2024-08-14T11:00:00.000Z",
-//           "maxAppointments": 5
-//         }
-//       ]
-//     }
-// ]
-
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const username = params.username
   const cookieSession = await authSessionStorage.getSession(
@@ -116,6 +42,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           },
           schedules: {
             include: {
+              fees: {
+                select: { id: true, serial: true, visit: true, discount: true },
+              },
               location: {
                 select: {
                   id: true,
@@ -160,34 +89,6 @@ export async function action({ request }: LoaderFunctionArgs) {
 export default function User() {
   // const [showInput, setShowInput] = useState(false)
   const { isDoctor, isOwner, user } = useLoaderData<typeof loader>()
-
-  function groupSchedulesByLocation() {
-    const schedules = user.doctor?.schedules ?? []
-    const groupedByLocation = schedules?.reduce<
-      Record<string, GroupedSchedule>
-    >((acc, schedule) => {
-      const locationId = schedule.location.id
-
-      if (!acc[locationId]) {
-        acc[locationId] = {
-          id: schedule.id,
-          location: schedule.location,
-          times: [],
-        }
-      }
-
-      acc[locationId].times.push({
-        day: schedule.day,
-        startTime: schedule.startTime,
-        endTime: schedule.endTime,
-        maxAppointments: schedule.maxAppointments,
-      })
-
-      return acc
-    }, {})
-
-    return Object.values(groupedByLocation)
-  }
 
   function getHours(time: string) {
     const date = new Date(time)
@@ -240,7 +141,7 @@ export default function User() {
             Book Appointment
           </h2>
           <ul className="space-y-4">
-            {groupSchedulesByLocation()?.map(schedule => (
+            {user.doctor?.schedules.map(schedule => (
               <li
                 key={schedule.location.id}
                 className="flex items-center rounded-md border transition-all hover:shadow-md"
@@ -253,15 +154,8 @@ export default function User() {
                         <h6 className="flex items-end text-2xl font-bold leading-none">
                           {schedule.location.name}{' '}
                           <span className="text-sm font-normal">
-                            /
-                            {schedule.times.map(time => {
-                              return (
-                                <span key={time.startTime}>
-                                  {time.day} ({getHours(time.startTime)}-
-                                  {getHours(time.endTime)})
-                                </span>
-                              )
-                            })}
+                            /{schedule.day} ({getHours(schedule.startTime)}-
+                            {getHours(schedule.endTime)})
                           </span>
                         </h6>
                         <div className="mt-2 text-sm text-accent-foreground">
@@ -292,7 +186,21 @@ export default function User() {
                         </div>
                       </div>
                     </div>
-                    <div className="text-xl font-bold">Fee: 2000tk</div>
+                    <ul>
+                      {schedule.fees.map(fee => (
+                        <li key={fee.id}>
+                          <div className="text-xl font-bold text-accent-foreground">
+                            Visiting Fee: {fee.visit}tk
+                          </div>
+                          <div className="text-secondary-foreground">
+                            Serial Fee: {fee.serial}tk
+                          </div>
+                          <div className="text-sm text-secondary-foreground">
+                            Discount: {fee.discount}tk
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </li>
@@ -325,6 +233,24 @@ export default function User() {
           </ul>
         </>
       ) : null}
+
+      <Spacer variant="md" />
+      <h4 className="text-3xl font-medium text-lime-500">Reviews</h4>
+      <ul>
+        <li>
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-full bg-primary-foreground" />
+            <div>
+              <h6 className="text-xl font-bold">John Doe</h6>
+              <p className="text-accent-foreground">5/5</p>
+              <p className="text-accent-foreground">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam
+                viverra euismod odio, gravida pellentesque urna varius vitae.
+              </p>
+            </div>
+          </div>
+        </li>
+      </ul>
     </div>
   )
 }

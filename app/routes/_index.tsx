@@ -1,8 +1,8 @@
 import type { MetaFunction } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
-import Card from '~/components/card'
 import { SectionTitle } from '~/components/typography'
 import { Button } from '~/components/ui/button'
+import UserCard from '~/components/user-card'
 import { prisma } from '~/db.server'
 
 export const meta: MetaFunction = () => {
@@ -78,7 +78,7 @@ export default function Index() {
           </p>
           <ul className="mt-6 grid grid-cols-4 items-stretch gap-6">
             {users.map(({ id, username, doctor }) => (
-              <Card key={id} username={username} doctor={doctor} />
+              <UserCard key={id} username={username} doctor={doctor} />
             ))}
           </ul>
 
