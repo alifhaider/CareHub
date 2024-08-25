@@ -21,42 +21,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
     where: {
       OR: [
         {
-          fullName: {
-            contains: query,
-          },
-          user: {
-            username: {
-              contains: query,
-            },
-          },
-        },
-        {
-          specialties: {
-            some: {
-              name: {
-                contains: query,
-              },
-            },
-          },
+          fullName: { contains: query },
+          user: { username: { contains: query } },
         },
         {
           schedules: {
             some: {
               location: {
                 OR: [
-                  {
-                    name: {
-                      contains: locationQuery,
-                    },
-                  },
-                  {
-                    address: {
-                      contains: locationQuery,
-                    },
-                  },
+                  { name: { contains: query || locationQuery } },
+                  { address: { contains: query || locationQuery } },
                 ],
               },
             },
+          },
+        },
+        {
+          specialties: {
+            some: { name: { contains: query || specialtiesQuery } },
           },
         },
       ],
@@ -69,17 +51,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
               fullName: true,
               bio: true,
               rating: true,
-              specialties: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-              _count: {
-                select: {
-                  schedules: true,
-                },
-              },
+              specialties: { select: { id: true, name: true } },
+              _count: { select: { schedules: true } },
             },
           },
         },

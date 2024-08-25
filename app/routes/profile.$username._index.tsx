@@ -235,9 +235,9 @@ export default function User() {
       ) : null}
 
       <Spacer variant="md" />
-      <h4 className="text-3xl font-medium text-lime-500">Reviews</h4>
+      <h4 className="mb-4 text-3xl font-medium text-lime-500">Reviews</h4>
       <ul>
-        <li>
+        <li className="rounded-md bg-secondary px-4 py-2">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-primary-foreground" />
             <div>
