@@ -5,9 +5,11 @@ import {
 } from '@remix-run/node'
 import { Form, Link, useLoaderData } from '@remix-run/react'
 import { MapPin } from 'lucide-react'
+import { DayProps } from 'react-day-picker'
 import { Spacer } from '~/components/spacer'
 import { PageTitle, SectionTitle } from '~/components/typography'
 import { Button } from '~/components/ui/button'
+import { Calendar, CustomCell } from '~/components/ui/calendar'
 import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
 import { authSessionStorage } from '~/services/session.server'
@@ -87,7 +89,6 @@ export async function action({ request }: LoaderFunctionArgs) {
 }
 
 export default function User() {
-  // const [showInput, setShowInput] = useState(false)
   const { isDoctor, isOwner, user } = useLoaderData<typeof loader>()
 
   function getHours(time: string) {
@@ -100,6 +101,12 @@ export default function User() {
     const minutesString = minutes < 10 ? `0${minutes}` : minutes
     return `${hoursString}:${minutesString}${hours > 12 ? 'PM' : 'AM'}`
   }
+
+  const scheduleTimes = user.doctor?.schedules.map(schedule => ({
+    id: schedule.id,
+    startTime: new Date(schedule.startTime),
+    endTime: new Date(schedule.endTime),
+  }))
 
   return (
     <div className="page-container">
@@ -134,7 +141,7 @@ export default function User() {
         </div>
       </div>
 
-      <Spacer variant="md" />
+      <Spacer variant="lg" />
       {isDoctor ? (
         <>
           <h2 className="mb-4 text-5xl font-bold underline">
@@ -215,7 +222,7 @@ export default function User() {
         </Button>
       ) : null}
 
-      <Spacer variant="md" />
+      <Spacer variant="lg" />
       {isOwner ? (
         <>
           <h2 className="text-3xl font-medium text-lime-500">
@@ -233,6 +240,12 @@ export default function User() {
           </ul>
         </>
       ) : null}
+
+      <Spacer variant="md" />
+      <h4 className="mb-4 text-3xl font-medium text-lime-500">Availabilty Calendar</h4>
+      <Calendar components={{
+        Day: (props : DayProps) => <CustomCell scheduleTimes={scheduleTimes} {...props} />,
+      }} mode='single' />
 
       <Spacer variant="md" />
       <h4 className="mb-4 text-3xl font-medium text-lime-500">Reviews</h4>
