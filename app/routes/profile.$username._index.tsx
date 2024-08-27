@@ -3,8 +3,9 @@ import {
   type LoaderFunctionArgs,
   type MetaFunction,
 } from '@remix-run/node'
-import { Form, Link, useLoaderData } from '@remix-run/react'
+import { Form, Link, useLoaderData, useSearchParams } from '@remix-run/react'
 import { MapPin } from 'lucide-react'
+import React from 'react'
 import { DayProps } from 'react-day-picker'
 import { Spacer } from '~/components/spacer'
 import { PageTitle, SectionTitle } from '~/components/typography'
@@ -90,6 +91,7 @@ export async function action({ request }: LoaderFunctionArgs) {
 
 export default function User() {
   const { isDoctor, isOwner, user } = useLoaderData<typeof loader>()
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>()
 
   function getHours(time: string) {
     const date = new Date(time)
@@ -107,6 +109,12 @@ export default function User() {
     startTime: new Date(schedule.startTime),
     endTime: new Date(schedule.endTime),
   }))
+
+  
+  function handleDateClick(date: Date | undefined) {
+    if (!date) return
+    setSelectedDate(date)
+  }
 
   return (
     <div className="page-container">
@@ -242,10 +250,23 @@ export default function User() {
       ) : null}
 
       <Spacer variant="md" />
-      <h4 className="mb-4 text-3xl font-medium text-lime-500">Availabilty Calendar</h4>
-      <Calendar components={{
-        Day: (props : DayProps) => <CustomCell scheduleTimes={scheduleTimes} {...props} />,
-      }} mode='single' />
+      <div className="flex gap-10">
+        <div>
+          <h4 className="mb-4 text-3xl font-medium text-lime-500">
+            Availabilty Calendar
+          </h4>
+          <Calendar
+            onSelect={handleDateClick}
+            components={{
+              Day: (props: DayProps) => (
+                <CustomCell scheduleTimes={scheduleTimes} {...props} />
+              ),
+            }}
+            mode="single"
+          />
+        </div>
+        <Schedules />
+      </div>
 
       <Spacer variant="md" />
       <h4 className="mb-4 text-3xl font-medium text-lime-500">Reviews</h4>
@@ -276,6 +297,14 @@ export function ErrorBoundary() {
       <Link to="/search" className="text-center text-lg underline">
         Go back
       </Link>
+    </div>
+  )
+}
+
+const Schedules = () => {
+  return (
+    <div>
+      <h4 className="mb-4 text-3xl font-medium text-lime-500">Schedules</h4>
     </div>
   )
 }
