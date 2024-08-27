@@ -110,7 +110,6 @@ export default function User() {
     endTime: new Date(schedule.endTime),
   }))
 
-  
   function handleDateClick(date: Date | undefined) {
     if (!date) return
     setSelectedDate(date)

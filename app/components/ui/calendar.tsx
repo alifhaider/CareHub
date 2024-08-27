@@ -77,8 +77,8 @@ export function CustomCell({
   scheduleTimes = [],
   ...props
 }: CustomCellProps & DayProps) {
-    const buttonRef = React.useRef<HTMLButtonElement>(null);
-  const dayRender = useDayRender(props.date, props.displayMonth, buttonRef);
+  const buttonRef = React.useRef<HTMLButtonElement>(null)
+  const dayRender = useDayRender(props.date, props.displayMonth, buttonRef)
   const modifires = dayRender.activeModifiers
 
   const isSameDay = (schedule: ScheduleTime) => {
@@ -93,7 +93,6 @@ export function CustomCell({
   }
 
   const currentDaySchedules = scheduleTimes.filter(isSameDay)
-
 
   const classNames = {
     cell: 'h-16 w-16 text-center text-2xl p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
@@ -115,9 +114,8 @@ export function CustomCell({
     day_hidden: 'invisible',
   }
 
-
   if (dayRender.isHidden) {
-    return <td className={cn(className, 'invisible')} {...props} />;
+    return <td className={cn(className, 'invisible')} {...props} />
   }
 
   if (!dayRender.isButton || currentDaySchedules.length <= 0) {
@@ -131,11 +129,9 @@ export function CustomCell({
         )}
         {...props}
       >
-        <div className={classNames.day}>
-        {props.date.getDate()}
-        </div>
+        <div className={classNames.day}>{props.date.getDate()}</div>
       </td>
-    );
+    )
   }
 
   return (
@@ -150,18 +146,17 @@ export function CustomCell({
         ref={buttonRef}
         className={cn(
           classNames.day,
-          modifires.isToday &&  classNames.day_today,
+          modifires.isToday && classNames.day_today,
         )}
         {...dayRender.buttonProps}
       >
         {props.date.getDate()}
       </Button>
     </td>
-  );
+  )
 
   // const [, setSearchParams] = useSearchParams()
   // const date = props.date.getDate()
-
 
   //   function handleDateClick(date: Date ) {
   //   console.log('selected', date)
@@ -169,7 +164,6 @@ export function CustomCell({
   //   console.log('selected', date.toISOString())
   //   setSearchParams({ date: date.toISOString() })
   // }
-
 
   // function getColor(index: number) {
   //   if (index === 0) return 'bg-lime-600'
