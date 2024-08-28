@@ -25,9 +25,21 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const username = params.username
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
   const cookieSession = await authSessionStorage.getSession(
     request.headers.get('cookie'),
   )
+
+  // TODO: Delete old schedules
+// await prisma.schedule.deleteMany({
+//   where: {
+//     startTime: {
+//       lt: today, // Less than today
+//     },
+//   },
+// });
+
   const loggedInUserId = cookieSession.get('userId')
   const user = await prisma.user.findFirst({
     where: { username },
@@ -44,6 +56,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             },
           },
           schedules: {
+            where: { startTime: { gte: today } },
             include: {
               fees: {
                 select: { id: true, serial: true, visit: true, discount: true },
