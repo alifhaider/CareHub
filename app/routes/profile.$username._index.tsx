@@ -3,7 +3,7 @@ import {
   type LoaderFunctionArgs,
   type MetaFunction,
 } from '@remix-run/node'
-import { Form, Link, useLoaderData, useSearchParams } from '@remix-run/react'
+import { Form, Link, useLoaderData } from '@remix-run/react'
 import { MapPin } from 'lucide-react'
 import React from 'react'
 import { DayProps } from 'react-day-picker'
@@ -32,13 +32,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   )
 
   // TODO: Delete old schedules
-// await prisma.schedule.deleteMany({
-//   where: {
-//     startTime: {
-//       lt: today, // Less than today
-//     },
-//   },
-// });
+  // await prisma.schedule.deleteMany({
+  //   where: {
+  //     startTime: {
+  //       lt: today, // Less than today
+  //     },
+  //   },
+  // });
 
   const loggedInUserId = cookieSession.get('userId')
   const user = await prisma.user.findFirst({
@@ -56,7 +56,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             },
           },
           schedules: {
-            where: { startTime: { gte: today } },
+            // where: { startTime: { gte: today } },
             include: {
               fees: {
                 select: { id: true, serial: true, visit: true, discount: true },
@@ -106,17 +106,6 @@ export default function User() {
   const { isDoctor, isOwner, user } = useLoaderData<typeof loader>()
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>()
 
-  function getHours(time: string) {
-    const date = new Date(time)
-    const hours = date.getHours()
-    const minutes = date.getMinutes()
-
-    const hoursString =
-      hours < 10 ? `0${hours}` : hours > 10 ? `${hours % 12}` : hours
-    const minutesString = minutes < 10 ? `0${minutes}` : minutes
-    return `${hoursString}:${minutesString}${hours > 12 ? 'PM' : 'AM'}`
-  }
-
   const scheduleTimes = user.doctor?.schedules.map(schedule => ({
     id: schedule.id,
     startTime: new Date(schedule.startTime),
@@ -161,81 +150,6 @@ export default function User() {
         </div>
       </div>
 
-      <Spacer variant="lg" />
-      {isDoctor ? (
-        <>
-          <h2 className="mb-4 text-5xl font-bold underline">
-            Book Appointment
-          </h2>
-          <ul className="space-y-4">
-            {user.doctor?.schedules.map(schedule => (
-              <li
-                key={schedule.location.id}
-                className="flex items-center rounded-md border transition-all hover:shadow-md"
-              >
-                <div className="h-full w-full px-4 py-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-8 w-8" />
-                      <div>
-                        <h6 className="flex items-end text-2xl font-bold leading-none">
-                          {schedule.location.name}{' '}
-                          <span className="text-sm font-normal">
-                            /{schedule.day} ({getHours(schedule.startTime)}-
-                            {getHours(schedule.endTime)})
-                          </span>
-                        </h6>
-                        <div className="mt-2 text-sm text-accent-foreground">
-                          {schedule.location.address}, {schedule.location.city},{' '}
-                          {schedule.location.state}, {schedule.location.zip}
-                        </div>
-                        <div className="mt-4">
-                          {!isOwner && (
-                            <Link
-                              to={`/profile/${user.username}/book`}
-                              className="flex w-max items-start rounded-md bg-amber-300 px-2 py-1 text-secondary"
-                            >
-                              Book Now
-                            </Link>
-                          )}
-                          {isOwner && isDoctor && (
-                            <Form method="POST">
-                              <input
-                                type="hidden"
-                                name="scheduleId"
-                                value={schedule.id}
-                              />
-                              <button className="flex w-max items-start rounded-md bg-rose-700 px-2 py-1 text-secondary dark:text-secondary-foreground">
-                                Remove Schedule
-                              </button>
-                            </Form>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <ul>
-                      {schedule.fees.map(fee => (
-                        <li key={fee.id}>
-                          <div className="text-xl font-bold text-accent-foreground">
-                            Visiting Fee: {fee.visit}tk
-                          </div>
-                          <div className="text-secondary-foreground">
-                            Serial Fee: {fee.serial}tk
-                          </div>
-                          <div className="text-sm text-secondary-foreground">
-                            Discount: {fee.discount}tk
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : null}
-
       {isDoctor && isOwner ? (
         <Button asChild variant="outline" className="mt-6">
           <Link to="/add/schedule">Create a new Schedule</Link>
@@ -261,42 +175,42 @@ export default function User() {
         </>
       ) : null}
 
-      <Spacer variant="md" />
-      <div className="flex gap-10">
-        <div>
-          <h4 className="mb-4 text-3xl font-medium text-lime-500">
-            Availabilty Calendar
-          </h4>
-          <Calendar
-            onSelect={handleDateClick}
-            components={{
-              Day: (props: DayProps) => (
-                <CustomCell scheduleTimes={scheduleTimes} {...props} />
-              ),
-            }}
-            mode="single"
-          />
-        </div>
-        <Schedules />
-      </div>
+      {isDoctor ? (
+        <>
+          <Spacer variant="md" />
+          <div className="flex gap-10">
+            <div>
+              <h4 className="mb-4 text-3xl font-medium text-lime-500">
+                Availabilty Calendar
+              </h4>
+              <Calendar
+                onSelect={handleDateClick}
+                components={{
+                  Day: (props: DayProps) => (
+                    <CustomCell scheduleTimes={scheduleTimes} {...props} />
+                  ),
+                }}
+                mode="single"
+              />
+            </div>
+
+            {/* TODO: Show schedule for upcoming day by default and show schedule for selected date */}
+            {user.doctor?.schedules &&
+            user.doctor.schedules.length > 0 &&
+            isDoctor ? (
+              <Schedules
+                schedules={user.doctor?.schedules}
+                isOwner={isOwner}
+                isDoctor={isDoctor && true}
+                username={user.username}
+              />
+            ) : null}
+          </div>
+        </>
+      ) : null}
 
       <Spacer variant="md" />
-      <h4 className="mb-4 text-3xl font-medium text-lime-500">Reviews</h4>
-      <ul>
-        <li className="rounded-md bg-secondary px-4 py-2">
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-full bg-primary-foreground" />
-            <div>
-              <h6 className="text-xl font-bold">John Doe</h6>
-              <p className="text-accent-foreground">5/5</p>
-              <p className="text-accent-foreground">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam
-                viverra euismod odio, gravida pellentesque urna varius vitae.
-              </p>
-            </div>
-          </div>
-        </li>
-      </ul>
+      {isDoctor ? <Reviews /> : null}
     </div>
   )
 }
@@ -313,10 +227,142 @@ export function ErrorBoundary() {
   )
 }
 
-const Schedules = () => {
+type ScheduleProp = {
+  id: string
+  day: string
+  startTime: string
+  endTime: string
+  location: {
+    id: string
+    name: string
+    address: string
+    city: string
+    state: string | null
+    zip: string | null
+  }
+  fees: {
+    id: string
+    serial: number | null
+    visit: number | null
+    discount: number | null
+  }[]
+}
+
+type ScheduleProps = {
+  schedules: ScheduleProp[]
+  isOwner: boolean
+  isDoctor: boolean
+  username: string
+}
+
+const Schedules = ({
+  schedules,
+  isDoctor,
+  isOwner,
+  username,
+}: ScheduleProps) => {
+  function getHours(time: string) {
+    const date = new Date(time)
+    const hours = date.getHours()
+    const minutes = date.getMinutes()
+
+    const hoursString =
+      hours < 10 ? `0${hours}` : hours > 10 ? `${hours % 12}` : hours
+    const minutesString = minutes < 10 ? `0${minutes}` : minutes
+    return `${hoursString}:${minutesString}${hours > 12 ? 'PM' : 'AM'}`
+  }
   return (
     <div>
       <h4 className="mb-4 text-3xl font-medium text-lime-500">Schedules</h4>
+      <ul className="space-y-4">
+        {schedules.map(schedule => (
+          <li
+            key={schedule.location.id}
+            className="flex items-center rounded-md border transition-all hover:shadow-md"
+          >
+            <div className="h-full w-full px-4 py-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-8 w-8" />
+                  <div>
+                    <h6 className="flex items-end text-2xl font-bold leading-none">
+                      {schedule.location.name}{' '}
+                      <span className="text-sm font-normal">
+                        /{schedule.day} ({getHours(schedule.startTime)}-
+                        {getHours(schedule.endTime)})
+                      </span>
+                    </h6>
+                    <div className="mt-2 text-sm text-accent-foreground">
+                      {schedule.location.address}, {schedule.location.city},{' '}
+                      {schedule.location.state}, {schedule.location.zip}
+                    </div>
+                    <div className="mt-4">
+                      {!isOwner && (
+                        <Link
+                          to={`/profile/${username}/book`}
+                          className="flex w-max items-start rounded-md bg-amber-300 px-2 py-1 text-secondary"
+                        >
+                          Book Now
+                        </Link>
+                      )}
+                      {isOwner && isDoctor && (
+                        <Form method="POST">
+                          <input
+                            type="hidden"
+                            name="scheduleId"
+                            value={schedule.id}
+                          />
+                          <button className="flex w-max items-start rounded-md bg-rose-700 px-2 py-1 text-secondary dark:text-secondary-foreground">
+                            Remove Schedule
+                          </button>
+                        </Form>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <ul>
+                  {schedule.fees.map(fee => (
+                    <li key={fee.id}>
+                      <div className="text-xl font-bold text-accent-foreground">
+                        Visiting Fee: {fee.visit}tk
+                      </div>
+                      <div className="text-secondary-foreground">
+                        Serial Fee: {fee.serial}tk
+                      </div>
+                      <div className="text-sm text-secondary-foreground">
+                        Discount: {fee.discount}tk
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+const Reviews = () => {
+  return (
+    <div>
+      <h4 className="mb-4 text-3xl font-medium text-lime-500">Reviews</h4>
+      <ul>
+        <li className="rounded-md bg-secondary px-4 py-2">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-full bg-primary-foreground" />
+            <div>
+              <h6 className="text-xl font-bold">John Doe</h6>
+              <p className="text-accent-foreground">5/5</p>
+              <p className="text-accent-foreground">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam
+                viverra euismod odio, gravida pellentesque urna varius vitae.
+              </p>
+            </div>
+          </div>
+        </li>
+      </ul>
     </div>
   )
 }
