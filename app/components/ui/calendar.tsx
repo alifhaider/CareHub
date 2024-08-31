@@ -12,6 +12,7 @@ type ScheduleTime = {
   id: string
   startTime: Date
   endTime: Date
+  date: Date
 }
 
 type CustomCellProps = {
@@ -81,14 +82,12 @@ export function CustomCell({
   const dayRender = useDayRender(props.date, props.displayMonth, buttonRef)
   const modifires = dayRender.activeModifiers
 
+  
   const isSameDay = (schedule: ScheduleTime) => {
-    const scheduleDay = schedule.startTime.getDate()
-    const scheduleMonth = schedule.startTime.getMonth()
-    const scheduleYear = schedule.startTime.getFullYear()
     return (
-      props.date.getDate() === scheduleDay &&
-      props.date.getMonth() === scheduleMonth &&
-      props.date.getFullYear() === scheduleYear
+      props.date.getDate() === schedule.date.getDate() &&
+      props.date.getMonth() === schedule.date.getMonth() &&
+      props.date.getFullYear() === schedule.date.getFullYear()
     )
   }
 

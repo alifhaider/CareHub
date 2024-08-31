@@ -110,6 +110,7 @@ export default function User() {
     id: schedule.id,
     startTime: new Date(schedule.startTime),
     endTime: new Date(schedule.endTime),
+    date: new Date(schedule.day),
   }))
 
   function handleDateClick(date: Date | undefined) {
@@ -261,6 +262,16 @@ const Schedules = ({
   isOwner,
   username,
 }: ScheduleProps) => {
+
+  // 12th June, 2021
+  function getFormattedDate(date: string) {
+    const dateObj = new Date(date)
+    const month = dateObj.toLocaleString('default', { month: 'long' })
+    const day = dateObj.getDate()
+    const year = dateObj.getFullYear()
+    return `${day} ${month}, ${year}`
+  }
+
   function getHours(time: string) {
     const date = new Date(time)
     const hours = date.getHours()
@@ -287,11 +298,14 @@ const Schedules = ({
                   <div>
                     <h6 className="flex items-end text-2xl font-bold leading-none">
                       {schedule.location.name}{' '}
-                      <span className="text-sm font-normal">
-                        /{schedule.day} ({getHours(schedule.startTime)}-
+                      
+                      <span className="text-xs font-normal">
+                        /{getFormattedDate(schedule.day)} ({getHours(schedule.startTime)}-
                         {getHours(schedule.endTime)})
                       </span>
                     </h6>
+                    <p>
+                    </p>
                     <div className="mt-2 text-sm text-accent-foreground">
                       {schedule.location.address}, {schedule.location.city},{' '}
                       {schedule.location.state}, {schedule.location.zip}
