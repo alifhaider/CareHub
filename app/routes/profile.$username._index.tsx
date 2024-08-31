@@ -105,8 +105,11 @@ export async function action({ request }: LoaderFunctionArgs) {
 export default function User() {
   const { isDoctor, isOwner, user } = useLoaderData<typeof loader>()
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>()
+  const schedules = user.doctor?.schedules
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // Normalize to start of the day
 
-  const scheduleTimes = user.doctor?.schedules.map(schedule => ({
+  const scheduleTimes = schedules?.map(schedule => ({
     id: schedule.id,
     startTime: new Date(schedule.startTime),
     endTime: new Date(schedule.endTime),
@@ -117,6 +120,35 @@ export default function User() {
     if (!date) return
     setSelectedDate(date)
   }
+
+  // find the nearest upcoming schedule day
+const upcomingDays = schedules
+    ?.map(schedule => new Date(schedule.day).setHours(0, 0, 0, 0)) // Normalize to start of the day
+    .filter(day => day >= today.getTime()) // Filter out past days
+    .sort((a, b) => a - b) // Sort in ascending order
+  
+  const nearestDay = upcomingDays?.[0]
+
+  // Filter out schedules for the nearest day
+  const upcomingSchedules = nearestDay
+  ? schedules?.filter(schedule => {
+      const scheduleDay = new Date(schedule.day).setHours(0, 0, 0, 0);
+      return scheduleDay === nearestDay;
+    })
+  : [];
+
+  const selectedSchedule = user.doctor?.schedules?.filter(schedule => {
+    if (!selectedDate) return
+    const scheduleDate = new Date(schedule.day)
+    return (
+      scheduleDate.getDate() === selectedDate.getDate() &&
+      scheduleDate.getMonth() === selectedDate.getMonth() &&
+      scheduleDate.getFullYear() === selectedDate.getFullYear()
+    )
+  })
+
+  const displayedSchedules = selectedDate ? selectedSchedule : upcomingSchedules
+
 
   return (
     <div className="page-container">
@@ -196,11 +228,11 @@ export default function User() {
             </div>
 
             {/* TODO: Show schedule for upcoming day by default and show schedule for selected date */}
-            {user.doctor?.schedules &&
-            user.doctor.schedules.length > 0 &&
+            {displayedSchedules &&
+            displayedSchedules.length > 0 &&
             isDoctor ? (
               <Schedules
-                schedules={user.doctor?.schedules}
+                schedules={displayedSchedules}
                 isOwner={isOwner}
                 isDoctor={isDoctor && true}
                 username={user.username}
@@ -250,7 +282,7 @@ type ScheduleProp = {
 }
 
 type ScheduleProps = {
-  schedules: ScheduleProp[]
+  schedules: ScheduleProp[] | undefined
   isOwner: boolean
   isDoctor: boolean
   username: string
@@ -263,7 +295,6 @@ const Schedules = ({
   username,
 }: ScheduleProps) => {
 
-  // 12th June, 2021
   function getFormattedDate(date: string) {
     const dateObj = new Date(date)
     const month = dateObj.toLocaleString('default', { month: 'long' })
@@ -286,7 +317,7 @@ const Schedules = ({
     <div className='flex-1'>
       <h4 className="mb-4 text-3xl font-medium text-lime-500">Schedules</h4>
       <ul className="space-y-4">
-        {schedules.map(schedule => (
+        {schedules?.map(schedule => (
           <li
             key={schedule.location.id}
             className="flex items-center rounded-md border transition-all hover:shadow-md"

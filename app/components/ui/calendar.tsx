@@ -4,8 +4,6 @@ import { DayPicker, DayProps, useDayRender } from 'react-day-picker'
 
 import { cn } from '~/lib/utils'
 import { Button, buttonVariants } from '~/components/ui/button'
-import { Schedule } from '@prisma/client'
-import { useSearchParams } from '@remix-run/react'
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 type ScheduleTime = {
