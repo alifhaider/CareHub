@@ -77,7 +77,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       },
       bookings: {
         include: {
-          doctor: { select: { fullName: true, user: { select: { username: true } } } },
+          doctor: {
+            select: { fullName: true, user: { select: { username: true } } },
+          },
         },
       },
     },
@@ -122,20 +124,20 @@ export default function User() {
   }
 
   // find the nearest upcoming schedule day
-const upcomingDays = schedules
+  const upcomingDays = schedules
     ?.map(schedule => new Date(schedule.day).setHours(0, 0, 0, 0)) // Normalize to start of the day
     .filter(day => day >= today.getTime()) // Filter out past days
     .sort((a, b) => a - b) // Sort in ascending order
-  
+
   const nearestDay = upcomingDays?.[0]
 
   // Filter out schedules for the nearest day
   const upcomingSchedules = nearestDay
-  ? schedules?.filter(schedule => {
-      const scheduleDay = new Date(schedule.day).setHours(0, 0, 0, 0);
-      return scheduleDay === nearestDay;
-    })
-  : [];
+    ? schedules?.filter(schedule => {
+        const scheduleDay = new Date(schedule.day).setHours(0, 0, 0, 0)
+        return scheduleDay === nearestDay
+      })
+    : []
 
   const selectedSchedule = user.doctor?.schedules?.filter(schedule => {
     if (!selectedDate) return
@@ -148,7 +150,6 @@ const upcomingDays = schedules
   })
 
   const displayedSchedules = selectedDate ? selectedSchedule : upcomingSchedules
-
 
   return (
     <div className="page-container">
@@ -199,8 +200,12 @@ const upcomingDays = schedules
             {user.bookings.map(appointment => (
               <li key={appointment.id}>
                 {appointment.date} |{' '}
-                <Link to={`/profile/${appointment.doctor.user.username}`} className='text-blue-400 underline'>
-                  {appointment.doctor.fullName ?? appointment.doctor.user.username}
+                <Link
+                  to={`/profile/${appointment.doctor.user.username}`}
+                  className="text-blue-400 underline"
+                >
+                  {appointment.doctor.fullName ??
+                    appointment.doctor.user.username}
                 </Link>
               </li>
             ))}
@@ -227,10 +232,7 @@ const upcomingDays = schedules
               />
             </div>
 
-            {/* TODO: Show schedule for upcoming day by default and show schedule for selected date */}
-            {displayedSchedules &&
-            displayedSchedules.length > 0 &&
-            isDoctor ? (
+            {displayedSchedules && displayedSchedules.length > 0 && isDoctor ? (
               <Schedules
                 schedules={displayedSchedules}
                 isOwner={isOwner}
@@ -294,7 +296,6 @@ const Schedules = ({
   isOwner,
   username,
 }: ScheduleProps) => {
-
   function getFormattedDate(date: string) {
     const dateObj = new Date(date)
     const month = dateObj.toLocaleString('default', { month: 'long' })
@@ -314,7 +315,7 @@ const Schedules = ({
     return `${hoursString}:${minutesString}${hours > 12 ? 'PM' : 'AM'}`
   }
   return (
-    <div className='flex-1'>
+    <div className="flex-1">
       <h4 className="mb-4 text-3xl font-medium text-lime-500">Schedules</h4>
       <ul className="space-y-4">
         {schedules?.map(schedule => (
@@ -329,14 +330,13 @@ const Schedules = ({
                   <div>
                     <h6 className="flex items-end text-2xl font-bold leading-none">
                       {schedule.location.name}{' '}
-                      
                       <span className="text-xs font-normal">
-                        /{getFormattedDate(schedule.day)} ({getHours(schedule.startTime)}-
+                        /{getFormattedDate(schedule.day)} (
+                        {getHours(schedule.startTime)}-
                         {getHours(schedule.endTime)})
                       </span>
                     </h6>
-                    <p>
-                    </p>
+                    <p></p>
                     <div className="mt-2 text-sm text-accent-foreground">
                       {schedule.location.address}, {schedule.location.city},{' '}
                       {schedule.location.state}, {schedule.location.zip}

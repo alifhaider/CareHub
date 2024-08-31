@@ -80,7 +80,6 @@ export function CustomCell({
   const dayRender = useDayRender(props.date, props.displayMonth, buttonRef)
   const modifires = dayRender.activeModifiers
 
-  
   const isSameDay = (schedule: ScheduleTime) => {
     return (
       props.date.getDate() === schedule.date.getDate() &&

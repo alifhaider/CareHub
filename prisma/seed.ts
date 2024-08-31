@@ -1,6 +1,6 @@
 import { prisma } from '~/db.server'
 import bcrypt from 'bcryptjs'
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker'
 
 const mock_specialties = [
   'Cardiologist',

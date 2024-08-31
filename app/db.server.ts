@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 export const prisma = new PrismaClient({
   transactionOptions: {
     timeout: 20000,
-  }
+  },
 })
 
 async function main() {
