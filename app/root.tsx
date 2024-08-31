@@ -16,6 +16,10 @@ import {
 import { PreventFlashOnWrongTheme, ThemeProvider, useTheme } from 'remix-themes'
 import { prisma } from './db.server'
 import fontStyles from '~/fonts.css?url'
+import { getToast } from 'remix-toast'
+import { useEffect } from 'react'
+import { useToast } from './hooks/use-toast'
+import { Toaster } from './components/ui/toaster'
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: stylesheet },
@@ -24,6 +28,8 @@ export const links: LinksFunction = () => [
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const { getTheme } = await themeSessionResolver(request)
+  const { toast, headers } = await getToast(request)
+  console.log({ toast })
   const cookieSession = await authSessionStorage.getSession(
     request.headers.get('cookie'),
   )
@@ -37,10 +43,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
         where: { id: userId },
       })
     : null
-  return json({
-    user: user,
-    theme: getTheme(),
-  })
+  return json(
+    {
+      user: user,
+      theme: getTheme(),
+      toast,
+    },
+    { headers },
+  )
 }
 
 export default function AppWithProviders() {
@@ -53,8 +63,19 @@ export default function AppWithProviders() {
 }
 
 export function App() {
-  const { user, theme: loaderTheme } = useLoaderData<typeof loader>()
+  const { user, theme: loaderTheme, toast } = useLoaderData<typeof loader>()
   const [theme] = useTheme()
+  const { toast: notify } = useToast()
+
+  useEffect(() => {
+    if (toast) {
+      notify({
+        title: toast.message,
+        type: 'foreground',
+        variant: toast.type === 'error' ? 'destructive' : 'default',
+      })
+    }
+  }, [toast, notify])
   return (
     <html lang="en" data-theme={theme ?? ''} className={theme ?? ''}>
       <head>
@@ -66,6 +87,7 @@ export function App() {
       </head>
       <body className="bg-background">
         <div>
+          <Toaster />
           <Navbar username={user?.username} />
           <Outlet />
         </div>

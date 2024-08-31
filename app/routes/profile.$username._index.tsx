@@ -321,7 +321,7 @@ const Schedules = ({
         {schedules?.map(schedule => (
           <li
             key={schedule.location.id}
-            className="flex items-center rounded-md border transition-all hover:shadow-md"
+            className="flex items-center rounded-md border transition-all"
           >
             <div className="h-full w-full px-4 py-6">
               <div className="flex items-center justify-between">
@@ -351,16 +351,23 @@ const Schedules = ({
                         </Link>
                       )}
                       {isOwner && isDoctor && (
-                        <Form method="POST">
-                          <input
-                            type="hidden"
-                            name="scheduleId"
-                            value={schedule.id}
-                          />
-                          <button className="flex w-max items-start rounded-md bg-rose-700 px-2 py-1 text-secondary dark:text-secondary-foreground">
-                            Remove Schedule
+                        <div className="flex gap-2 text-sm">
+                          <button className="flex w-max items-start rounded-md border border-secondary-foreground bg-secondary px-2 py-1 text-secondary-foreground">
+                            <Link to={`/edit/schedule/${schedule.id}`}>
+                              Edit Schedule
+                            </Link>
                           </button>
-                        </Form>
+                          <Form method="POST">
+                            <input
+                              type="hidden"
+                              name="scheduleId"
+                              value={schedule.id}
+                            />
+                            <button className="flex w-max items-start rounded-md border border-destructive bg-destructive px-2 py-1 text-destructive-foreground transition-all">
+                              Remove Schedule
+                            </button>
+                          </Form>
+                        </div>
                       )}
                     </div>
                   </div>

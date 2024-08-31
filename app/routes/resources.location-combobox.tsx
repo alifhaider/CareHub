@@ -4,7 +4,7 @@ import { json, LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import clsx from 'clsx'
 import { useCombobox } from 'downshift'
-import { useId } from 'react'
+import { useEffect, useId } from 'react'
 import { useSpinDelay } from 'spin-delay'
 import { ErrorList } from '~/components/forms'
 import { Spinner } from '~/components/spinner'
@@ -34,7 +34,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ items: locations })
 }
 
-export function LocationCombobox({ field }: { field: FieldMetadata }) {
+export function LocationCombobox({
+  field,
+  selectedLocationId,
+}: {
+  field: FieldMetadata
+  selectedLocationId?: string
+}) {
   const locationFetcher = useFetcher<typeof loader>()
   const id = useId()
 
@@ -44,6 +50,7 @@ export function LocationCombobox({ field }: { field: FieldMetadata }) {
     id,
     items,
     itemToString: item => (item ? item.name : ''),
+    initialSelectedItem: items.find(item => item.id === selectedLocationId),
     onInputValueChange: changes => {
       locationFetcher.submit(
         { query: changes.inputValue ?? '' },

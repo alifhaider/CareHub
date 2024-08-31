@@ -1,21 +1,28 @@
+import { parseWithZod } from '@conform-to/zod'
 import {
   ActionFunctionArgs,
   json,
   LoaderFunctionArgs,
-  MetaFunction,
   redirect,
 } from '@remix-run/node'
-import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
+import {
+  Form,
+  MetaFunction,
+  useActionData,
+  useLoaderData,
+} from '@remix-run/react'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { PageTitle } from '~/components/typography'
+import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
-import { LocationCombobox } from './resources.location-combobox'
-import { getFormProps, getInputProps, useForm } from '@conform-to/react'
-import { parseWithZod } from '@conform-to/zod'
+import { ScheduleSchema, ScheduleType } from './add.schedule'
 import { z } from 'zod'
-import { ErrorList, Field } from '~/components/forms'
-import { Label } from '~/components/ui/label'
-import { Checkbox } from '~/components/ui/checkbox'
+import { jsonWithError, jsonWithSuccess } from 'remix-toast'
 import { Button } from '~/components/ui/button'
+import { useState } from 'react'
+import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import { LocationCombobox } from './resources.location-combobox'
+import { Label } from '~/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -23,76 +30,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import { useState } from 'react'
-import { cn } from '~/lib/utils'
-import { CalendarIcon } from 'lucide-react'
+import { Field } from '~/components/forms'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '~/components/ui/popover'
+import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { Calendar } from '~/components/ui/calendar'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '~/components/ui/accordion'
-import { redirectWithSuccess } from 'remix-toast'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Schedule / CH' }]
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const doctor = await requireDoctor(request)
-  return json({ doctor })
-}
-
-const DAYS = [
-  'saturday',
-  'sunday',
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-] as const
-
-export enum ScheduleType {
-  SINGLE_DAY = 'single_day',
-  REPEAT_WEEKS = 'repeat_weeks',
-}
-const DaysEnum = z.enum(DAYS)
-type DaysEnum = z.infer<typeof DaysEnum>
-
-export const ScheduleSchema = z
-  .object({
-    locationId: z.string({ message: 'Select a location' }),
-    days: z
-      .array(DaysEnum)
-      .min(1, { message: 'Select at least one day' })
-      .max(7, { message: 'Select at most 7 days' }),
-    startTime: z.string({ message: 'Provide your schedule start time' }),
-    endTime: z.string({ message: 'Provide your schedule end time' }),
-    maxAppointment: z
-      .number()
-      .gt(0, { message: 'Maximum appointments must be greater than 0' }),
-    repeatWeeks: z.boolean().optional(),
-    repeatMonths: z.boolean().optional(),
+  const scheduleId = params.scheduleId
+  const schedule = await prisma.schedule.findUnique({
+    where: {
+      id: scheduleId,
+      doctorId: doctor.userId,
+    },
   })
-  .superRefine(({ startTime, endTime }, ctx) => {
-    if (startTime >= endTime) {
-      ctx.addIssue({
-        path: ['endTime'],
-        code: 'custom',
-        message: 'Start time must be before the End time',
-      })
-    }
-  })
-
-// TODO: Make this work and add validation
+  if (!schedule) {
+    return redirect('/')
+  }
+  return json({ schedule })
+}
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
@@ -100,7 +65,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const submission = await parseWithZod(formData, {
     schema: () =>
       ScheduleSchema.transform(async (data, ctx) => {
-        const schedule = { id: 1 } // perform schedule create here
+        const schedule = { id: 1 } // perform schedule update here
 
         if (!schedule) {
           ctx.addIssue({
@@ -116,19 +81,19 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (submission.status !== 'success') {
-    return json(submission.reply({ formErrors: ['Could not create schedule'] }))
+    return json(submission.reply({ formErrors: ['Could not update schedule'] }))
   }
-  return redirectWithSuccess('/add/schedule', {
-    message: 'Schedule created successfully',
-  })
+  console.log('running action')
+  return jsonWithSuccess(
+    { result: 'Schedule updated successfully' },
+    { message: 'Schedule updated successfully!' },
+  )
 }
 
-export default function AddSchedule() {
+export default function EditSchedule() {
   const data = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
-  const [scheduleType, setScheduleType] = useState<ScheduleType>(
-    ScheduleType.REPEAT_WEEKS,
-  )
+  const [scheduleType, setScheduleType] = useState<ScheduleType>()
   const [date, setDate] = useState<Date>()
 
   const [form, fields] = useForm({
@@ -149,12 +114,14 @@ export default function AddSchedule() {
 
   return (
     <div className="mx-auto max-w-7xl py-10">
-      <PageTitle>Add Schedule_</PageTitle>
-      <HelpText />
+      <PageTitle>Edit Schedule</PageTitle>
       <Form method="post" className="mt-10" {...getFormProps(form)}>
         <div className="grid grid-cols-1 gap-12 align-top md:grid-cols-2">
-          <input type="hidden" name="userId" value={data.doctor.userId} />
-          <LocationCombobox field={fields.locationId} />
+          <input type="hidden" name="userId" value={data.schedule.doctorId} />
+          <LocationCombobox
+            field={fields.locationId}
+            selectedLocationId={data.schedule.locationId}
+          />
           <div className="space-y-1">
             <Label htmlFor="scheduleType">Schedule Type</Label>
             <Select
@@ -228,14 +195,14 @@ export default function AddSchedule() {
                     />
                   </PopoverContent>
                 </Popover>
-                <RepeatCheckbox
+                {/* <RepeatCheckbox
                   fields={fields}
                   type="monthly"
                   label="Repeat this schedule date for every month"
-                />
+                /> */}
               </>
             ) : null}
-            {scheduleType === ScheduleType.REPEAT_WEEKS ? (
+            {/* {scheduleType === ScheduleType.REPEAT_WEEKS ? (
               <>
                 <Label className="text-sm font-bold">Days</Label>
 
@@ -270,7 +237,7 @@ export default function AddSchedule() {
                   label="Repeat these schedule days for every month"
                 />
               </>
-            ) : null}
+            ) : null} */}
           </div>
         </div>
 
@@ -278,92 +245,11 @@ export default function AddSchedule() {
           <Button type="submit">Create Schedule</Button>
         </div>
       </Form>
-    </div>
-  )
-}
-type CheckboxProps = {
-  fields: ReturnType<typeof useForm>[1]
-  type: 'weekly' | 'monthly'
-  label: string
-}
-
-function HelpText() {
-  return (
-    <div className="mt-6 max-w-5xl space-y-1 text-sm text-secondary-foreground">
-      <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="item-1">
-          <AccordionTrigger className="text-lg">
-            How create schedule works?
-          </AccordionTrigger>
-          <AccordionContent className="space-y-2">
-            <p>
-              A schedule is a set of days and times when you are available for
-              appointments. You can create multiple schedules for different
-              locations.
-            </p>
-            <p>
-              For example, you can{' '}
-              <strong className="text-base">
-                create a schedule for your office location and another schedule
-                for your home location.
-              </strong>
-            </p>
-            <p>
-              Each schedule can have{' '}
-              <strong className="text-base">
-                {' '}
-                different days, times, and maximum appointments per day.
-              </strong>
-            </p>
-            <p>
-              When you create a schedule, patients can book appointments with
-              you during the times you have set. In between{' '}
-              <strong className="text-base">Start Time</strong> and{' '}
-              <strong className="text-base">End Time</strong> are the times when
-              you are available for appointments.
-            </p>
-            <p>
-              Once you create a schedule, you can view and edit it on your{' '}
-              <strong className="text-base">profile page.</strong>
-            </p>
-            <p>
-              While creating a schedule you need to provide the following
-              information:
-            </p>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    </div>
-  )
-}
-
-function RepeatCheckbox({ fields, type, label }: CheckboxProps) {
-  const field = type === 'weekly' ? fields.repeatWeeks : fields.repeatMonths
-
-  return (
-    <div className="items-top flex space-x-2">
-      <label
-        htmlFor={field.id}
-        className="flex items-center space-x-1 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-      >
-        <Checkbox
-          className="rounded-full"
-          {...getInputProps(field, { type: 'checkbox' })}
-        />
-        <span className="text-sm">{label}</span>
-      </label>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
     </div>
   )
 }
 
 export function ErrorBoundary() {
-  return (
-    <div className="container mx-auto flex flex-col items-center justify-center p-20">
-      <PageTitle>404</PageTitle>
-      <p className="text-center text-4xl font-bold">Content not found</p>
-      <Link to="/" className="text-center text-lg underline">
-        Go back
-      </Link>
-    </div>
-  )
+  return <GeneralErrorBoundary />
 }
