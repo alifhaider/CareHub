@@ -77,7 +77,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       },
       bookings: {
         include: {
-          doctor: { select: { user: { select: { username: true } } } },
+          doctor: { select: { fullName: true, user: { select: { username: true } } } },
         },
       },
     },
@@ -166,8 +166,8 @@ export default function User() {
             {user.bookings.map(appointment => (
               <li key={appointment.id}>
                 {appointment.date} |{' '}
-                <Link to={`/profile/${appointment.doctor.user.username}`}>
-                  {appointment.doctor.user.username}
+                <Link to={`/profile/${appointment.doctor.user.username}`} className='text-blue-400 underline'>
+                  {appointment.doctor.fullName ?? appointment.doctor.user.username}
                 </Link>
               </li>
             ))}
@@ -272,7 +272,7 @@ const Schedules = ({
     return `${hoursString}:${minutesString}${hours > 12 ? 'PM' : 'AM'}`
   }
   return (
-    <div>
+    <div className='flex-1'>
       <h4 className="mb-4 text-3xl font-medium text-lime-500">Schedules</h4>
       <ul className="space-y-4">
         {schedules.map(schedule => (

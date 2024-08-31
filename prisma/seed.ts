@@ -1,5 +1,6 @@
 import { prisma } from '~/db.server'
 import bcrypt from 'bcryptjs'
+import { faker } from '@faker-js/faker';
 
 const mock_specialties = [
   'Cardiologist',
@@ -109,19 +110,21 @@ async function seed() {
   const totalDoctors = 20
   const totalAppointments = 20
   const totalScheduleLocations = 10
-  const totalSchedules = 10
+  const totalSchedules = 60
   // const totalReviews = 40;
 
   console.time('👨‍⚕️ Creating users...')
   const users = await Promise.all(
-    Array.from({ length: totalUsers }).map(async (_, index) => {
+    Array.from({ length: totalUsers }).map(async () => {
+      const fullName = faker.person.fullName()
+      const username = fullName.replace(/\s/g, '').toLowerCase()
       const user = await prisma.user.create({
         data: {
-          email: `user${index}@gmail.com`,
-          username: `user${index}`,
+          email: `${username}@ch.com`,
+          username: username,
           password: {
             create: {
-              hash: bcrypt.hashSync(`user-${index}`, 10),
+              hash: await bcrypt.hash('password', 10),
             },
           },
         },
@@ -136,10 +139,10 @@ async function seed() {
     Array.from({ length: totalDoctors }).map(async (_, index) => {
       const doctor = await prisma.doctor.create({
         data: {
-          bio: `Doctor's bio ${index}`,
+          bio: faker.person.bio(),
           userId: users[index].id,
-          fullName: `Dr. User ${index}`,
-          phone: `+8801${Math.floor(Math.random() * 1000000000)}`,
+          fullName: `Dr. ${faker.person.fullName()}`,
+          phone: faker.phone.number(),
           specialties: {
             createMany: {
               data: Array.from({
@@ -195,10 +198,12 @@ async function seed() {
   console.time('👨‍⚕️ Creating schedules...')
   const schedules = await Promise.all(
     Array.from({ length: totalSchedules }).map(async (_, index) => {
+      const randomDate = faker.date.soon({ days: 40 })
+
       const schedule = await prisma.schedule.create({
         data: {
           doctorId: doctors[Math.floor(Math.random() * totalDoctors)].userId,
-          day: getDay(Math.floor(Math.random() * 7)),
+          day: randomDate,
           startTime: new Date(new Date().setHours(Math.random() + 9, 0, 0, 0)),
           endTime: new Date(new Date().setHours(Math.random() + 17, 0, 0, 0)),
           locationId: scheduleLocations[index % totalScheduleLocations].id,
@@ -235,27 +240,6 @@ async function seed() {
   console.timeEnd('👨‍⚕️ Creating bookings...')
 
   console.timeEnd('🌱 Seeding database...')
-}
-
-function getDay(day: number) {
-  switch (day) {
-    case 0:
-      return 'SUNDAY'
-    case 1:
-      return 'MONDAY'
-    case 2:
-      return 'TUESDAY'
-    case 3:
-      return 'WEDNESDAY'
-    case 4:
-      return 'THURSDAY'
-    case 5:
-      return 'FRIDAY'
-    case 6:
-      return 'SATURDAY'
-    default:
-      return 'MONDAY'
-  }
 }
 
 seed()

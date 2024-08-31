@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+
 }
 
 datasource db {
@@ -78,7 +79,7 @@ model Schedule {
 
   fees       Fee[]
 
-  day       String
+  day       DateTime
   startTime DateTime
   endTime   DateTime
 
@@ -114,7 +115,7 @@ model Booking {
   doctor Doctor @relation(fields: [doctorId], references: [userId])
   doctorId String
 
-  status String? @default("ACCEPTED")
+  status String? @default("PENDING")
 
   date DateTime
 

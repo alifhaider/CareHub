@@ -107,10 +107,9 @@ export function LocationCombobox({ field }: { field: FieldMetadata }) {
       </ul>
 
       <input
-        className="sr-only"
         {...getInputProps(field, {
           type: 'hidden',
-          value: true,
+          value: cb.selectedItem?.id ?? '',
         })}
       />
       <ErrorList errors={field.errors} />
