@@ -74,9 +74,7 @@ export const ScheduleSchema = z
     username: z.string({ message: 'Username is required' }),
     scheduleType: z.nativeEnum(ScheduleType),
     oneDay: z.date().optional(),
-    weeklyDays: z
-      .array(DaysEnum)
-      .optional(),
+    weeklyDays: z.array(DaysEnum).optional(),
     startTime: z.string({ message: 'Provide your schedule start time' }),
     endTime: z.string({ message: 'Provide your schedule end time' }),
     maxAppointment: z
@@ -84,6 +82,9 @@ export const ScheduleSchema = z
       .gt(0, { message: 'Maximum appointments must be greater than 0' }),
     repeatWeeks: z.boolean().optional(),
     repeatMonths: z.boolean().optional(),
+    visitingFee: z.number({ message: 'Visiting fee is required' }),
+    serialFee: z.number({ message: 'Serial fee is required' }),
+    discount: z.number().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.scheduleType === ScheduleType.SINGLE_DAY) {
@@ -94,11 +95,11 @@ export const ScheduleSchema = z
           message: 'Select a date for the schedule',
         })
       } else {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
 
-        const selectedDate = new Date(data.oneDay);
-        selectedDate.setHours(0, 0, 0, 0);
+        const selectedDate = new Date(data.oneDay)
+        selectedDate.setHours(0, 0, 0, 0)
         if (selectedDate < today) {
           ctx.addIssue({
             path: ['oneDay'],
@@ -242,7 +243,10 @@ export default function AddSchedule() {
                 <Label htmlFor="date" className="mb-1">
                   Date
                 </Label>
-                <input {...getInputProps(fields.oneDay, { type: 'hidden' })} value={date?.toISOString()} />
+                <input
+                  {...getInputProps(fields.oneDay, { type: 'hidden' })}
+                  value={date?.toISOString()}
+                />
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -265,7 +269,7 @@ export default function AddSchedule() {
                     />
                   </PopoverContent>
                 </Popover>
-                    <ErrorList errors={fields.oneDay.errors} />
+                <ErrorList errors={fields.oneDay.errors} />
 
                 <RepeatCheckbox
                   fields={fields}
@@ -311,6 +315,32 @@ export default function AddSchedule() {
               </>
             ) : null}
           </div>
+          <Field
+            labelProps={{ children: 'Visiting Fee' }}
+            inputProps={{
+              placeholder: '2000tk',
+              ...getInputProps(fields.visitingFee, { type: 'number' }),
+            }}
+            errors={fields.visitingFee.errors}
+          />
+
+          <Field
+            labelProps={{ children: 'Serial Fee' }}
+            inputProps={{
+              placeholder: '1000tk',
+              ...getInputProps(fields.serialFee, { type: 'number' }),
+            }}
+            errors={fields.serialFee.errors}
+          />
+
+          <Field
+            labelProps={{ children: 'Discount' }}
+            inputProps={{
+              defaultValue: 0,
+              ...getInputProps(fields.discount, { type: 'number' }),
+            }}
+            errors={fields.discount.errors}
+          />
         </div>
 
         <div className="mt-12 flex items-center justify-center">
