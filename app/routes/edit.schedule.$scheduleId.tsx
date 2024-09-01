@@ -17,7 +17,11 @@ import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
 import { ScheduleSchema, ScheduleType } from './add.schedule'
 import { z } from 'zod'
-import { jsonWithError, jsonWithSuccess } from 'remix-toast'
+import {
+  jsonWithError,
+  jsonWithSuccess,
+  redirectWithSuccess,
+} from 'remix-toast'
 import { Button } from '~/components/ui/button'
 import { useState } from 'react'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
@@ -39,6 +43,7 @@ import {
 import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { Calendar } from '~/components/ui/calendar'
+import { cn } from '~/utils/misc'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Schedule / CH' }]
@@ -52,11 +57,27 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       id: scheduleId,
       doctorId: doctor.userId,
     },
+    include: {
+      location: {
+        select: {
+          id: true,
+          name: true,
+          address: true,
+          city: true,
+          state: true,
+          zip: true,
+        },
+      },
+    },
   })
   if (!schedule) {
     return redirect('/')
   }
-  return json({ schedule })
+  return json({
+    schedule,
+    userId: doctor.userId,
+    username: doctor.user.username,
+  })
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -83,11 +104,10 @@ export async function action({ request }: ActionFunctionArgs) {
   if (submission.status !== 'success') {
     return json(submission.reply({ formErrors: ['Could not update schedule'] }))
   }
-  console.log('running action')
-  return jsonWithSuccess(
-    { result: 'Schedule updated successfully' },
-    { message: 'Schedule updated successfully!' },
-  )
+  const { username } = submission.value
+  return redirectWithSuccess(`/profile/${username}`, {
+    message: 'Schedule updated successfully',
+  })
 }
 
 export default function EditSchedule() {
@@ -117,10 +137,18 @@ export default function EditSchedule() {
       <PageTitle>Edit Schedule</PageTitle>
       <Form method="post" className="mt-10" {...getFormProps(form)}>
         <div className="grid grid-cols-1 gap-12 align-top md:grid-cols-2">
-          <input type="hidden" name="userId" value={data.schedule.doctorId} />
+          <input
+            {...getInputProps(fields.userId, { type: 'hidden' })}
+            value={data.userId}
+          />
+          <input
+            {...getInputProps(fields.username, { type: 'hidden' })}
+            value={data.username}
+          />
+
           <LocationCombobox
             field={fields.locationId}
-            selectedLocationId={data.schedule.locationId}
+            location={data.schedule.location}
           />
           <div className="space-y-1">
             <Label htmlFor="scheduleType">Schedule Type</Label>

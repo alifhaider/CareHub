@@ -47,7 +47,7 @@ export const meta: MetaFunction = () => {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const doctor = await requireDoctor(request)
-  return json({ doctor })
+  return json({ userId: doctor.userId, username: doctor.user.username })
 }
 
 const DAYS = [
@@ -70,6 +70,8 @@ type DaysEnum = z.infer<typeof DaysEnum>
 export const ScheduleSchema = z
   .object({
     locationId: z.string({ message: 'Select a location' }),
+    userId: z.string({ message: 'User ID is required' }),
+    username: z.string(),
     days: z
       .array(DaysEnum)
       .min(1, { message: 'Select at least one day' })
@@ -118,7 +120,8 @@ export async function action({ request }: ActionFunctionArgs) {
   if (submission.status !== 'success') {
     return json(submission.reply({ formErrors: ['Could not create schedule'] }))
   }
-  return redirectWithSuccess('/add/schedule', {
+  const { username } = submission.value
+  return redirectWithSuccess(`/profile/${username}`, {
     message: 'Schedule created successfully',
   })
 }
@@ -134,14 +137,6 @@ export default function AddSchedule() {
   const [form, fields] = useForm({
     lastResult: actionData,
     onValidate({ formData }) {
-      console.log(
-        formData.get('locationId'),
-        formData.getAll('days'),
-        formData.get('startTime'),
-        formData.get('endTime'),
-        formData.get('maxAppointment'),
-        formData.get('repeat'),
-      )
       return parseWithZod(formData, { schema: ScheduleSchema })
     },
     shouldRevalidate: 'onSubmit',
@@ -153,7 +148,14 @@ export default function AddSchedule() {
       <HelpText />
       <Form method="post" className="mt-10" {...getFormProps(form)}>
         <div className="grid grid-cols-1 gap-12 align-top md:grid-cols-2">
-          <input type="hidden" name="userId" value={data.doctor.userId} />
+          <input
+            {...getInputProps(fields.userId, { type: 'hidden' })}
+            value={data.userId}
+          />
+          <input
+            {...getInputProps(fields.username, { type: 'hidden' })}
+            value={data.username}
+          />
           <LocationCombobox field={fields.locationId} />
           <div className="space-y-1">
             <Label htmlFor="scheduleType">Schedule Type</Label>

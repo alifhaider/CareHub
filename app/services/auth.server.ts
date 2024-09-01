@@ -71,9 +71,9 @@ export async function requireUser(request: Request) {
 
 export async function requireDoctor(request: Request) {
   const userId = await requireUserId(request)
-  console.log(userId)
   const doctor = await prisma.doctor.findUnique({
     where: { userId },
+    include: { user: { select: { id: true, username: true } } },
   })
   if (!doctor) {
     throw redirect('/')
