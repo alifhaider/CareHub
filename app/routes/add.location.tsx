@@ -74,11 +74,9 @@ function CreateLocationSchema(
           }
 
           return options
-            .isLocationUnique(data.name, data.address, data.city)
+            .isLocationUnique(data.name.toLowerCase(), data.address.toLowerCase(), data.city.toLowerCase())
             .then(isUnique => {
-              console.log({ isUnique })
               if (!isUnique) {
-                console.log('I am exist')
                 ctx.addIssue({
                   code: 'custom',
                   path: ['form'],
