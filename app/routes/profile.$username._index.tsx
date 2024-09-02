@@ -399,18 +399,100 @@ const Schedules = ({
 const Reviews = () => {
   return (
     <div>
+      <script
+        src="https://static.elfsight.com/platform/platform.js"
+        data-use-service-core
+        defer
+      ></script>
+
       <h4 className="mb-4 text-3xl font-medium text-lime-500">Reviews</h4>
       <ul>
         <li className="rounded-md bg-secondary px-4 py-2">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-full bg-primary-foreground" />
+            <div className="rounded-full bg-primary-foreground" />
             <div>
-              <h6 className="text-xl font-bold">John Doe</h6>
-              <p className="text-accent-foreground">5/5</p>
-              <p className="text-accent-foreground">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam
-                viverra euismod odio, gravida pellentesque urna varius vitae.
-              </p>
+              <div className="mx-auto mt-10 w-full max-w-xl rounded-lg bg-white p-6 shadow-md">
+                <div className="flex items-center gap-4">
+                  <img src="" alt="Doctor's Photo" />
+
+                  <div>
+                    <h2 className="text-2xl font-semibold text-gray-800">
+                      Dr. Kristi Marquardt
+                    </h2>
+                    <p className="text-sm text-gray-500">Cardiologist</p>
+                    <div className="mt-2 flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        className="h-5 w-5 text-yellow-400"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 .288l2.833 8.718h9.167l-7.417 5.385 2.833 8.719-7.416-5.387-7.417 5.387 2.834-8.719-7.417-5.385h9.166z" />
+                      </svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        className="h-5 w-5 text-yellow-400"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 .288l2.833 8.718h9.167l-7.417 5.385 2.833 8.719-7.416-5.387-7.417 5.387 2.834-8.719-7.417-5.385h9.166z" />
+                      </svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        className="h-5 w-5 text-yellow-400"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 .288l2.833 8.718h9.167l-7.417 5.385 2.833 8.719-7.416-5.387-7.417 5.387 2.834-8.719-7.417-5.385h9.166z" />
+                      </svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        className="h-5 w-5 text-yellow-400"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 .288l2.833 8.718h9.167l-7.417 5.385 2.833 8.719-7.416-5.387-7.417 5.387 2.834-8.719-7.417-5.385h9.166z" />
+                      </svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        className="h-5 w-5 text-gray-300"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 .288l2.833 8.718h9.167l-7.417 5.385 2.833 8.719-7.416-5.387-7.417 5.387 2.834-8.719-7.417-5.385h9.166z" />
+                      </svg>
+                      <span className="ml-2 text-gray-600">(4.0)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <p className="text-gray-700">
+                    Dr. Kristi Marquardt is an exceptional Physiatrist. His
+                    attention to detail and dedication to patient care are truly
+                    commendable. He took the time to explain everything
+                    thoroughly and made me feel at ease throughout the
+                    consultation.
+                  </p>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between text-gray-600">
+                  <div className="flex items-center">
+                    <img
+                      src=""
+                      alt="Patient's photo"
+                      className="h-10 w-10 rounded-full"
+                    />
+                    <div className="ml-3">
+                      <p className="font-semibold">John Doe</p>
+                      <p className="text-sm">August 15, 2024</p>
+                    </div>
+                  </div>
+                  <button className="text-blue-500 hover:underline">
+                    See all reviews
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </li>
