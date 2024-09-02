@@ -15,9 +15,11 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { PageTitle } from '~/components/typography'
 import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
-import { ScheduleSchema, ScheduleType } from './add.schedule'
+import { DAYS, ScheduleSchema, ScheduleType } from './add.schedule'
 import { z } from 'zod'
-import { jsonWithError, jsonWithSuccess } from 'remix-toast'
+import {
+  redirectWithSuccess,
+} from 'remix-toast'
 import { Button } from '~/components/ui/button'
 import { useState } from 'react'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
@@ -30,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import { Field } from '~/components/forms'
+import { ErrorList, Field } from '~/components/forms'
 import {
   Popover,
   PopoverContent,
@@ -39,6 +41,7 @@ import {
 import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { Calendar } from '~/components/ui/calendar'
+import { cn } from '~/utils/misc'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Schedule / CH' }]
@@ -52,11 +55,27 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       id: scheduleId,
       doctorId: doctor.userId,
     },
+    include: {
+      location: {
+        select: {
+          id: true,
+          name: true,
+          address: true,
+          city: true,
+          state: true,
+          zip: true,
+        },
+      },
+    },
   })
   if (!schedule) {
     return redirect('/')
   }
-  return json({ schedule })
+  return json({
+    schedule,
+    userId: doctor.userId,
+    username: doctor.user.username,
+  })
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -83,11 +102,10 @@ export async function action({ request }: ActionFunctionArgs) {
   if (submission.status !== 'success') {
     return json(submission.reply({ formErrors: ['Could not update schedule'] }))
   }
-  console.log('running action')
-  return jsonWithSuccess(
-    { result: 'Schedule updated successfully' },
-    { message: 'Schedule updated successfully!' },
-  )
+  const { username } = submission.value
+  return redirectWithSuccess(`/profile/${username}`, {
+    message: 'Schedule updated successfully',
+  })
 }
 
 export default function EditSchedule() {
@@ -117,10 +135,18 @@ export default function EditSchedule() {
       <PageTitle>Edit Schedule</PageTitle>
       <Form method="post" className="mt-10" {...getFormProps(form)}>
         <div className="grid grid-cols-1 gap-12 align-top md:grid-cols-2">
-          <input type="hidden" name="userId" value={data.schedule.doctorId} />
+          <input
+            {...getInputProps(fields.userId, { type: 'hidden' })}
+            value={data.userId}
+          />
+          <input
+            {...getInputProps(fields.username, { type: 'hidden' })}
+            value={data.username}
+          />
+
           <LocationCombobox
             field={fields.locationId}
-            selectedLocationId={data.schedule.locationId}
+            location={data.schedule.location}
           />
           <div className="space-y-1">
             <Label htmlFor="scheduleType">Schedule Type</Label>
@@ -195,14 +221,14 @@ export default function EditSchedule() {
                     />
                   </PopoverContent>
                 </Popover>
-                {/* <RepeatCheckbox
+                <RepeatCheckbox
                   fields={fields}
                   type="monthly"
                   label="Repeat this schedule date for every month"
-                /> */}
+                />
               </>
             ) : null}
-            {/* {scheduleType === ScheduleType.REPEAT_WEEKS ? (
+            {scheduleType === ScheduleType.REPEAT_WEEKS ? (
               <>
                 <Label className="text-sm font-bold">Days</Label>
 
@@ -212,7 +238,7 @@ export default function EditSchedule() {
                       <li key={day} className="flex space-x-2">
                         <label className="flex items-center space-x-2 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                           <Checkbox
-                            {...getInputProps(fields.days, {
+                            {...getInputProps(fields.weeklyDays, {
                               type: 'checkbox',
                               value: day,
                             })}
@@ -223,7 +249,7 @@ export default function EditSchedule() {
                     ))}
                   </ul>
                   <div className="px-4 pb-3 pt-1">
-                    <ErrorList errors={fields.days.errors} />
+                    <ErrorList errors={fields.weeklyDays.errors} />
                   </div>
                 </fieldset>
                 <RepeatCheckbox
@@ -237,7 +263,7 @@ export default function EditSchedule() {
                   label="Repeat these schedule days for every month"
                 />
               </>
-            ) : null} */}
+            ) : null}
           </div>
         </div>
 
@@ -246,6 +272,31 @@ export default function EditSchedule() {
         </div>
       </Form>
       <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
+  )
+}
+
+type CheckboxProps = {
+  fields: ReturnType<typeof useForm>[1]
+  type: 'weekly' | 'monthly'
+  label: string
+}
+
+function RepeatCheckbox({ fields, type, label }: CheckboxProps) {
+  const field = type === 'weekly' ? fields.repeatWeeks : fields.repeatMonths
+
+  return (
+    <div className="items-top flex space-x-2">
+      <label
+        htmlFor={field.id}
+        className="flex items-center space-x-1 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+      >
+        <Checkbox
+          className="rounded-full"
+          {...getInputProps(field, { type: 'checkbox' })}
+        />
+        <span className="text-sm">{label}</span>
+      </label>
     </div>
   )
 }

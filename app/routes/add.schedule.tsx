@@ -47,10 +47,10 @@ export const meta: MetaFunction = () => {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const doctor = await requireDoctor(request)
-  return json({ doctor })
+  return json({ userId: doctor.userId, username: doctor.user.username })
 }
 
-const DAYS = [
+export const DAYS = [
   'saturday',
   'sunday',
   'monday',
@@ -70,10 +70,11 @@ type DaysEnum = z.infer<typeof DaysEnum>
 export const ScheduleSchema = z
   .object({
     locationId: z.string({ message: 'Select a location' }),
-    days: z
-      .array(DaysEnum)
-      .min(1, { message: 'Select at least one day' })
-      .max(7, { message: 'Select at most 7 days' }),
+    userId: z.string({ message: 'User ID is required' }),
+    username: z.string({ message: 'Username is required' }),
+    scheduleType: z.nativeEnum(ScheduleType),
+    oneDay: z.date().optional(),
+    weeklyDays: z.array(DaysEnum).optional(),
     startTime: z.string({ message: 'Provide your schedule start time' }),
     endTime: z.string({ message: 'Provide your schedule end time' }),
     maxAppointment: z
@@ -81,9 +82,42 @@ export const ScheduleSchema = z
       .gt(0, { message: 'Maximum appointments must be greater than 0' }),
     repeatWeeks: z.boolean().optional(),
     repeatMonths: z.boolean().optional(),
+    visitingFee: z.number({ message: 'Visiting fee is required' }),
+    serialFee: z.number({ message: 'Serial fee is required' }),
+    discount: z.number().optional(),
   })
-  .superRefine(({ startTime, endTime }, ctx) => {
-    if (startTime >= endTime) {
+  .superRefine((data, ctx) => {
+    if (data.scheduleType === ScheduleType.SINGLE_DAY) {
+      if (!data.oneDay) {
+        ctx.addIssue({
+          path: ['oneDay'],
+          code: 'custom',
+          message: 'Select a date for the schedule',
+        })
+      } else {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        const selectedDate = new Date(data.oneDay)
+        selectedDate.setHours(0, 0, 0, 0)
+        if (selectedDate < today) {
+          ctx.addIssue({
+            path: ['oneDay'],
+            code: 'custom',
+            message: 'Select a future date',
+          })
+        }
+      }
+    } else if (data.scheduleType === ScheduleType.REPEAT_WEEKS) {
+      if (!data.weeklyDays?.length) {
+        ctx.addIssue({
+          path: ['weeklyDays'],
+          code: 'custom',
+          message: 'Select at least one day for the schedule',
+        })
+      }
+    }
+    if (data.startTime >= data.endTime) {
       ctx.addIssue({
         path: ['endTime'],
         code: 'custom',
@@ -118,7 +152,8 @@ export async function action({ request }: ActionFunctionArgs) {
   if (submission.status !== 'success') {
     return json(submission.reply({ formErrors: ['Could not create schedule'] }))
   }
-  return redirectWithSuccess('/add/schedule', {
+  const { username } = submission.value
+  return redirectWithSuccess(`/profile/${username}`, {
     message: 'Schedule created successfully',
   })
 }
@@ -134,14 +169,7 @@ export default function AddSchedule() {
   const [form, fields] = useForm({
     lastResult: actionData,
     onValidate({ formData }) {
-      console.log(
-        formData.get('locationId'),
-        formData.getAll('days'),
-        formData.get('startTime'),
-        formData.get('endTime'),
-        formData.get('maxAppointment'),
-        formData.get('repeat'),
-      )
+      console.log(formData.get('scheduleType'))
       return parseWithZod(formData, { schema: ScheduleSchema })
     },
     shouldRevalidate: 'onSubmit',
@@ -153,12 +181,21 @@ export default function AddSchedule() {
       <HelpText />
       <Form method="post" className="mt-10" {...getFormProps(form)}>
         <div className="grid grid-cols-1 gap-12 align-top md:grid-cols-2">
-          <input type="hidden" name="userId" value={data.doctor.userId} />
+          <input
+            {...getInputProps(fields.userId, { type: 'hidden' })}
+            value={data.userId}
+          />
+          {/* this is to make the navigation after successful creation */}
+          <input
+            {...getInputProps(fields.username, { type: 'hidden' })}
+            value={data.username}
+          />
           <LocationCombobox field={fields.locationId} />
           <div className="space-y-1">
             <Label htmlFor="scheduleType">Schedule Type</Label>
             <Select
               defaultValue={scheduleType}
+              {...getInputProps(fields.scheduleType, { type: 'hidden' })}
               onValueChange={value => setScheduleType(value as ScheduleType)}
             >
               <SelectTrigger className="w-full">
@@ -206,6 +243,10 @@ export default function AddSchedule() {
                 <Label htmlFor="date" className="mb-1">
                   Date
                 </Label>
+                <input
+                  {...getInputProps(fields.oneDay, { type: 'hidden' })}
+                  value={date?.toISOString()}
+                />
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -228,6 +269,8 @@ export default function AddSchedule() {
                     />
                   </PopoverContent>
                 </Popover>
+                <ErrorList errors={fields.oneDay.errors} />
+
                 <RepeatCheckbox
                   fields={fields}
                   type="monthly"
@@ -245,7 +288,7 @@ export default function AddSchedule() {
                       <li key={day} className="flex space-x-2">
                         <label className="flex items-center space-x-2 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                           <Checkbox
-                            {...getInputProps(fields.days, {
+                            {...getInputProps(fields.weeklyDays, {
                               type: 'checkbox',
                               value: day,
                             })}
@@ -256,7 +299,7 @@ export default function AddSchedule() {
                     ))}
                   </ul>
                   <div className="px-4 pb-3 pt-1">
-                    <ErrorList errors={fields.days.errors} />
+                    <ErrorList errors={fields.weeklyDays.errors} />
                   </div>
                 </fieldset>
                 <RepeatCheckbox
@@ -272,6 +315,32 @@ export default function AddSchedule() {
               </>
             ) : null}
           </div>
+          <Field
+            labelProps={{ children: 'Visiting Fee' }}
+            inputProps={{
+              placeholder: '2000tk',
+              ...getInputProps(fields.visitingFee, { type: 'number' }),
+            }}
+            errors={fields.visitingFee.errors}
+          />
+
+          <Field
+            labelProps={{ children: 'Serial Fee' }}
+            inputProps={{
+              placeholder: '1000tk',
+              ...getInputProps(fields.serialFee, { type: 'number' }),
+            }}
+            errors={fields.serialFee.errors}
+          />
+
+          <Field
+            labelProps={{ children: 'Discount' }}
+            inputProps={{
+              defaultValue: 0,
+              ...getInputProps(fields.discount, { type: 'number' }),
+            }}
+            errors={fields.discount.errors}
+          />
         </div>
 
         <div className="mt-12 flex items-center justify-center">

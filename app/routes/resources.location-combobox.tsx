@@ -4,7 +4,7 @@ import { json, LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import clsx from 'clsx'
 import { useCombobox } from 'downshift'
-import { useEffect, useId } from 'react'
+import { useId } from 'react'
 import { useSpinDelay } from 'spin-delay'
 import { ErrorList } from '~/components/forms'
 import { Spinner } from '~/components/spinner'
@@ -36,10 +36,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export function LocationCombobox({
   field,
-  selectedLocationId,
+  location,
 }: {
   field: FieldMetadata
-  selectedLocationId?: string
+  location?: Omit<ScheduleLocation, 'createdAt' | 'updatedAt'>
 }) {
   const locationFetcher = useFetcher<typeof loader>()
   const id = useId()
@@ -50,7 +50,7 @@ export function LocationCombobox({
     id,
     items,
     itemToString: item => (item ? item.name : ''),
-    initialSelectedItem: items.find(item => item.id === selectedLocationId),
+    initialSelectedItem: location,
     onInputValueChange: changes => {
       locationFetcher.submit(
         { query: changes.inputValue ?? '' },
@@ -81,7 +81,6 @@ export function LocationCombobox({
             <Spinner showSpinner={showSpinner} />
           </div>
         </div>
-        {/* TODO: display errors */}
       </div>
 
       <ul
@@ -112,12 +111,9 @@ export function LocationCombobox({
             ))
           : null}
       </ul>
-
       <input
-        {...getInputProps(field, {
-          type: 'hidden',
-          value: cb.selectedItem?.id ?? '',
-        })}
+        {...getInputProps(field, { type: 'hidden' })}
+        value={cb.selectedItem?.id}
       />
       <ErrorList errors={field.errors} />
 
