@@ -15,11 +15,9 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { PageTitle } from '~/components/typography'
 import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
-import { ScheduleSchema, ScheduleType } from './add.schedule'
+import { DAYS, ScheduleSchema, ScheduleType } from './add.schedule'
 import { z } from 'zod'
 import {
-  jsonWithError,
-  jsonWithSuccess,
   redirectWithSuccess,
 } from 'remix-toast'
 import { Button } from '~/components/ui/button'
@@ -34,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import { Field } from '~/components/forms'
+import { ErrorList, Field } from '~/components/forms'
 import {
   Popover,
   PopoverContent,
@@ -223,14 +221,14 @@ export default function EditSchedule() {
                     />
                   </PopoverContent>
                 </Popover>
-                {/* <RepeatCheckbox
+                <RepeatCheckbox
                   fields={fields}
                   type="monthly"
                   label="Repeat this schedule date for every month"
-                /> */}
+                />
               </>
             ) : null}
-            {/* {scheduleType === ScheduleType.REPEAT_WEEKS ? (
+            {scheduleType === ScheduleType.REPEAT_WEEKS ? (
               <>
                 <Label className="text-sm font-bold">Days</Label>
 
@@ -240,7 +238,7 @@ export default function EditSchedule() {
                       <li key={day} className="flex space-x-2">
                         <label className="flex items-center space-x-2 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                           <Checkbox
-                            {...getInputProps(fields.days, {
+                            {...getInputProps(fields.weeklyDays, {
                               type: 'checkbox',
                               value: day,
                             })}
@@ -251,7 +249,7 @@ export default function EditSchedule() {
                     ))}
                   </ul>
                   <div className="px-4 pb-3 pt-1">
-                    <ErrorList errors={fields.days.errors} />
+                    <ErrorList errors={fields.weeklyDays.errors} />
                   </div>
                 </fieldset>
                 <RepeatCheckbox
@@ -265,7 +263,7 @@ export default function EditSchedule() {
                   label="Repeat these schedule days for every month"
                 />
               </>
-            ) : null} */}
+            ) : null}
           </div>
         </div>
 
@@ -274,6 +272,31 @@ export default function EditSchedule() {
         </div>
       </Form>
       <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
+  )
+}
+
+type CheckboxProps = {
+  fields: ReturnType<typeof useForm>[1]
+  type: 'weekly' | 'monthly'
+  label: string
+}
+
+function RepeatCheckbox({ fields, type, label }: CheckboxProps) {
+  const field = type === 'weekly' ? fields.repeatWeeks : fields.repeatMonths
+
+  return (
+    <div className="items-top flex space-x-2">
+      <label
+        htmlFor={field.id}
+        className="flex items-center space-x-1 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+      >
+        <Checkbox
+          className="rounded-full"
+          {...getInputProps(field, { type: 'checkbox' })}
+        />
+        <span className="text-sm">{label}</span>
+      </label>
     </div>
   )
 }

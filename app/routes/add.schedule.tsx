@@ -50,7 +50,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ userId: doctor.userId, username: doctor.user.username })
 }
 
-const DAYS = [
+export const DAYS = [
   'saturday',
   'sunday',
   'monday',
