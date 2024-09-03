@@ -67,6 +67,7 @@ export enum ScheduleType {
 const DaysEnum = z.enum(DAYS)
 type DaysEnum = z.infer<typeof DaysEnum>
 
+
 export const ScheduleSchema = z
   .object({
     locationId: z.string({ message: 'Select a location' }),
@@ -82,8 +83,8 @@ export const ScheduleSchema = z
       .gt(0, { message: 'Maximum appointments must be greater than 0' }),
     repeatWeeks: z.boolean().optional(),
     repeatMonths: z.boolean().optional(),
-    visitingFee: z.number({ message: 'Visiting fee is required' }),
-    serialFee: z.number({ message: 'Serial fee is required' }),
+    visitingFee: z.number({ message: 'Add visiting fee' }),
+    serialFee: z.number({ message: 'Add schedule fee' }),
     discount: z.number().optional(),
   })
   .superRefine((data, ctx) => {
@@ -125,6 +126,7 @@ export const ScheduleSchema = z
       })
     }
   })
+
 
 // TODO: Make this work and add validation
 
@@ -174,6 +176,9 @@ export default function AddSchedule() {
     },
     shouldRevalidate: 'onSubmit',
   })
+
+  console.log(fields.oneDay.errors, fields.weeklyDays.errors)
+
 
   return (
     <div className="mx-auto max-w-7xl py-10">
@@ -346,6 +351,8 @@ export default function AddSchedule() {
         <div className="mt-12 flex items-center justify-center">
           <Button type="submit">Create Schedule</Button>
         </div>
+
+        <ErrorList errors={form.errors} />
       </Form>
     </div>
   )

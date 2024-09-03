@@ -115,7 +115,9 @@ export function LocationCombobox({
         {...getInputProps(field, { type: 'hidden' })}
         value={cb.selectedItem?.id}
       />
-      <ErrorList errors={field.errors} />
+      <div className="min-h-4">
+        <ErrorList errors={field.errors} />
+        </div>
 
       <p className="mt-0.5 text-xs">
         <strong>Hint:</strong> If you don&apos;t see the location you&apos;re
