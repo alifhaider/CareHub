@@ -336,7 +336,6 @@ const Schedules = ({
                         {getHours(schedule.endTime)})
                       </span>
                     </h6>
-                    <p></p>
                     <div className="mt-2 text-sm text-accent-foreground">
                       {schedule.location.address}, {schedule.location.city},{' '}
                       {schedule.location.state}, {schedule.location.zip}

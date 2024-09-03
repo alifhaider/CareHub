@@ -29,7 +29,6 @@ export const links: LinksFunction = () => [
 export async function loader({ request }: LoaderFunctionArgs) {
   const { getTheme } = await themeSessionResolver(request)
   const { toast, headers } = await getToast(request)
-  console.log({ toast })
   const cookieSession = await authSessionStorage.getSession(
     request.headers.get('cookie'),
   )

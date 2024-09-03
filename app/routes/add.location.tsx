@@ -107,7 +107,6 @@ export async function action({ request }: ActionFunctionArgs) {
               city,
             },
           })
-          console.log(location)
           return !location
         },
       }),
