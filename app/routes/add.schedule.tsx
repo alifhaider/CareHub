@@ -9,7 +9,7 @@ import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
 import { PageTitle } from '~/components/typography'
 import { requireDoctor } from '~/services/auth.server'
 import { LocationCombobox } from './resources.location-combobox'
-import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import { FieldMetadata, getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { z } from 'zod'
 import { ErrorList, Field } from '~/components/forms'
@@ -67,7 +67,6 @@ export enum ScheduleType {
 const DaysEnum = z.enum(DAYS)
 type DaysEnum = z.infer<typeof DaysEnum>
 
-
 export const ScheduleSchema = z
   .object({
     locationId: z.string({ message: 'Select a location' }),
@@ -87,6 +86,18 @@ export const ScheduleSchema = z
     serialFee: z.number({ message: 'Add schedule fee' }),
     discount: z.number().optional(),
   })
+  .refine(
+    data => {
+      if (data.endTime && data.startTime > data.endTime) {
+        return false
+      }
+      return true
+    },
+    {
+      message: 'Start time must be before the End time',
+      path: ['startTime'],
+    },
+  )
   .superRefine((data, ctx) => {
     if (data.scheduleType === ScheduleType.SINGLE_DAY) {
       if (!data.oneDay) {
@@ -118,15 +129,7 @@ export const ScheduleSchema = z
         })
       }
     }
-    if (data.startTime >= data.endTime) {
-      ctx.addIssue({
-        path: ['endTime'],
-        code: 'custom',
-        message: 'Start time must be before the End time',
-      })
-    }
   })
-
 
 // TODO: Make this work and add validation
 
@@ -136,6 +139,16 @@ export async function action({ request }: ActionFunctionArgs) {
   const submission = await parseWithZod(formData, {
     schema: () =>
       ScheduleSchema.transform(async (data, ctx) => {
+        const weeklyDays = data.weeklyDays
+        const isRepetiveMonth = data.repeatMonths
+        const isRepetiveWeek = data.repeatWeeks
+        const oneDay = data.oneDay
+        const startTime = data.startTime
+        const endTime = data.endTime
+        const locationId = data.locationId
+
+        console.log({weeklyDays, isRepetiveMonth, isRepetiveWeek, oneDay, locationId, startTime, endTime})
+
         const schedule = { id: 1 } // perform schedule create here
 
         if (!schedule) {
@@ -176,8 +189,6 @@ export default function AddSchedule() {
     },
     shouldRevalidate: 'onSubmit',
   })
-
-  console.log(fields.oneDay.errors, fields.weeklyDays.errors)
 
 
   return (
@@ -277,8 +288,7 @@ export default function AddSchedule() {
                 <ErrorList errors={fields.oneDay.errors} />
 
                 <RepeatCheckbox
-                  fields={fields}
-                  type="monthly"
+                  field={fields.repeatMonths}
                   label="Repeat this schedule date for every month"
                 />
               </>
@@ -303,49 +313,49 @@ export default function AddSchedule() {
                       </li>
                     ))}
                   </ul>
-                  <div className="px-4 pb-3 pt-1">
+                  <div className="pt-1">
                     <ErrorList errors={fields.weeklyDays.errors} />
                   </div>
                 </fieldset>
                 <RepeatCheckbox
-                  fields={fields}
-                  type="weekly"
+                  field={fields.repeatWeeks}
                   label="Repeat these schedule days for every week"
                 />
                 <RepeatCheckbox
-                  fields={fields}
-                  type="monthly"
+                  field={fields.repeatMonths}
                   label="Repeat these schedule days for every month"
                 />
               </>
             ) : null}
           </div>
-          <Field
-            labelProps={{ children: 'Visiting Fee' }}
-            inputProps={{
-              placeholder: '2000tk',
-              ...getInputProps(fields.visitingFee, { type: 'number' }),
-            }}
-            errors={fields.visitingFee.errors}
-          />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <Field
+              labelProps={{ children: 'Visiting Fee' }}
+              inputProps={{
+                placeholder: '2000tk',
+                ...getInputProps(fields.visitingFee, { type: 'number' }),
+              }}
+              errors={fields.visitingFee.errors}
+            />
 
-          <Field
-            labelProps={{ children: 'Serial Fee' }}
-            inputProps={{
-              placeholder: '1000tk',
-              ...getInputProps(fields.serialFee, { type: 'number' }),
-            }}
-            errors={fields.serialFee.errors}
-          />
+            <Field
+              labelProps={{ children: 'Serial Fee' }}
+              inputProps={{
+                placeholder: '1000tk',
+                ...getInputProps(fields.serialFee, { type: 'number' }),
+              }}
+              errors={fields.serialFee.errors}
+            />
 
-          <Field
-            labelProps={{ children: 'Discount' }}
-            inputProps={{
-              defaultValue: 0,
-              ...getInputProps(fields.discount, { type: 'number' }),
-            }}
-            errors={fields.discount.errors}
-          />
+            <Field
+              labelProps={{ children: 'Discount' }}
+              inputProps={{
+                defaultValue: 0,
+                ...getInputProps(fields.discount, { type: 'number' }),
+              }}
+              errors={fields.discount.errors}
+            />
+          </div>
         </div>
 
         <div className="mt-12 flex items-center justify-center">
@@ -358,8 +368,7 @@ export default function AddSchedule() {
   )
 }
 type CheckboxProps = {
-  fields: ReturnType<typeof useForm>[1]
-  type: 'weekly' | 'monthly'
+  field: FieldMetadata
   label: string
 }
 
@@ -413,8 +422,7 @@ function HelpText() {
   )
 }
 
-function RepeatCheckbox({ fields, type, label }: CheckboxProps) {
-  const field = type === 'weekly' ? fields.repeatWeeks : fields.repeatMonths
+function RepeatCheckbox({ field, label }: CheckboxProps) {
 
   return (
     <div className="items-top flex space-x-2">

@@ -17,9 +17,7 @@ import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
 import { DAYS, ScheduleSchema, ScheduleType } from './add.schedule'
 import { z } from 'zod'
-import {
-  redirectWithSuccess,
-} from 'remix-toast'
+import { redirectWithSuccess } from 'remix-toast'
 import { Button } from '~/components/ui/button'
 import { useState } from 'react'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
@@ -268,7 +266,7 @@ export default function EditSchedule() {
         </div>
 
         <div className="mt-12 flex items-center justify-center">
-          <Button type="submit">Create Schedule</Button>
+          <Button type="submit">Update Schedule</Button>
         </div>
       </Form>
       <pre>{JSON.stringify(data, null, 2)}</pre>

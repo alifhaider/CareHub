@@ -68,12 +68,16 @@ export function LocationCombobox({
     delay: 150,
     minDuration: 300,
   })
+  const errorId = field.errors?.length ? `${id}-error` : undefined
+
   return (
     <div className="relative">
       <div className="group relative space-y-1">
         <Label htmlFor={id}>Location</Label>
         <div className="relative">
           <Input
+            aria-invalid={errorId ? true : undefined}
+            aria-describedby={errorId}
             className="relative caret-black outline-none"
             {...cb.getInputProps({ id, placeholder: 'Choose a location' })}
           />
@@ -117,7 +121,7 @@ export function LocationCombobox({
       />
       <div className="min-h-4">
         <ErrorList errors={field.errors} />
-        </div>
+      </div>
 
       <p className="mt-0.5 text-xs">
         <strong>Hint:</strong> If you don&apos;t see the location you&apos;re

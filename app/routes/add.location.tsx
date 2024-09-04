@@ -74,7 +74,11 @@ function CreateLocationSchema(
           }
 
           return options
-            .isLocationUnique(data.name.toLowerCase(), data.address.toLowerCase(), data.city.toLowerCase())
+            .isLocationUnique(
+              data.name.toLowerCase(),
+              data.address.toLowerCase(),
+              data.city.toLowerCase(),
+            )
             .then(isUnique => {
               if (!isUnique) {
                 ctx.addIssue({

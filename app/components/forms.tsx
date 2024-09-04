@@ -138,7 +138,7 @@ export function CheckboxField({
           className="text-body-xs self-center text-muted-foreground"
         />
       </div>
-      <div className="px-4 pb-3 pt-1">
+      <div className="pt-1">
         {errorId ? <ErrorList id={errorId} errors={errors} /> : null}
       </div>
     </div>

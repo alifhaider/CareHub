@@ -74,6 +74,11 @@
   input[type='time']::-webkit-calendar-picker-indicator {
     filter: invert(1);
   }
+
+  input[aria-invalid] {
+    @apply border-destructive;
+  }
+
   [data-theme='dark'] {
     input[type='time']::-webkit-calendar-picker-indicator {
       filter: invert(0);
