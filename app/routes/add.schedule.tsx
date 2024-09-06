@@ -3,13 +3,17 @@ import {
   json,
   LoaderFunctionArgs,
   MetaFunction,
-  redirect,
 } from '@remix-run/node'
 import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
 import { PageTitle } from '~/components/typography'
 import { requireDoctor } from '~/services/auth.server'
 import { LocationCombobox } from './resources.location-combobox'
-import { FieldMetadata, getFormProps, getInputProps, useForm } from '@conform-to/react'
+import {
+  FieldMetadata,
+  getFormProps,
+  getInputProps,
+  useForm,
+} from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { z } from 'zod'
 import { ErrorList, Field } from '~/components/forms'
@@ -133,7 +137,6 @@ export const ScheduleSchema = z
 
 // TODO: Make this work and add validation
 
-
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
 
@@ -148,7 +151,15 @@ export async function action({ request }: ActionFunctionArgs) {
         const endTime = data.endTime
         const locationId = data.locationId
 
-        console.log({weeklyDays, isRepetiveMonth, isRepetiveWeek, oneDay, locationId, startTime, endTime})
+        console.log({
+          weeklyDays,
+          isRepetiveMonth,
+          isRepetiveWeek,
+          oneDay,
+          locationId,
+          startTime,
+          endTime,
+        })
 
         const schedule = { id: 1 } // perform schedule create here
 
@@ -190,7 +201,6 @@ export default function AddSchedule() {
     },
     shouldRevalidate: 'onSubmit',
   })
-
 
   return (
     <div className="mx-auto max-w-7xl py-10">
@@ -424,7 +434,6 @@ function HelpText() {
 }
 
 function RepeatCheckbox({ field, label }: CheckboxProps) {
-
   return (
     <div className="items-top flex space-x-2">
       <label
