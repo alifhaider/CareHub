@@ -8,6 +8,8 @@
     "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "remix-serve ./build/server/index.js",
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
     "typecheck": "tsc",
     "format": "prettier --write .",
     "setup": "prisma generate && prisma migrate deploy && prisma db seed"
@@ -64,6 +66,7 @@
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "@typescript-eslint/parser": "^6.7.4",
+    "@vitest/coverage-v8": "^2.0.5",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.38.0",
     "eslint-import-resolver-typescript": "^3.6.1",
@@ -80,7 +83,8 @@
     "tsx": "^4.16.2",
     "typescript": "^5.5.4",
     "vite": "^5.1.0",
-    "vite-tsconfig-paths": "^4.2.1"
+    "vite-tsconfig-paths": "^4.2.1",
+    "vitest": "^2.0.5"
   },
   "engines": {
     "node": ">=20.0.0"

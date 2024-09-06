@@ -133,6 +133,7 @@ export const ScheduleSchema = z
 
 // TODO: Make this work and add validation
 
+
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
 
