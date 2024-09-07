@@ -1,4 +1,4 @@
-import { add, getDay, isSameDay, addMonths, addWeeks } from 'date-fns'
+import { add, getDay, addMonths, addWeeks } from 'date-fns'
 import { DAYS } from '~/routes/add.schedule'
 
 export function createMonthlySchedule(

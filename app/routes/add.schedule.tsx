@@ -197,6 +197,7 @@ export default function AddSchedule() {
     lastResult: actionData,
     onValidate({ formData }) {
       console.log(formData.get('scheduleType'))
+      console.log(formData.getAll('weeklyDays'))
       return parseWithZod(formData, { schema: ScheduleSchema })
     },
     shouldRevalidate: 'onSubmit',
@@ -315,10 +316,12 @@ export default function AddSchedule() {
                         <label className="flex items-center space-x-2 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                           <Checkbox
                             {...getInputProps(fields.weeklyDays, {
-                              type: 'checkbox',
+                              type: "checkbox",
                               value: day,
                             })}
                           />
+
+                          {/* <input {...getInputProps(fields.weeklyDays, {type: "hidden"})} value={day} /> */}
                           <span>{day}</span>
                         </label>
                       </li>

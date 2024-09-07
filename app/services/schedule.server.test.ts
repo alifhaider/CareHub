@@ -2,10 +2,9 @@ import { afterAll, beforeAll, describe, expect, it, test, vi } from 'vitest'
 import {
   createMonthlySchedule,
   createWeeklySchedule,
-  TDay,
 } from './schedule.server'
 import { faker } from '@faker-js/faker'
-import { addDays, addMonths } from 'date-fns'
+import { addMonths } from 'date-fns'
 
 // Mock the current date for consistent testing
 const mockDate = (dateString: string) => {
