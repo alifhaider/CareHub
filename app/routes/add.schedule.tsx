@@ -44,6 +44,11 @@ import {
   AccordionTrigger,
 } from '~/components/ui/accordion'
 import { redirectWithSuccess } from 'remix-toast'
+import {
+  getMonthlyScheduleDates,
+  getWeeklyScheduleDates,
+} from '~/services/schedule.server'
+import { prisma } from '~/db.server'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Schedule / CH' }]
@@ -135,8 +140,6 @@ export const ScheduleSchema = z
     }
   })
 
-// TODO: Make this work and add validation
-
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
 
@@ -151,20 +154,61 @@ export async function action({ request }: ActionFunctionArgs) {
         const endTime = data.endTime
         const locationId = data.locationId
 
-        console.log({
-          weeklyDays,
-          isRepetiveMonth,
-          isRepetiveWeek,
-          oneDay,
-          locationId,
-          startTime,
-          endTime,
-        })
+        // console.log({
+        //   weeklyDays,
+        //   isRepetiveMonth,
+        //   isRepetiveWeek,
+        //   oneDay,
+        //   locationId,
+        //   startTime,
+        //   endTime,
+        // })
+
+        const scheduleDates = oneDay
+          ? getMonthlyScheduleDates(oneDay, isRepetiveMonth)
+          : getWeeklyScheduleDates(weeklyDays, isRepetiveWeek)
+
+        console.log({ scheduleDates })
+
+        const isScheduleOverlapped = await Promise.all(
+          scheduleDates.map(async date => {
+            const schedules = await prisma.schedule.findMany({
+              where: {
+                doctorId: data.userId,
+                date,
+                startTime: {
+                  lte: endTime,
+                },
+                endTime: {
+                  gte: startTime,
+                },
+              },
+            })
+
+            console.log('length', schedules.length)
+
+            return schedules.length > 0
+          }),
+        )
+
+        // Check if any of the results are `true`
+        const hasOverlap = isScheduleOverlapped.some(result => result === true)
+
+        if (hasOverlap) {
+          ctx.addIssue({
+            path: ['form'],
+            code: 'custom',
+            message: 'Schedule is overlapped with another schedule',
+          })
+          return z.NEVER
+        }
 
         const schedule = { id: 1 } // perform schedule create here
+        console.log('here schedule', schedule)
 
         if (!schedule) {
           ctx.addIssue({
+            path: ['form'],
             code: 'custom',
             message: 'Could not create schedule',
           })
@@ -177,7 +221,12 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (submission.status !== 'success') {
-    return json(submission.reply({ formErrors: ['Could not create schedule'] }))
+    const formErrors = submission.error?.form
+    return json(
+      submission.reply({
+        formErrors: formErrors ?? ['Could not create schedule'],
+      }),
+    )
   }
   const { username } = submission.value
   return redirectWithSuccess(`/profile/${username}`, {
@@ -196,8 +245,8 @@ export default function AddSchedule() {
   const [form, fields] = useForm({
     lastResult: actionData,
     onValidate({ formData }) {
-      console.log(formData.get('scheduleType'))
-      console.log(formData.getAll('weeklyDays'))
+      // console.log(formData.get('scheduleType'))
+      // console.log(formData.getAll('weeklyDays'))
       return parseWithZod(formData, { schema: ScheduleSchema })
     },
     shouldRevalidate: 'onSubmit',
@@ -273,7 +322,7 @@ export default function AddSchedule() {
                 </Label>
                 <input
                   {...getInputProps(fields.oneDay, { type: 'hidden' })}
-                  value={date?.toISOString()}
+                  value={date ? format(date, 'yyyy-MM-dd') : ''}
                 />
                 <Popover>
                   <PopoverTrigger asChild>
@@ -301,7 +350,7 @@ export default function AddSchedule() {
 
                 <RepeatCheckbox
                   field={fields.repeatMonths}
-                  label="Repeat this schedule date for every month"
+                  label="Repeat every month"
                 />
               </>
             ) : null}
@@ -314,14 +363,15 @@ export default function AddSchedule() {
                     {DAYS.map(day => (
                       <li key={day} className="flex space-x-2">
                         <label className="flex items-center space-x-2 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          {/* @ts-expect-error @ts-ignore */}
                           <Checkbox
                             {...getInputProps(fields.weeklyDays, {
-                              type: "checkbox",
+                              type: 'checkbox',
                               value: day,
                             })}
                           />
 
-                          {/* <input {...getInputProps(fields.weeklyDays, {type: "hidden"})} value={day} /> */}
+                          {/* <input {...getInputProps(fields.weeklyDays, {type: "checkbox", value:day, s})} /> */}
                           <span>{day}</span>
                         </label>
                       </li>
@@ -333,11 +383,7 @@ export default function AddSchedule() {
                 </fieldset>
                 <RepeatCheckbox
                   field={fields.repeatWeeks}
-                  label="Repeat these schedule days for every week"
-                />
-                <RepeatCheckbox
-                  field={fields.repeatMonths}
-                  label="Repeat these schedule days for every month"
+                  label="Repeat every week"
                 />
               </>
             ) : null}
@@ -376,7 +422,9 @@ export default function AddSchedule() {
           <Button type="submit">Create Schedule</Button>
         </div>
 
-        <ErrorList errors={form.errors} />
+        <div className="mt-4 flex items-center justify-center">
+          <ErrorList errors={form.errors} />
+        </div>
       </Form>
     </div>
   )
@@ -443,6 +491,8 @@ function RepeatCheckbox({ field, label }: CheckboxProps) {
         htmlFor={field.id}
         className="flex items-center space-x-1 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
       >
+        {/* @ts-expect-error @ts-ignore */}
+
         <Checkbox
           className="rounded-full"
           {...getInputProps(field, { type: 'checkbox' })}

@@ -198,12 +198,13 @@ async function seed() {
   console.time('👨‍⚕️ Creating schedules...')
   const schedules = await Promise.all(
     Array.from({ length: totalSchedules }).map(async (_, index) => {
-      const randomDate = faker.date.soon({ days: 40 })
+      const date = faker.date.soon({ days: 40 })
+      date.setUTCHours(0, 0, 0, 0)
 
       const schedule = await prisma.schedule.create({
         data: {
           doctorId: doctors[Math.floor(Math.random() * totalDoctors)].userId,
-          date: randomDate,
+          date: date,
           startTime: `${faker.date.anytime().getHours()}:${faker.date.anytime().getMinutes()}`,
           endTime: `${faker.date.anytime().getHours()}:${faker.date.anytime().getMinutes()}`,
           locationId: scheduleLocations[index % totalScheduleLocations].id,

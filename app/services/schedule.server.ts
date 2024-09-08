@@ -1,10 +1,11 @@
 import { add, getDay, addMonths, addWeeks } from 'date-fns'
 import { DAYS } from '~/routes/add.schedule'
 
-export function createMonthlySchedule(
-  date: string,
-  isRepetitiveMonth: boolean,
+export function getMonthlyScheduleDates(
+  date?: Date,
+  isRepetitiveMonth?: boolean,
 ) {
+  if (!date) return []
   const scheduleDate = new Date(date)
   scheduleDate.setUTCHours(0, 0, 0, 0)
   if (!isRepetitiveMonth) return [scheduleDate]
@@ -27,7 +28,11 @@ function getDayByNumber(day: (typeof DAYS)[number]) {
 
 export type TDay = (typeof DAYS)[number]
 
-export function createWeeklySchedule(days: TDay[], isRepetitiveWeek: boolean) {
+export function getWeeklyScheduleDates(
+  days?: TDay[],
+  isRepetitiveWeek?: boolean,
+) {
+  if (!days) return []
   const today = new Date()
   const currentDayIndex = getDay(today)
 
@@ -39,8 +44,11 @@ export function createWeeklySchedule(days: TDay[], isRepetitiveWeek: boolean) {
       daysUntilNextOccurrence = 7
     }
     const nextDate = add(today, { days: daysUntilNextOccurrence })
+    nextDate.setUTCHours(0, 0, 0, 0)
     return nextDate
   })
+
+  console.log(nextOccurrences)
 
   if (!isRepetitiveWeek) return nextOccurrences
 
@@ -61,3 +69,4 @@ export function createWeeklySchedule(days: TDay[], isRepetitiveWeek: boolean) {
 
   return occurrences
 }
+

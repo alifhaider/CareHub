@@ -77,6 +77,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       },
       bookings: {
         include: {
+          schedule: {
+            select: {
+              date: true,
+              startTime: true,
+              endTime: true,
+            },
+          },
           doctor: {
             select: { fullName: true, user: { select: { username: true } } },
           },
@@ -115,7 +122,7 @@ export default function User() {
     id: schedule.id,
     startTime: new Date(schedule.startTime),
     endTime: new Date(schedule.endTime),
-    date: new Date(schedule.day),
+    date: new Date(schedule.date),
   }))
 
   function handleDateClick(date: Date | undefined) {
@@ -125,7 +132,7 @@ export default function User() {
 
   // find the nearest upcoming schedule day
   const upcomingDays = schedules
-    ?.map(schedule => new Date(schedule.day).setHours(0, 0, 0, 0)) // Normalize to start of the day
+    ?.map(schedule => new Date(schedule.date).setHours(0, 0, 0, 0)) // Normalize to start of the day
     .filter(day => day >= today.getTime()) // Filter out past days
     .sort((a, b) => a - b) // Sort in ascending order
 
@@ -134,14 +141,14 @@ export default function User() {
   // Filter out schedules for the nearest day
   const upcomingSchedules = nearestDay
     ? schedules?.filter(schedule => {
-        const scheduleDay = new Date(schedule.day).setHours(0, 0, 0, 0)
+        const scheduleDay = new Date(schedule.date).setHours(0, 0, 0, 0)
         return scheduleDay === nearestDay
       })
     : []
 
   const selectedSchedule = user.doctor?.schedules?.filter(schedule => {
     if (!selectedDate) return
-    const scheduleDate = new Date(schedule.day)
+    const scheduleDate = new Date(schedule.date)
     return (
       scheduleDate.getDate() === selectedDate.getDate() &&
       scheduleDate.getMonth() === selectedDate.getMonth() &&
@@ -156,7 +163,7 @@ export default function User() {
       <div className="flex gap-6">
         <div className="h-32 w-32 rounded-sm bg-primary-foreground shadow-sm" />
         <div>
-          <SectionTitle>{user.doctor?.fullName ?? user.username}</SectionTitle>
+          <SectionTitle>{user.doctor?.fullName ?? user.username}</SectionTitle> <span>{user.id}</span>
           <ul className="mt-2 flex items-center gap-4">
             {isDoctor ? (
               <>
@@ -199,7 +206,15 @@ export default function User() {
           <ul>
             {user.bookings.map(appointment => (
               <li key={appointment.id}>
-                {appointment.date} |{' '}
+                <span className="text-accent-foreground">
+                  {new Date(appointment.schedule.date).toDateString()}
+                </span>
+                {' - '}
+                <span className="text-accent-foreground">
+                  {appointment.schedule.startTime} -{' '}
+                  {appointment.schedule.endTime}
+                </span>
+
                 <Link
                   to={`/profile/${appointment.doctor.user.username}`}
                   className="text-blue-400 underline"
@@ -264,7 +279,7 @@ export function ErrorBoundary() {
 
 type ScheduleProp = {
   id: string
-  day: string
+  date: string
   startTime: string
   endTime: string
   location: {
@@ -304,15 +319,12 @@ const Schedules = ({
     return `${day} ${month}, ${year}`
   }
 
-  function getHours(time: string) {
-    const date = new Date(time)
-    const hours = date.getHours()
-    const minutes = date.getMinutes()
-
-    const hoursString =
-      hours < 10 ? `0${hours}` : hours > 10 ? `${hours % 12}` : hours
-    const minutesString = minutes < 10 ? `0${minutes}` : minutes
-    return `${hoursString}:${minutesString}${hours > 12 ? 'PM' : 'AM'}`
+  function getFormattedTime(time: string) {
+    const [hours, minutes] = time.split(':')
+    const hoursString = hours.length === 1 ? `0${hours}` : hours
+    const minutesString = minutes.length === 1 ? `0${minutes}` : minutes
+    const isPM = parseInt(hours) >= 12
+    return `${hoursString}:${minutesString}${isPM ? 'PM' : 'AM'}`
   }
   return (
     <div className="flex-1">
@@ -331,9 +343,9 @@ const Schedules = ({
                     <h6 className="flex items-end text-2xl font-bold leading-none">
                       {schedule.location.name}{' '}
                       <span className="text-xs font-normal">
-                        /{getFormattedDate(schedule.day)} (
-                        {getHours(schedule.startTime)}-
-                        {getHours(schedule.endTime)})
+                        /{getFormattedDate(schedule.date)} (
+                        {getFormattedTime(schedule.startTime)}-
+                        {getFormattedTime(schedule.endTime)})
                       </span>
                     </h6>
                     <div className="mt-2 text-sm text-accent-foreground">
@@ -412,7 +424,7 @@ const Reviews = () => {
             <div>
               <div className="mx-auto mt-10 w-full max-w-xl rounded-lg bg-white p-6 shadow-md">
                 <div className="flex items-center gap-4">
-                  <img src="" alt="Doctor's Photo" />
+                  <img src="" alt="Doctor" />
 
                   <div>
                     <h2 className="text-2xl font-semibold text-gray-800">
@@ -477,11 +489,6 @@ const Reviews = () => {
 
                 <div className="mt-4 flex items-center justify-between text-gray-600">
                   <div className="flex items-center">
-                    <img
-                      src=""
-                      alt="Patient's photo"
-                      className="h-10 w-10 rounded-full"
-                    />
                     <div className="ml-3">
                       <p className="font-semibold">John Doe</p>
                       <p className="text-sm">August 15, 2024</p>

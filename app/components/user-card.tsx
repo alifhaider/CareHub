@@ -22,7 +22,12 @@ export default function UserCard({ doctor, username }: UserCardProps) {
   return (
     <li className="h-full">
       <div className="flex h-full flex-col justify-between rounded-sm border bg-background py-4 hover:shadow-lg">
-        <div className="mx-auto h-20 w-20 rounded-sm bg-secondary"></div>
+        <div className="relative mx-auto h-20 w-20 rounded-sm bg-secondary">
+          <div className="absolute -bottom-1 left-1/2 flex w-max -translate-x-1/2 items-center justify-center gap-0.5 rounded-md bg-secondary-foreground px-1 text-xs text-background shadow-lg">
+            <Star className="h-3 w-3" />
+            {doctor?.rating}
+          </div>
+        </div>
         <Link
           to={`/profile/${username}`}
           className="group mt-2 flex items-end justify-center px-4"
@@ -30,10 +35,6 @@ export default function UserCard({ doctor, username }: UserCardProps) {
           <h3 className="text-lg font-semibold group-hover:underline">
             {doctor?.fullName ?? username}
           </h3>
-          <span className="mb-0.5 flex items-center text-sm font-normal">
-            /<Star className="mx-0.5 h-3 w-3 text-lime-400" />
-            {doctor?.rating}
-          </span>
         </Link>
         <ul className="mt-4 flex flex-wrap justify-between text-sm">
           {doctor?.specialties.map(specialty => (

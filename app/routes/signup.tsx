@@ -183,6 +183,7 @@ export default function SignupRoute() {
               children:
                 'Do you agree to our Terms of Service and Privacy Policy?',
             }}
+            // @ts-expect-error @ts-ignore
             buttonProps={getInputProps(
               fields.agreeToTermsOfServiceAndPrivacyPolicy,
               { type: 'checkbox' },
@@ -194,6 +195,7 @@ export default function SignupRoute() {
               htmlFor: fields.remember.id,
               children: 'Remember me',
             }}
+            // @ts-expect-error @ts-ignore
             buttonProps={getInputProps(fields.remember, { type: 'checkbox' })}
             errors={fields.remember.errors}
           />

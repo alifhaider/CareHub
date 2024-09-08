@@ -134,6 +134,7 @@ export default function LoginPage() {
                     htmlFor: fields.remember.id,
                     children: 'Remember me',
                   }}
+                  // @ts-expect-error @ts-ignore
                   buttonProps={{
                     ...getInputProps(fields.remember, {
                       type: 'checkbox',
