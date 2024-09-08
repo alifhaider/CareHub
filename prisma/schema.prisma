@@ -79,9 +79,9 @@ model Schedule {
 
   fees       Fee[]
 
-  day       DateTime
-  startTime DateTime
-  endTime   DateTime
+  date       DateTime
+  startTime String
+  endTime   String
 
   maxAppointments Int
   bookings    Booking[]
@@ -116,8 +116,6 @@ model Booking {
   doctorId String
 
   status String? @default("PENDING")
-
-  date DateTime
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

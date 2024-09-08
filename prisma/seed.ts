@@ -203,9 +203,9 @@ async function seed() {
       const schedule = await prisma.schedule.create({
         data: {
           doctorId: doctors[Math.floor(Math.random() * totalDoctors)].userId,
-          day: randomDate,
-          startTime: new Date(new Date().setHours(Math.random() + 9, 0, 0, 0)),
-          endTime: new Date(new Date().setHours(Math.random() + 17, 0, 0, 0)),
+          date: randomDate,
+          startTime: `${faker.date.anytime().getHours()}:${faker.date.anytime().getMinutes()}`,
+          endTime: `${faker.date.anytime().getHours()}:${faker.date.anytime().getMinutes()}`,
           locationId: scheduleLocations[index % totalScheduleLocations].id,
           maxAppointments: Math.floor(Math.random() * 10),
           fees: {
@@ -227,7 +227,6 @@ async function seed() {
     Array.from({ length: totalAppointments }).map(async (_, index) => {
       const appointment = await prisma.booking.create({
         data: {
-          date: schedules[Math.floor(Math.random() * totalSchedules)].startTime,
           status: 'PENDING',
           scheduleId: schedules[index % totalSchedules].id,
           userId: users[index % totalUsers].id,
