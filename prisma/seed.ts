@@ -117,7 +117,8 @@ async function seed() {
   const users = await Promise.all(
     Array.from({ length: totalUsers }).map(async () => {
       const fullName = faker.person.fullName()
-      const username = fullName.replace(/\s/g, '').toLowerCase()
+      // remove spaces and special characters
+      const username = fullName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
       const user = await prisma.user.create({
         data: {
           email: `${username}@ch.com`,
@@ -201,12 +202,15 @@ async function seed() {
       const date = faker.date.soon({ days: 40 })
       date.setUTCHours(0, 0, 0, 0)
 
+      const startTimeHours = Math.floor(Math.random() * 4) + 8 // 8AM - 12PM
+      const endTimeHours = Math.floor(Math.random() * 4) + 13 // 1PM - 5PM
+
       const schedule = await prisma.schedule.create({
         data: {
           doctorId: doctors[Math.floor(Math.random() * totalDoctors)].userId,
           date: date,
-          startTime: `${faker.date.anytime().getHours()}:${faker.date.anytime().getMinutes()}`,
-          endTime: `${faker.date.anytime().getHours()}:${faker.date.anytime().getMinutes()}`,
+          startTime: `${startTimeHours}:${faker.date.anytime().getMinutes()}`,
+          endTime: `${endTimeHours}:${faker.date.anytime().getMinutes()}`,
           locationId: scheduleLocations[index % totalScheduleLocations].id,
           maxAppointments: Math.floor(Math.random() * 10),
           fees: {
@@ -238,6 +242,18 @@ async function seed() {
     }),
   )
   console.timeEnd('👨‍⚕️ Creating bookings...')
+
+  await prisma.user.create({
+    data: {
+      email: 'alif@haider.dev',
+      username: 'alif',
+      password: {
+        create: {
+          hash: await bcrypt.hash('password', 10),
+        },
+      },
+    },
+  })
 
   console.timeEnd('🌱 Seeding database...')
 }

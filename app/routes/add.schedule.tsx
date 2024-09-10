@@ -45,6 +45,7 @@ import {
 } from '~/components/ui/accordion'
 import { redirectWithSuccess } from 'remix-toast'
 import {
+  checkOverlapSchedule,
   getMonthlyScheduleDates,
   getWeeklyScheduleDates,
 } from '~/services/schedule.server'
@@ -168,31 +169,23 @@ export async function action({ request }: ActionFunctionArgs) {
           ? getMonthlyScheduleDates(oneDay, isRepetiveMonth)
           : getWeeklyScheduleDates(weeklyDays, isRepetiveWeek)
 
-        console.log({ scheduleDates })
+        const schedules = await prisma.schedule.findMany({
+          where: {
+            doctorId: data.userId,
+            date: {
+              in: scheduleDates.map(date => new Date(date)),
+            },
+          },
+        })
 
-        const isScheduleOverlapped = await Promise.all(
-          scheduleDates.map(async date => {
-            const schedules = await prisma.schedule.findMany({
-              where: {
-                doctorId: data.userId,
-                date,
-                startTime: {
-                  lte: endTime,
-                },
-                endTime: {
-                  gte: startTime,
-                },
-              },
-            })
-
-            console.log('length', schedules.length)
-
-            return schedules.length > 0
-          }),
+        const isScheduleOverlapped = checkOverlapSchedule(
+          scheduleDates,
+          schedules,
+          { startTime, endTime },
         )
 
         // Check if any of the results are `true`
-        const hasOverlap = isScheduleOverlapped.some(result => result === true)
+        const hasOverlap = isScheduleOverlapped.some(Boolean)
 
         if (hasOverlap) {
           ctx.addIssue({
@@ -204,7 +197,6 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         const schedule = { id: 1 } // perform schedule create here
-        console.log('here schedule', schedule)
 
         if (!schedule) {
           ctx.addIssue({

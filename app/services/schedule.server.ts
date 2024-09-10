@@ -1,3 +1,4 @@
+import { Schedule } from '@prisma/client'
 import { add, getDay, addMonths, addWeeks } from 'date-fns'
 import { DAYS } from '~/routes/add.schedule'
 
@@ -70,3 +71,67 @@ export function getWeeklyScheduleDates(
   return occurrences
 }
 
+type FormData = {
+  startTime: string
+  endTime: string
+}
+
+export function checkOverlapSchedule(
+  scheduleDates: Date[],
+  schedules: Schedule[],
+  data: FormData,
+) {
+  return scheduleDates.map(date => {
+    // Get the schedules for the current date
+    const schedulesForDate = schedules.filter(schedule => {
+      return (
+        schedule.date.toISOString().slice(0, 10) ===
+        new Date(date).toISOString().slice(0, 10)
+      )
+    })
+
+    console.log({ schedulesForDate })
+
+    // Convert the times to Date objects for comparison
+    const [formStartHour, formStartMin] = data.startTime.split(':').map(Number)
+    const [formEndHour, formEndMin] = data.endTime.split(':').map(Number)
+
+    // Create time objects with the correct day
+    const formStartTime = new Date(
+      new Date(date).setHours(formStartHour, formStartMin, 0, 0),
+    )
+    const formEndTime = new Date(
+      new Date(date).setHours(formEndHour, formEndMin, 0, 0),
+    )
+
+    // Check for overlaps
+    const isOverlapped = schedulesForDate.some(schedule => {
+      const [scheduleStartHour, scheduleStartMin] = schedule.startTime
+        .split(':')
+        .map(Number)
+      const [scheduleEndHour, scheduleEndMin] = schedule.endTime
+        .split(':')
+        .map(Number)
+
+      const scheduleStartTime = new Date(
+        new Date(schedule.date).setHours(
+          scheduleStartHour,
+          scheduleStartMin,
+          0,
+          0,
+        ),
+      )
+      const scheduleEndTime = new Date(
+        new Date(schedule.date).setHours(scheduleEndHour, scheduleEndMin, 0, 0),
+      )
+
+      return (
+        (formStartTime >= scheduleStartTime &&
+          formStartTime <= scheduleEndTime) || // Form start time overlaps
+        (formEndTime >= scheduleStartTime && formEndTime <= scheduleEndTime) // Form end time overlaps
+      )
+    })
+
+    return isOverlapped
+  })
+}

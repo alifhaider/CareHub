@@ -163,7 +163,8 @@ export default function User() {
       <div className="flex gap-6">
         <div className="h-32 w-32 rounded-sm bg-primary-foreground shadow-sm" />
         <div>
-          <SectionTitle>{user.doctor?.fullName ?? user.username}</SectionTitle> <span>{user.id}</span>
+          <SectionTitle>{user.doctor?.fullName ?? user.username}</SectionTitle>{' '}
+          <span>{user.id}</span>
           <ul className="mt-2 flex items-center gap-4">
             {isDoctor ? (
               <>
