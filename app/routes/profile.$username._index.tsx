@@ -58,9 +58,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           schedules: {
             // where: { startTime: { gte: today } },
             include: {
-              fees: {
-                select: { id: true, serial: true, visit: true, discount: true },
-              },
               location: {
                 select: {
                   id: true,
@@ -291,12 +288,9 @@ type ScheduleProp = {
     state: string | null
     zip: string | null
   }
-  fees: {
-    id: string
-    serial: number | null
-    visit: number | null
-    discount: number | null
-  }[]
+  serialFee: number | null
+  discountFee: number | null
+  visitFee: number | null
 }
 
 type ScheduleProps = {
@@ -384,21 +378,17 @@ const Schedules = ({
                     </div>
                   </div>
                 </div>
-                <ul>
-                  {schedule.fees.map(fee => (
-                    <li key={fee.id}>
-                      <div className="text-xl font-bold text-accent-foreground">
-                        Visiting Fee: {fee.visit}tk
-                      </div>
-                      <div className="text-secondary-foreground">
-                        Serial Fee: {fee.serial}tk
-                      </div>
-                      <div className="text-sm text-secondary-foreground">
-                        Discount: {fee.discount}tk
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                <div>
+                  <div className="text-xl font-bold text-accent-foreground">
+                    Visit Fee: {schedule.visitFee}tk
+                  </div>
+                  <div className="text-secondary-foreground">
+                    Serial Fee: {schedule.serialFee}tk
+                  </div>
+                  <div className="text-sm text-secondary-foreground">
+                    Discount: {schedule.discountFee}tk
+                  </div>
+                </div>
               </div>
             </div>
           </li>

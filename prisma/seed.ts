@@ -94,7 +94,6 @@ async function seed() {
 
   console.time('🧹 Clean up database...')
   await prisma.booking.deleteMany()
-  await prisma.fee.deleteMany()
   await prisma.schedule.deleteMany()
   await prisma.doctorSpecialty.deleteMany()
   await prisma.scheduleLocation.deleteMany()
@@ -213,13 +212,9 @@ async function seed() {
           endTime: `${endTimeHours}:${faker.date.anytime().getMinutes()}`,
           locationId: scheduleLocations[index % totalScheduleLocations].id,
           maxAppointments: Math.floor(Math.random() * 10),
-          fees: {
-            create: {
-              serial: Math.floor(Math.random() * 100),
-              visit: Math.floor(Math.random() * 1000),
-              discount: Math.floor(Math.random() * 100),
-            },
-          },
+          serialFee: Math.floor(Math.random() * 1000),
+          discountFee: Math.floor(Math.random() * 1000),
+          visitFee: Math.floor(Math.random() * 1000),
         },
       })
       return schedule

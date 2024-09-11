@@ -77,7 +77,9 @@ model Schedule {
   location   ScheduleLocation @relation(fields: [locationId], references: [id])
   locationId String
 
-  fees       Fee[]
+  serialFee Int?
+  discountFee Int?
+  visitFee Int?
 
   date       DateTime
   startTime String
@@ -141,20 +143,6 @@ model DoctorSpecialty {
   doctorId String
 
   name String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Fee {
-  id String @id @default(cuid())
-
-  schedule Schedule @relation(fields: [scheduleId], references: [id])
-  scheduleId String
-
-  serial Int?
-  discount Int?
-  visit Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

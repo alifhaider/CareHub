@@ -196,7 +196,19 @@ export async function action({ request }: ActionFunctionArgs) {
           return z.NEVER
         }
 
-        const schedule = { id: 1 } // perform schedule create here
+        const schedule = await prisma.schedule.createMany({
+          data: scheduleDates.map(date => ({
+            doctorId: data.userId,
+            locationId,
+            date: new Date(date),
+            startTime,
+            endTime,
+            maxAppointments: data.maxAppointment,
+            visitFee: data.visitingFee,
+            serialFee: data.serialFee,
+            discountFee: data.discount,
+          })),
+        })
 
         if (!schedule) {
           ctx.addIssue({
