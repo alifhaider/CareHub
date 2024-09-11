@@ -4,6 +4,7 @@ import {
   type MetaFunction,
 } from '@remix-run/node'
 import { Form, Link, useLoaderData } from '@remix-run/react'
+import { format } from 'date-fns'
 import { MapPin } from 'lucide-react'
 import React from 'react'
 import { DayProps } from 'react-day-picker'
@@ -14,7 +15,7 @@ import { Calendar, CustomCell } from '~/components/ui/calendar'
 import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
 import { authSessionStorage } from '~/services/session.server'
-import { invariantResponse } from '~/utils/misc'
+import { formatTime, invariantResponse } from '~/utils/misc'
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -229,7 +230,7 @@ export default function User() {
       {isDoctor ? (
         <>
           <Spacer variant="md" />
-          <div className="flex gap-10">
+          <div className="flex flex-col md:flex-row gap-10">
             <div>
               <h4 className="mb-4 text-3xl font-medium text-lime-500">
                 Availabilty Calendar
@@ -306,24 +307,24 @@ const Schedules = ({
   isOwner,
   username,
 }: ScheduleProps) => {
-  function getFormattedDate(date: string) {
-    const dateObj = new Date(date)
-    const month = dateObj.toLocaleString('default', { month: 'long' })
-    const day = dateObj.getDate()
-    const year = dateObj.getFullYear()
-    return `${day} ${month}, ${year}`
-  }
 
-  function getFormattedTime(time: string) {
-    const [hours, minutes] = time.split(':')
-    const hoursString = hours.length === 1 ? `0${hours}` : hours
-    const minutesString = minutes.length === 1 ? `0${minutes}` : minutes
-    const isPM = parseInt(hours) >= 12
-    return `${hoursString}:${minutesString}${isPM ? 'PM' : 'AM'}`
-  }
   return (
     <div className="flex-1">
       <h4 className="mb-4 text-3xl font-medium text-lime-500">Schedules</h4>
+      <Spacer variant="sm" />
+      {schedules && schedules?.length > 0 && (
+
+      <div className='relative flex items-center'>
+        <span className='w-full border h-0.5'></span>
+        <h5 className="text-sm font-medium text-nowrap mx-1 text-secondary-foreground">
+        {format(schedules[0].date ?? new Date(), 'dd MMMM, yyyy')}
+      </h5>
+        <span className='w-full border h-0.5'></span>
+
+      </div>
+      )}
+      <Spacer variant="sm" />
+
       <ul className="space-y-4">
         {schedules?.map(schedule => (
           <li
@@ -338,9 +339,9 @@ const Schedules = ({
                     <h6 className="flex items-end text-2xl font-bold leading-none">
                       {schedule.location.name}{' '}
                       <span className="text-xs font-normal">
-                        /{getFormattedDate(schedule.date)} (
-                        {getFormattedTime(schedule.startTime)}-
-                        {getFormattedTime(schedule.endTime)})
+                        /
+                        {formatTime(schedule.startTime)} - {" "}
+                        {formatTime(schedule.endTime)}
                       </span>
                     </h6>
                     <div className="mt-2 text-sm text-accent-foreground">
@@ -350,7 +351,7 @@ const Schedules = ({
                     <div className="mt-4">
                       {!isOwner && (
                         <Link
-                          to={`/profile/${username}/book`}
+                          to={`/profile/${username}/book?scheduleId=${schedule.id}`}
                           className="flex w-max items-start rounded-md bg-amber-300 px-2 py-1 text-secondary"
                         >
                           Book Now

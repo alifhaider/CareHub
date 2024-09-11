@@ -155,16 +155,6 @@ export async function action({ request }: ActionFunctionArgs) {
         const endTime = data.endTime
         const locationId = data.locationId
 
-        // console.log({
-        //   weeklyDays,
-        //   isRepetiveMonth,
-        //   isRepetiveWeek,
-        //   oneDay,
-        //   locationId,
-        //   startTime,
-        //   endTime,
-        // })
-
         const scheduleDates = oneDay
           ? getMonthlyScheduleDates(oneDay, isRepetiveMonth)
           : getWeeklyScheduleDates(weeklyDays, isRepetiveWeek)
@@ -249,8 +239,6 @@ export default function AddSchedule() {
   const [form, fields] = useForm({
     lastResult: actionData,
     onValidate({ formData }) {
-      // console.log(formData.get('scheduleType'))
-      // console.log(formData.getAll('weeklyDays'))
       return parseWithZod(formData, { schema: ScheduleSchema })
     },
     shouldRevalidate: 'onSubmit',

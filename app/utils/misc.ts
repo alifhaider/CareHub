@@ -1,6 +1,7 @@
 import { useFormAction, useNavigation } from '@remix-run/react'
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { parse, format } from 'date-fns'
 
 export function typedBoolean<T>(
   value: T,
@@ -8,15 +9,11 @@ export function typedBoolean<T>(
   return Boolean(value)
 }
 
+// time is a string in the format "2: 14" or "14: 00"
+// should return 02:14 AM or 02:14 PM
 export function formatTime(time: string) {
-  const t = new Date(time)
-
-  const hours = t.getHours()
-  const minutes = t.getMinutes()
-  if (hours > 12) {
-    return `${hours - 12}:${minutes} PM`
-  }
-  return `${hours}:${minutes} AM`
+  const parsedTime = parse(time.trim(), 'H:mm', new Date())
+  return format(parsedTime, 'hh:mm a')
 }
 
 export function getErrorMessage(error: unknown) {
@@ -66,7 +63,7 @@ export function invariantResponse(
       typeof message === 'function'
         ? message()
         : message ||
-          'An invariant failed, please provide a message to explain why.',
+        'An invariant failed, please provide a message to explain why.',
       { status: 400, ...responseInit },
     )
   }
