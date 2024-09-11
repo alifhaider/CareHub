@@ -2,6 +2,13 @@ import { Schedule } from '@prisma/client'
 import { add, getDay, addMonths, addWeeks } from 'date-fns'
 import { DAYS } from '~/routes/add.schedule'
 
+export type ScheduleFormData = {
+  startTime: string
+  endTime: string
+}
+export type TDay = (typeof DAYS)[number]
+export type TSchedule = Pick<Schedule, 'date' | 'startTime' | 'endTime'>
+
 export function getMonthlyScheduleDates(
   date?: Date,
   isRepetitiveMonth?: boolean,
@@ -27,8 +34,6 @@ function getDayByNumber(day: (typeof DAYS)[number]) {
   return daysOfWeek[day]
 }
 
-export type TDay = (typeof DAYS)[number]
-
 export function getWeeklyScheduleDates(
   days?: TDay[],
   isRepetitiveWeek?: boolean,
@@ -48,8 +53,6 @@ export function getWeeklyScheduleDates(
     nextDate.setUTCHours(0, 0, 0, 0)
     return nextDate
   })
-
-  console.log(nextOccurrences)
 
   if (!isRepetitiveWeek) return nextOccurrences
 
@@ -71,15 +74,10 @@ export function getWeeklyScheduleDates(
   return occurrences
 }
 
-type FormData = {
-  startTime: string
-  endTime: string
-}
-
 export function checkOverlapSchedule(
   scheduleDates: Date[],
-  schedules: Schedule[],
-  data: FormData,
+  schedules: TSchedule[],
+  data: ScheduleFormData,
 ) {
   return scheduleDates.map(date => {
     // Get the schedules for the current date
@@ -89,8 +87,6 @@ export function checkOverlapSchedule(
         new Date(date).toISOString().slice(0, 10)
       )
     })
-
-    console.log({ schedulesForDate })
 
     // Convert the times to Date objects for comparison
     const [formStartHour, formStartMin] = data.startTime.split(':').map(Number)
