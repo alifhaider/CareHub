@@ -51,7 +51,7 @@ export default function UserCard({ doctor, username }: UserCardProps) {
           <strong>Total schedules:</strong> {doctor?._count.schedules}
         </p>
         <Button asChild className="mx-4 mt-4">
-          <Link to={`/profile/${username}/book`}>Book appointment</Link>
+          <Link to={`/profile/${username}`}>Book appointment</Link>
         </Button>
       </div>
     </li>

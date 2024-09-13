@@ -80,6 +80,7 @@ model Schedule {
   serialFee Int?
   discountFee Int?
   visitFee Int?
+  depositAmount Int?
 
   date       DateTime
   startTime String

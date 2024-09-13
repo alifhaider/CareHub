@@ -215,6 +215,7 @@ async function seed() {
           serialFee: Math.floor(Math.random() * 1000),
           discountFee: Math.floor(Math.random() * 1000),
           visitFee: Math.floor(Math.random() * 1000),
+          depositAmount: Math.floor(Math.random() * 1000),
         },
       })
       return schedule

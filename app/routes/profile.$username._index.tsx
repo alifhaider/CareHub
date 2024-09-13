@@ -230,7 +230,7 @@ export default function User() {
       {isDoctor ? (
         <>
           <Spacer variant="md" />
-          <div className="flex flex-col md:flex-row gap-10">
+          <div className="flex flex-col gap-10 md:flex-row">
             <div>
               <h4 className="mb-4 text-3xl font-medium text-lime-500">
                 Availabilty Calendar
@@ -307,21 +307,18 @@ const Schedules = ({
   isOwner,
   username,
 }: ScheduleProps) => {
-
   return (
     <div className="flex-1">
       <h4 className="mb-4 text-3xl font-medium text-lime-500">Schedules</h4>
       <Spacer variant="sm" />
       {schedules && schedules?.length > 0 && (
-
-      <div className='relative flex items-center'>
-        <span className='w-full border h-0.5'></span>
-        <h5 className="text-sm font-medium text-nowrap mx-1 text-secondary-foreground">
-        {format(schedules[0].date ?? new Date(), 'dd MMMM, yyyy')}
-      </h5>
-        <span className='w-full border h-0.5'></span>
-
-      </div>
+        <div className="relative flex items-center">
+          <span className="h-0.5 w-full border"></span>
+          <h5 className="mx-1 text-nowrap text-sm font-medium text-secondary-foreground">
+            {format(schedules[0].date ?? new Date(), 'dd MMMM, yyyy')}
+          </h5>
+          <span className="h-0.5 w-full border"></span>
+        </div>
       )}
       <Spacer variant="sm" />
 
@@ -339,8 +336,7 @@ const Schedules = ({
                     <h6 className="flex items-end text-2xl font-bold leading-none">
                       {schedule.location.name}{' '}
                       <span className="text-xs font-normal">
-                        /
-                        {formatTime(schedule.startTime)} - {" "}
+                        /{formatTime(schedule.startTime)} -{' '}
                         {formatTime(schedule.endTime)}
                       </span>
                     </h6>
