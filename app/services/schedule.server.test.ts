@@ -3,6 +3,8 @@ import {
   checkOverlapSchedule,
   getMonthlyScheduleDates,
   getWeeklyScheduleDates,
+  REPEAT_MONTHS,
+  REPEAT_WEEKS,
   ScheduleFormData,
   TSchedule,
 } from './schedule.server'
@@ -22,12 +24,12 @@ test('scheduleType=oneDay nonrepetive dates should return one schedule', () => {
   expect(schedules[0].toISOString()).toBe(isoRandomDate)
 })
 
-test('scheduleType=oneDay repetive dates should return 12 schedule', () => {
+test(`scheduleType=oneDay repetive dates should return ${REPEAT_MONTHS} schedule`, () => {
   const randomDate = faker.date.recent()
   randomDate.setUTCHours(0, 0, 0, 0)
   const isoRandomDate = randomDate.toISOString()
   const schedules = getMonthlyScheduleDates(randomDate, true)
-  expect(schedules.length).toBe(12)
+  expect(schedules.length).toBe(REPEAT_MONTHS)
   schedules.forEach((schedule, index) => {
     expect(schedule.toISOString()).toBe(
       addMonths(new Date(isoRandomDate), index).toISOString(),
@@ -61,20 +63,23 @@ describe('getWeeklyScheduleDates', () => {
     expect(result[2].toISOString()).toBe('2024-09-06T00:00:00.000Z') // Next Friday
   })
 
-  it('should return the next 52 occurrences for a single day (repetitive)', () => {
+  it(`should return the next ${REPEAT_WEEKS} occurrences for a single day (repetitive)`, () => {
     const result = getWeeklyScheduleDates(['monday'], true)
-    expect(result).toHaveLength(52)
+    expect(result).toHaveLength(REPEAT_WEEKS)
     expect(result[0].toISOString()).toBe('2024-09-09T00:00:00.000Z') // Next Monday
     expect(result[51].toISOString()).toBe('2025-09-01T00:00:00.000Z') // 52nd Monday
   })
 
-  it('should return the next 52 occurrences for multiple days (repetitive)', () => {
+  it(`should return the next ${REPEAT_WEEKS} occurrences for multiple days (repetitive)`, () => {
     const result = getWeeklyScheduleDates(['monday', 'friday'], true)
-    expect(result).toHaveLength(104) // 52 weeks for each day
+    const numberOfScheduleToGenerate = REPEAT_WEEKS * 2
+    expect(result).toHaveLength(numberOfScheduleToGenerate) // 52 weeks for each day
     // Next Friday (Today is Wednesday) and friday comes before monday
     expect(result[0].toISOString()).toBe('2024-09-06T00:00:00.000Z')
     expect(result[1].toISOString()).toBe('2024-09-09T00:00:00.000Z') // Next Monday
-    expect(result[103].toISOString()).toBe('2025-09-01T00:00:00.000Z') // 52nd Monday
+    expect(result[numberOfScheduleToGenerate - 1].toISOString()).toBe(
+      '2025-09-01T00:00:00.000Z',
+    ) // 52nd Monday
   })
 
   it('should handle a day that occurs after today', () => {

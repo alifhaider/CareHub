@@ -9,6 +9,9 @@ export type ScheduleFormData = {
 export type TDay = (typeof DAYS)[number]
 export type TSchedule = Pick<Schedule, 'date' | 'startTime' | 'endTime'>
 
+export const REPEAT_WEEKS = 52
+export const REPEAT_MONTHS = 12
+
 export function getMonthlyScheduleDates(
   date?: Date,
   isRepetitiveMonth?: boolean,
@@ -18,7 +21,9 @@ export function getMonthlyScheduleDates(
   scheduleDate.setUTCHours(0, 0, 0, 0)
   if (!isRepetitiveMonth) return [scheduleDate]
 
-  return Array.from({ length: 12 }, (_, i) => addMonths(scheduleDate, i))
+  return Array.from({ length: REPEAT_MONTHS }, (_, i) =>
+    addMonths(scheduleDate, i),
+  )
 }
 
 function getDayByNumber(day: (typeof DAYS)[number]) {
@@ -59,7 +64,7 @@ export function getWeeklyScheduleDates(
   // Generate the next 52 occurrences for each selected day
   const occurrences = days.flatMap(day => {
     const targetDayIndex = getDayByNumber(day)
-    return Array.from({ length: 52 }, (_, week) => {
+    return Array.from({ length: REPEAT_WEEKS }, (_, week) => {
       const baseDate = nextOccurrences.find(
         occurrence => getDay(occurrence) === targetDayIndex,
       )!

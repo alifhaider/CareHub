@@ -190,12 +190,6 @@ export default function User() {
         </div>
       </div>
 
-      {isDoctor && isOwner ? (
-        <Button asChild variant="outline" className="mt-6">
-          <Link to="/add/schedule">Create a new Schedule</Link>
-        </Button>
-      ) : null}
-
       <Spacer variant="lg" />
       {isOwner ? (
         <>
@@ -301,12 +295,7 @@ type ScheduleProps = {
   username: string
 }
 
-const Schedules = ({
-  schedules,
-  isDoctor,
-  isOwner,
-  username,
-}: ScheduleProps) => {
+const Schedules = ({ schedules, isDoctor, isOwner }: ScheduleProps) => {
   return (
     <div className="flex-1">
       <h4 className="mb-4 text-3xl font-medium text-lime-500">Schedules</h4>
@@ -347,7 +336,7 @@ const Schedules = ({
                     <div className="mt-4">
                       {!isOwner && (
                         <Link
-                          to={`/profile/${username}/book?scheduleId=${schedule.id}`}
+                          to={`/profile/schedule/${schedule.id}`}
                           className="flex w-max items-start rounded-md bg-amber-300 px-2 py-1 text-secondary"
                         >
                           Book Now
@@ -391,6 +380,13 @@ const Schedules = ({
           </li>
         ))}
       </ul>
+      {isDoctor && isOwner ? (
+        <div className="flex items-center justify-center">
+          <Button asChild variant="default" className="mt-6">
+            <Link to="/add/schedule">Add a new schedule</Link>
+          </Button>
+        </div>
+      ) : null}
     </div>
   )
 }

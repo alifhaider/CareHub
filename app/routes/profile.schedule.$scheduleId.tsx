@@ -11,7 +11,6 @@ import { PageTitle } from '~/components/typography'
 import { prisma } from '~/db.server'
 import { requireUser } from '~/services/auth.server'
 import { formatTime } from '~/utils/misc'
-import { useState } from 'react'
 
 import { CalendarIcon, ClockIcon, DollarSignIcon, UserIcon } from 'lucide-react'
 import { Button } from '~/components/ui/button'
@@ -42,13 +41,12 @@ export const meta: MetaFunction = () => {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const userId = await requireUser(request)
+  await requireUser(request)
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const userId = await requireUser(request)
-  const url = new URL(request.url)
-  const scheduleId = url.searchParams.get('scheduleId')
+export async function loader({ request, params }: LoaderFunctionArgs) {
+  await requireUser(request)
+  const scheduleId = params.scheduleId
   invariant(scheduleId, 'Schedule ID is required')
   const schedule = await prisma.schedule.findUnique({
     where: { id: scheduleId },
@@ -56,11 +54,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
       doctor: { include: { user: { select: { id: true, username: true } } } },
     },
   })
-  return { schedule, userId }
+  return { schedule }
 }
 
 export default function Booking() {
-  const { schedule, userId } = useLoaderData<typeof loader>()
+  const { schedule } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
 
   const [form, fields] = useForm({

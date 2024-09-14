@@ -40,6 +40,7 @@ import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { Calendar } from '~/components/ui/calendar'
 import { cn } from '~/utils/misc'
+import { Checkbox } from '~/components/ui/checkbox'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Schedule / CH' }]
@@ -144,7 +145,7 @@ export default function EditSchedule() {
 
           <LocationCombobox
             field={fields.locationId}
-            location={data.schedule.location}
+            selectedLocation={data.schedule.location}
           />
           <div className="space-y-1">
             <Label htmlFor="scheduleType">Schedule Type</Label>
@@ -235,6 +236,7 @@ export default function EditSchedule() {
                     {DAYS.map(day => (
                       <li key={day} className="flex space-x-2">
                         <label className="flex items-center space-x-2 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          {/* @ts-expect-error @ts-ignore */}
                           <Checkbox
                             {...getInputProps(fields.weeklyDays, {
                               type: 'checkbox',
@@ -289,6 +291,8 @@ function RepeatCheckbox({ fields, type, label }: CheckboxProps) {
         htmlFor={field.id}
         className="flex items-center space-x-1 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
       >
+        {/* @ts-expect-error @ts-ignore */}
+
         <Checkbox
           className="rounded-full"
           {...getInputProps(field, { type: 'checkbox' })}

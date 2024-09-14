@@ -36,10 +36,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export function LocationCombobox({
   field,
-  location,
+  selectedLocation,
 }: {
   field: FieldMetadata
-  location?: Omit<ScheduleLocation, 'createdAt' | 'updatedAt'>
+  selectedLocation?: Omit<ScheduleLocation, 'createdAt' | 'updatedAt'>
 }) {
   const locationFetcher = useFetcher<typeof loader>()
   const id = useId()
@@ -50,7 +50,7 @@ export function LocationCombobox({
     id,
     items,
     itemToString: item => (item ? item.name : ''),
-    initialSelectedItem: location,
+    initialSelectedItem: selectedLocation,
     onInputValueChange: changes => {
       locationFetcher.submit(
         { query: changes.inputValue ?? '' },
