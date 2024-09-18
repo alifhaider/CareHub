@@ -3,10 +3,9 @@ import {
   LoaderFunctionArgs,
   MetaFunction,
 } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
 import { format } from 'date-fns'
 import invariant from 'tiny-invariant'
-import { Spacer } from '~/components/spacer'
 import { PageTitle } from '~/components/typography'
 import { prisma } from '~/db.server'
 import { requireUser } from '~/services/auth.server'
@@ -83,23 +82,26 @@ export default function Booking() {
     (schedule.visitFee ?? 0) +
     (schedule.serialFee ?? 0) -
     (schedule.discountFee ?? 0)
-  const remainingAmount = totalCost - (schedule.depositAmount ?? 0)
+  const remainingAmount = Math.abs(totalCost - (schedule.depositAmount ?? 0))
 
   return (
     <div className="page-container">
-      <PageTitle>
-        <span className="flex items-center justify-center text-center">
-          Doctor Appointment Booking
-        </span>
-      </PageTitle>
-      <Spacer variant="lg" />
       <Card className="mx-auto w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">
             Book Your Appointment
           </CardTitle>
           <CardDescription>
-            Complete the form below to book your appointment with {doctorName}
+            Complete the form below to book your appointment with{' '}
+            <Link
+              rel="noreferrer"
+              target="_blank"
+              className="text-cyan-500 underline"
+              to={`/profile/${schedule.doctor.user.username}`}
+            >
+              {doctorName}
+            </Link>
+            .
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -121,7 +123,7 @@ export default function Booking() {
           </div>
 
           {/* Cost Breakdown Section */}
-          <div className="mb-6 rounded-lg bg-secondary/10 p-4">
+          <div className="mb-6 rounded-lg bg-secondary/10">
             <h3 className="mb-3 flex items-center text-lg font-semibold">
               <DollarSignIcon className="mr-2 h-5 w-5 text-primary" />
               Cost Breakdown
@@ -144,14 +146,14 @@ export default function Booking() {
                 <span>{totalCost.toFixed(2)} tk</span>
               </div>
               <div className="flex justify-between border-t pt-2 text-primary">
-                <span>Deposit Amount:</span>
+                <span>Deposit:</span>
                 <span className="flex items-center gap-1">
                   {' '}
                   {schedule.depositAmount?.toFixed(2)} tk
                 </span>
               </div>
               <div className="flex justify-between border-t pt-2 text-primary">
-                <span>Remaining Amount:</span>
+                <span>Remaining:</span>
                 <span className="flex items-center gap-1">
                   {' '}
                   {remainingAmount.toFixed(2)} tk
@@ -191,6 +193,11 @@ export default function Booking() {
               </div>
             </div>
           </Form>
+          <p className="text-xs">
+            <strong>Note: </strong>You will be charged{' '}
+            {schedule.depositAmount?.toFixed(2)} tk deposit now. The remaining
+            amount will be charged at the clinic.
+          </p>
         </CardContent>
         <CardFooter>
           <Button className="w-full" type="submit">
