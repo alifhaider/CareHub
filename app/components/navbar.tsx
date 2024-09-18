@@ -19,29 +19,39 @@ export default function Navbar({ username }: { username?: string }) {
   )
   const [, setTheme] = useTheme()
   return (
-    <nav className="mx-auto flex max-w-7xl items-center justify-between border-b px-6 py-4 lg:px-0">
+    <nav className="mx-auto flex h-[73px] max-w-7xl items-center justify-between border-b px-6 py-4 lg:px-0">
       <div className="flex w-full items-center justify-between">
         <a href="/" className="text-xl font-bold">
           Care<span className="text-lime-500">Hub</span>
         </a>
-        {!isHidden && (
-          <Form
-            method="GET"
-            action="/search"
-            className="flex w-full max-w-sm items-center"
-          >
-            <Input
-              name="s"
-              className="rounded-l-xl rounded-r-none focus-visible:ring-offset-0"
-              type="text"
-              placeholder="Search for doctors, specialties, and more"
-            />
-            <Button className="rounded-l-none rounded-r-xl" type="submit">
-              Search
-            </Button>
-          </Form>
-        )}
+        <div className="w-[400px]">
+          {!isHidden && (
+            <Form
+              method="GET"
+              action="/search"
+              className="flex w-full items-center"
+            >
+              <Input
+                name="s"
+                className="rounded-l-xl rounded-r-none focus-visible:ring-offset-0"
+                type="text"
+                placeholder="Search for doctors, specialties, and more"
+              />
+              <Button className="rounded-l-none rounded-r-xl" type="submit">
+                Search
+              </Button>
+            </Form>
+          )}
+        </div>
+
         <div className="flex items-center gap-4">
+          <Button
+            asChild
+            variant="outline"
+            className="h-7 rounded-none border-primary py-0 text-sm font-bold"
+          >
+            <Link to="/doctor/list-schedule">Become a doctor</Link>
+          </Button>
           {username ? (
             <>
               <Link to={`/profile/${username}`}>Profile</Link>
