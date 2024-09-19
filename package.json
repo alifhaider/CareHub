@@ -39,6 +39,7 @@
     "crypto-js": "^4.2.0",
     "date-fns": "^3.6.0",
     "downshift": "^9.0.8",
+    "framer-motion": "^11.5.4",
     "isbot": "^4.1.0",
     "lucide-react": "^0.416.0",
     "react": "^18.2.0",
