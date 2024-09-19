@@ -175,23 +175,12 @@ export default function DoctorOnboarding() {
                   >
                     <div className="grid grid-cols-9 items-center gap-4">
                       <Field
-                        className="col-span-3"
-                        labelProps={{ children: 'Degree' }}
-                        inputProps={{
-                          type: 'text',
-                          value: education.degree,
-                          onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-                            updateField(setEducationFields, education.id, {
-                              degree: e.target.value,
-                            }),
-                        }}
-                      />
-                      <Field
-                        className="col-span-3"
+                        className="col-span-4"
                         labelProps={{ children: 'Institute' }}
                         inputProps={{
                           type: 'text',
-                          value: education.institute,
+                          placeholder:
+                            'University of California, San Francisco',
                           onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                             updateField(setEducationFields, education.id, {
                               institute: e.target.value,
@@ -200,9 +189,22 @@ export default function DoctorOnboarding() {
                       />
                       <Field
                         className="col-span-2"
+                        labelProps={{ children: 'Degree' }}
+                        inputProps={{
+                          type: 'text',
+                          placeholder: 'MD',
+                          onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                            updateField(setEducationFields, education.id, {
+                              degree: e.target.value,
+                            }),
+                        }}
+                      />
+                      <Field
+                        className="col-span-2"
                         labelProps={{ children: 'Passed Year' }}
                         inputProps={{
                           type: 'text',
+                          placeholder: '2024',
                           value: education.passedYear,
                           onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                             updateField(setEducationFields, education.id, {
@@ -282,6 +284,12 @@ export default function DoctorOnboarding() {
                   placeholder:
                     'Tell us about your experience and approach to patient care...',
                 }}
+              />
+
+              <Field
+                labelProps={{ children: 'Profile Picture' }}
+                inputProps={{ type: 'file' }}
+                className="mb-4 max-w-xs"
               />
 
               <Button type="submit" className="w-full">
