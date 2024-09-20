@@ -41,11 +41,9 @@ const OnboardingSchema = z.object({
   educations: z
     .array(EducationSchema)
     .nonempty({ message: 'Add at least one education (ex: MBBS, MD)' }),
-  specialties: z
-    .array(SpecialtySchema)
-    .nonempty({
-      message: 'Add at least one specialty (ex: Cardiology, Dermatology)',
-    }),
+  specialties: z.array(SpecialtySchema).nonempty({
+    message: 'Add at least one specialty (ex: Cardiology, Dermatology)',
+  }),
   bio: z.string().optional(),
   profilePicture: z.string().optional(),
 })
@@ -61,7 +59,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const doctor = { id: 1 } // perform doctor onboarding here
-
+  console.log(doctor)
   return redirect('/')
 }
 

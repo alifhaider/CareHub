@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
 import { Button } from './ui/button'
-import { Moon, Sun } from 'lucide-react'
+import { MenuIcon, Moon, Sun, User2, WorkflowIcon } from 'lucide-react'
 import { Form, Link, useLocation } from '@remix-run/react'
 import { Input } from './ui/input'
 
@@ -18,6 +18,8 @@ export default function Navbar({ username }: { username?: string }) {
     location.pathname.includes(route),
   )
   const [, setTheme] = useTheme()
+  const linkItemClassName =
+    'hover:bg-primary-foreground px-2 rounded-md py-1 flex items-center gap-2 cursor-pointer'
   return (
     <nav className="mx-auto flex h-[73px] max-w-7xl items-center justify-between border-b px-6 py-4 lg:px-0">
       <div className="flex w-full items-center justify-between">
@@ -33,11 +35,11 @@ export default function Navbar({ username }: { username?: string }) {
             >
               <Input
                 name="s"
-                className="rounded-l-xl rounded-r-none focus-visible:ring-offset-0"
+                className="rounded-none border-x-0 border-b border-t-0 pl-0.5 focus-visible:border-b-2 focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
                 type="text"
                 placeholder="Search for doctors, specialties, and more"
               />
-              <Button className="rounded-l-none rounded-r-xl" type="submit">
+              <Button className="rounded-l-none rounded-r-md" type="submit">
                 Search
               </Button>
             </Form>
@@ -52,43 +54,67 @@ export default function Navbar({ username }: { username?: string }) {
           >
             <Link to="/doctor/join">Become a doctor</Link>
           </Button>
-          {username ? (
-            <>
-              <Link to={`/profile/${username}`}>Profile</Link>
-              <Form action="/logout" method="POST">
-                <Button variant="destructive" type="submit">
-                  Logout {username}
-                </Button>
-              </Form>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="mr-4">
-                Login
-              </Link>
-              <Link to="/signup">Sign Up</Link>
-            </>
-          )}
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                size="icon"
-                className="h-8 w-8 transition-all"
+                className="h-auto px-3 py-2 transition-all"
               >
-                <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                <span className="sr-only">Toggle theme</span>
+                <MenuIcon className="w-h-5 h-5" />
+                <User2 className="w-h-5 h-5" />
+
+                <span className="sr-only">Toggle Menu</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setTheme(Theme.LIGHT)}>
+            <DropdownMenuContent
+              align="start"
+              className="space-y-1 py-2 text-sm"
+            >
+              {username ? (
+                <>
+                  <Link to={`/profile/${username}`}>Profile</Link>
+                  <Form action="/logout" method="POST">
+                    <Button variant="destructive" type="submit">
+                      Logout {username}
+                    </Button>
+                  </Form>
+                </>
+              ) : (
+                <div className="flex flex-col px-1">
+                  <Link
+                    className="rounded-md px-2 py-1 hover:bg-primary-foreground"
+                    to="/login"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    className="rounded-md px-2 py-1 hover:bg-primary-foreground"
+                    to="/signup"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
+              <DropdownMenuItem
+                onClick={() => setTheme(Theme.LIGHT)}
+                className={linkItemClassName}
+              >
+                <Sun className="h-[1.2rem] w-[1.2rem] scale-100 transition-all" />
                 Light
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme(Theme.DARK)}>
+              <DropdownMenuItem
+                onClick={() => setTheme(Theme.DARK)}
+                className={linkItemClassName}
+              >
+                <Moon className="h-[1.2rem] w-[1.2rem] scale-100 transition-all" />
                 Dark
               </DropdownMenuItem>
+
+              <hr className="border-primary-foreground" />
+              <Link to="/works" className={linkItemClassName}>
+                <WorkflowIcon className="h-4 w-4" />
+                How CareHub works
+              </Link>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
