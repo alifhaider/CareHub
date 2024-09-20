@@ -50,7 +50,7 @@ export default function Navbar({ username }: { username?: string }) {
             variant="outline"
             className="h-7 rounded-none border-primary py-0 text-sm font-bold"
           >
-            <Link to="/doctor/list-schedule">Become a doctor</Link>
+            <Link to="/doctor/join">Become a doctor</Link>
           </Button>
           {username ? (
             <>

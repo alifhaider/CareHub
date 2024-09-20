@@ -56,7 +56,7 @@ export default function DoctorLandingPage() {
         </div>
 
         <div className="mb-12 text-center">
-          <Button size="lg" asChild>
+          <Button size="lg" asChild className="font-bold">
             <Link to="/doctor/onboarding">Get Started</Link>
           </Button>
         </div>
