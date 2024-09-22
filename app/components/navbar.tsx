@@ -8,7 +8,7 @@ import {
 import { Button } from './ui/button'
 import {
   BriefcaseMedical,
-  DoorOpen,
+  LogOut,
   MenuIcon,
   Moon,
   Search,
@@ -82,13 +82,12 @@ export default function Navbar({ username }: { username?: string }) {
             >
               {username ? (
                 <>
-                  <Link to={`/profile/${username}`}>Profile</Link>
-                  <Form action="/logout" method="POST">
-                    <Button variant="destructive" type="submit">
-                      <DoorOpen className="h-4 w-4" />
-                      Logout {username}
-                    </Button>
-                  </Form>
+                  <Link to={`/profile/${username}`}>
+                    <DropdownMenuItem>
+                      <User2 className="h-4 w-4" />
+                      Profile
+                    </DropdownMenuItem>
+                  </Link>
                 </>
               ) : (
                 <div className="flex flex-col px-1">
@@ -106,6 +105,9 @@ export default function Navbar({ username }: { username?: string }) {
                   Become a doctor
                 </DropdownMenuItem>
               </Link>
+
+              <hr className="border-primary-foreground" />
+              
               <DropdownMenuItem onClick={() => setTheme(Theme.LIGHT)}>
                 <Sun className="h-4 w-4" />
                 Light
@@ -114,14 +116,27 @@ export default function Navbar({ username }: { username?: string }) {
                 <Moon className="h-4 w-4" />
                 Dark
               </DropdownMenuItem>
-
+              
               <hr className="border-primary-foreground" />
+              
               <Link to="/works">
                 <DropdownMenuItem>
                   <WorkflowIcon className="h-4 w-4" />
                   How CareHub works
                 </DropdownMenuItem>
               </Link>
+
+              <hr className="border-primary-foreground" />
+              {username && (
+                <Form action="/logout" method="POST" className="w-full">
+                  <button type="submit" className="w-full">
+                    <DropdownMenuItem>
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </button>
+                </Form>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
