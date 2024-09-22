@@ -1,4 +1,9 @@
-import { Form, MetaFunction, useActionData, useLoaderData } from '@remix-run/react'
+import {
+  Form,
+  MetaFunction,
+  useActionData,
+  useLoaderData,
+} from '@remix-run/react'
 import { Plus, Trash2 } from 'lucide-react'
 import { ErrorList, Field, TextareaField } from '~/components/forms'
 import { Button, buttonVariants } from '~/components/ui/button'
@@ -11,7 +16,12 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import { z } from 'zod'
-import { ActionFunctionArgs, json, LoaderFunctionArgs, redirect } from '@remix-run/node'
+import {
+  ActionFunctionArgs,
+  json,
+  LoaderFunctionArgs,
+  redirect,
+} from '@remix-run/node'
 import { parseWithZod } from '@conform-to/zod'
 import {
   getFieldsetProps,
@@ -82,14 +92,14 @@ export async function action({ request }: ActionFunctionArgs) {
       fullName: submission.value.fullName,
       bio: submission.value.bio ?? '',
       education: {
-        create: submission.value.educations.map((education) => ({
+        create: submission.value.educations.map(education => ({
           degree: education.degree,
           institute: education.institute,
           year: education.passedYear,
         })),
       },
       specialties: {
-        create: submission.value.specialties.map((specialty) => ({
+        create: submission.value.specialties.map(specialty => ({
           name: specialty.name,
         })),
       },
@@ -167,9 +177,7 @@ export default function DoctorOnboarding() {
                   const educationFields = education.getFieldset()
                   return (
                     <AnimateHeight key={education.key}>
-                      <fieldset
-                        {...getFieldsetProps(education)}
-                      >
+                      <fieldset {...getFieldsetProps(education)}>
                         <div className="grid grid-cols-9 items-center gap-4">
                           <Field
                             className="col-span-4"
@@ -244,9 +252,7 @@ export default function DoctorOnboarding() {
                   const specialtyFields = specialty.getFieldset()
                   return (
                     <AnimateHeight key={specialty.key}>
-                      <fieldset
-                        {...getFieldsetProps(specialty)}
-                      >
+                      <fieldset {...getFieldsetProps(specialty)}>
                         <div className="grid grid-cols-9 items-center gap-4">
                           <Field
                             className="col-span-4"

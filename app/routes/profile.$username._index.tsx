@@ -160,33 +160,37 @@ export default function User() {
     <div className="page-container">
       <div className="flex gap-6">
         <div className="h-32 w-32 rounded-sm bg-primary-foreground shadow-sm" />
-        <div>
-          <SectionTitle>{user.doctor?.fullName ?? user.username}</SectionTitle>{' '}
-          <span>{user.id}</span>
-          <ul className="mt-2 flex items-center gap-4">
-            {isDoctor ? (
-              <>
+        <div className="w-full">
+          <div className="flex items-center justify-between">
+            <SectionTitle>
+              {user.doctor?.fullName ?? user.username}
+            </SectionTitle>
+            {isDoctor && isOwner ? (
+              <Button asChild variant="outline">
+                <Link to="/profile/edit">Edit Profile</Link>
+              </Button>
+            ) : null}
+          </div>
+          {isDoctor ? (
+            <>
+              <ul className="mt-2 flex items-center gap-4">
                 {user.doctor?.specialties.map(specialty => (
                   <li key={specialty.id} className="flex items-center gap-1">
                     <div className="h-2 w-2 rounded-full bg-amber-300"></div>
                     {specialty.name}
                   </li>
                 ))}
-              </>
-            ) : null}
-          </ul>
-          <ul className="text-accent-foreground">
-            {isDoctor ? (
-              <>
+              </ul>
+              <ul className="text-accent-foreground">
                 {user.doctor?.education.map(education => (
                   <li key={education.id}>
                     {education.degree} | {education.institute}
                     <span className="ml-1 text-sm">({education.year})</span>
                   </li>
                 ))}
-              </>
-            ) : null}
-          </ul>
+              </ul>
+            </>
+          ) : null}
         </div>
       </div>
 
@@ -240,7 +244,7 @@ export default function User() {
               />
             </div>
 
-            {displayedSchedules && displayedSchedules.length > 0 && isDoctor ? (
+            {displayedSchedules && isDoctor ? (
               <Schedules
                 schedules={displayedSchedules}
                 isOwner={isOwner}
@@ -381,9 +385,9 @@ const Schedules = ({ schedules, isDoctor, isOwner }: ScheduleProps) => {
         ))}
       </ul>
       {isDoctor && isOwner ? (
-        <div className="flex items-center justify-center">
+        <div className="flex items-center">
           <Button asChild variant="default" className="mt-6">
-            <Link to="/add/schedule">Add a new schedule</Link>
+            <Link to="/add/schedule">Create a new schedule plan</Link>
           </Button>
         </div>
       ) : null}
@@ -394,12 +398,6 @@ const Schedules = ({ schedules, isDoctor, isOwner }: ScheduleProps) => {
 const Reviews = () => {
   return (
     <div>
-      <script
-        src="https://static.elfsight.com/platform/platform.js"
-        data-use-service-core
-        defer
-      ></script>
-
       <h4 className="mb-4 text-3xl font-medium text-lime-500">Reviews</h4>
       <ul>
         <li className="rounded-md bg-secondary px-4 py-2">
