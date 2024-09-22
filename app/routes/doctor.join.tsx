@@ -2,7 +2,6 @@ import { Calendar, Clock, Users, CheckCircle } from 'lucide-react'
 import { Link, MetaFunction } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { PageTitle } from '~/components/typography'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Doctor / CH' }]
@@ -10,14 +9,25 @@ export const meta: MetaFunction = () => {
 
 export default function BecomeDoctor() {
   return (
-    <div className="page-container">
-      <PageTitle>Join CareHub as a Doctor</PageTitle>
-      <p className="mb-12 mt-4 max-w-2xl text-xl text-muted-foreground">
-        Streamline your practice, reach more patients, and provide better care
-        with our innovative healthcare platform.
-      </p>
+    <div className="page-container space-y-12">
+      <div>
+        <h1 className="max-w-4xl text-4xl font-extrabold md:text-7xl">
+          Start getting appointments from CareHub
+        </h1>
+        <p className="mt-4 max-w-2xl text-xl text-muted-foreground">
+          Streamline your practice, reach more patients, and provide better care
+          with our innovative healthcare platform.
+        </p>
+      </div>
+      <Button size="lg" asChild className="font-bold">
+        <Link to="/doctor/onboarding">Get Started</Link>
+      </Button>
 
-      <div className="mb-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <p className="text-muted-foreground">
+        <span className="text-xl font-extrabold">C</span>reate your profile and
+        start getting appointments from CareHub.
+      </p>
+      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <Clock className="mb-2 h-8 w-8 text-primary" />

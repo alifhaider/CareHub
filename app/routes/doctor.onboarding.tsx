@@ -119,18 +119,8 @@ export default function DoctorOnboarding() {
                 {educations.map((education, index) => {
                   const educationFields = education.getFieldset()
                   return (
-                    <motion.div
-                      key={education.key}
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{
-                        opacity: { duration: 0.2 },
-                        height: { duration: 0.3 },
-                      }}
-                    >
+                    <AnimateHeight key={education.key}>
                       <fieldset
-                        key={education.key}
                         {...getFieldsetProps(education)}
                       >
                         <div className="grid grid-cols-9 items-center gap-4">
@@ -181,7 +171,7 @@ export default function DoctorOnboarding() {
                           </button>
                         </div>
                       </fieldset>
-                    </motion.div>
+                    </AnimateHeight>
                   )
                 })}
               </AnimatePresence>
@@ -206,18 +196,8 @@ export default function DoctorOnboarding() {
                 {specialties.map((specialty, index) => {
                   const specialtyFields = specialty.getFieldset()
                   return (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{
-                        opacity: { duration: 0.2 },
-                        height: { duration: 0.3 },
-                      }}
-                    >
+                    <AnimateHeight key={specialty.key}>
                       <fieldset
-                        key={specialty.key}
                         {...getFieldsetProps(specialty)}
                       >
                         <div className="grid grid-cols-9 items-center gap-4">
@@ -248,7 +228,7 @@ export default function DoctorOnboarding() {
                           </button>
                         </div>
                       </fieldset>
-                    </motion.div>
+                    </AnimateHeight>
                   )
                 })}
               </AnimatePresence>
@@ -289,5 +269,21 @@ export default function DoctorOnboarding() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+const AnimateHeight = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{
+        opacity: { duration: 0.2 },
+        height: { duration: 0.3 },
+      }}
+    >
+      {children}
+    </motion.div>
   )
 }
