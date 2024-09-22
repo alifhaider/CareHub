@@ -21,7 +21,7 @@ import {
 } from '@conform-to/react'
 import { cn } from '~/lib/utils'
 import { prisma } from '~/db.server'
-import { requireUserId } from '~/services/auth.server'
+import { requireUser } from '~/services/auth.server'
 import { redirectWithSuccess } from 'remix-toast'
 
 export const meta: MetaFunction = () => {
@@ -53,10 +53,10 @@ const OnboardingSchema = z.object({
 })
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const userId = await requireUserId(request)
+  const user = await requireUser(request)
   const isAlreadyOnboarded = await prisma.doctor.findUnique({
     where: {
-      userId,
+      userId: user.id,
     },
   })
 
@@ -64,7 +64,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect('/')
   }
 
-  return json({ userId })
+  return json({ userId: user.id, username: user.username })
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -77,7 +77,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return json(submission.reply({ formErrors: ['Could not onboard doctor'] }))
   }
 
-  const doctor = await prisma.doctor.create({
+  await prisma.doctor.create({
     data: {
       fullName: submission.value.fullName,
       bio: submission.value.bio ?? '',
@@ -101,16 +101,15 @@ export async function action({ request }: ActionFunctionArgs) {
     },
   })
 
-  console.log({doctor})
-
-  return redirectWithSuccess('/', {
-    message: 'Onboarding successful',
+  return redirectWithSuccess('/profile/${username}', {
+    message: 'Congratulations! You have successfully became a CareHub doctor.',
+    description: 'You can now start adding your schedule.',
   })
 }
 
 export default function DoctorOnboarding() {
   const lastResult = useActionData<typeof action>()
-  const { userId } = useLoaderData<typeof loader>()
+  const { userId, username } = useLoaderData<typeof loader>()
 
   const [form, fields] = useForm({
     lastResult,
@@ -142,6 +141,7 @@ export default function DoctorOnboarding() {
           <Form method="POST" className="space-y-8" {...getFormProps(form)}>
             <div className="grid grid-cols-2 gap-4">
               <input type="hidden" name="userId" value={userId} />
+              <input type="hidden" name="username" value={username} />
               <Field
                 labelProps={{ children: 'Full Name' }}
                 inputProps={{
