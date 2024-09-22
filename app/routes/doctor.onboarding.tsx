@@ -1,4 +1,4 @@
-import { Form, MetaFunction, useActionData } from '@remix-run/react'
+import { Form, MetaFunction, useActionData, useLoaderData } from '@remix-run/react'
 import { Plus, Trash2 } from 'lucide-react'
 import { ErrorList, Field, TextareaField } from '~/components/forms'
 import { Button, buttonVariants } from '~/components/ui/button'
@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import { z } from 'zod'
-import { ActionFunctionArgs, json, redirect } from '@remix-run/node'
+import { ActionFunctionArgs, json, LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { parseWithZod } from '@conform-to/zod'
 import {
   getFieldsetProps,
@@ -20,6 +20,9 @@ import {
   useForm,
 } from '@conform-to/react'
 import { cn } from '~/lib/utils'
+import { prisma } from '~/db.server'
+import { requireUserId } from '~/services/auth.server'
+import { redirectWithSuccess } from 'remix-toast'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Onboarding / CH' }]
@@ -36,6 +39,7 @@ const SpecialtySchema = z.object({
 })
 
 const OnboardingSchema = z.object({
+  userId: z.string({ message: 'User ID is required' }),
   fullName: z.string({ message: 'Full name is required(ex: Dr. John Doe)' }),
   phoneNumber: z.string().optional(),
   educations: z
@@ -48,6 +52,21 @@ const OnboardingSchema = z.object({
   profilePicture: z.string().optional(),
 })
 
+export async function loader({ request }: LoaderFunctionArgs) {
+  const userId = await requireUserId(request)
+  const isAlreadyOnboarded = await prisma.doctor.findUnique({
+    where: {
+      userId,
+    },
+  })
+
+  if (isAlreadyOnboarded) {
+    return redirect('/')
+  }
+
+  return json({ userId })
+}
+
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
   const submission = parseWithZod(formData, {
@@ -58,13 +77,40 @@ export async function action({ request }: ActionFunctionArgs) {
     return json(submission.reply({ formErrors: ['Could not onboard doctor'] }))
   }
 
-  const doctor = { id: 1 } // perform doctor onboarding here
-  console.log(doctor)
-  return redirect('/')
+  const doctor = await prisma.doctor.create({
+    data: {
+      fullName: submission.value.fullName,
+      bio: submission.value.bio ?? '',
+      education: {
+        create: submission.value.educations.map((education) => ({
+          degree: education.degree,
+          institute: education.institute,
+          year: education.passedYear,
+        })),
+      },
+      specialties: {
+        create: submission.value.specialties.map((specialty) => ({
+          name: specialty.name,
+        })),
+      },
+      user: {
+        connect: {
+          id: submission.value.userId,
+        },
+      },
+    },
+  })
+
+  console.log({doctor})
+
+  return redirectWithSuccess('/', {
+    message: 'Onboarding successful',
+  })
 }
 
 export default function DoctorOnboarding() {
   const lastResult = useActionData<typeof action>()
+  const { userId } = useLoaderData<typeof loader>()
 
   const [form, fields] = useForm({
     lastResult,
@@ -95,6 +141,7 @@ export default function DoctorOnboarding() {
         <CardContent>
           <Form method="POST" className="space-y-8" {...getFormProps(form)}>
             <div className="grid grid-cols-2 gap-4">
+              <input type="hidden" name="userId" value={userId} />
               <Field
                 labelProps={{ children: 'Full Name' }}
                 inputProps={{
