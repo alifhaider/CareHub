@@ -107,7 +107,7 @@ export default function Navbar({ username }: { username?: string }) {
               </Link>
 
               <hr className="border-primary-foreground" />
-              
+
               <DropdownMenuItem onClick={() => setTheme(Theme.LIGHT)}>
                 <Sun className="h-4 w-4" />
                 Light
@@ -116,9 +116,9 @@ export default function Navbar({ username }: { username?: string }) {
                 <Moon className="h-4 w-4" />
                 Dark
               </DropdownMenuItem>
-              
+
               <hr className="border-primary-foreground" />
-              
+
               <Link to="/works">
                 <DropdownMenuItem>
                   <WorkflowIcon className="h-4 w-4" />
@@ -126,16 +126,18 @@ export default function Navbar({ username }: { username?: string }) {
                 </DropdownMenuItem>
               </Link>
 
-              <hr className="border-primary-foreground" />
               {username && (
-                <Form action="/logout" method="POST" className="w-full">
-                  <button type="submit" className="w-full">
-                    <DropdownMenuItem>
-                      <LogOut className="h-4 w-4" />
-                      Logout
-                    </DropdownMenuItem>
-                  </button>
-                </Form>
+                <>
+                  <hr className="border-primary-foreground" />
+                  <Form action="/logout" method="POST" className="w-full">
+                    <button type="submit" className="w-full">
+                      <DropdownMenuItem>
+                        <LogOut className="h-4 w-4" />
+                        Logout
+                      </DropdownMenuItem>
+                    </button>
+                  </Form>
+                </>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
