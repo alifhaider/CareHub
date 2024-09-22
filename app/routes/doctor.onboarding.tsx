@@ -85,13 +85,15 @@ export default function DoctorOnboarding() {
     <div className="min-h-screen bg-background p-8">
       <Card className="mx-auto max-w-2xl border-none shadow-none">
         <CardHeader>
-          <CardTitle>Doctor Onboarding</CardTitle>
+          <CardTitle className="text-3xl font-bold">
+            Doctor Onboarding
+          </CardTitle>
           <CardDescription>
             Please provide your information to get started with CareHub.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form method="POST" className="space-y-4" {...getFormProps(form)}>
+          <Form method="POST" className="space-y-8" {...getFormProps(form)}>
             <div className="grid grid-cols-2 gap-4">
               <Field
                 labelProps={{ children: 'Full Name' }}
@@ -198,7 +200,7 @@ export default function DoctorOnboarding() {
               </button>
             </div>
 
-            <div className="pt-8">
+            <div className="py-8">
               <h3 className="mb-2 text-lg font-bold">Specialties</h3>
               <AnimatePresence initial={false}>
                 {specialties.map((specialty, index) => {
