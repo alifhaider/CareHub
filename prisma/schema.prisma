@@ -36,6 +36,7 @@ model Doctor {
   id      String  @id @default(cuid())
   fullName   String?
   phone    String?
+  profilePicture String?
   
   specialties DoctorSpecialty[]
 

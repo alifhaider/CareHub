@@ -48,7 +48,7 @@ const SpecialtySchema = z.object({
   name: z.string({ message: 'Add specialty' }),
 })
 
-const OnboardingSchema = z.object({
+export const OnboardingSchema = z.object({
   userId: z.string({ message: 'User ID is required' }),
   fullName: z.string({ message: 'Full name is required(ex: Dr. John Doe)' }),
   phoneNumber: z.string().optional(),
@@ -71,7 +71,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   })
 
   if (isAlreadyOnboarded) {
-    return redirect('/')
+    return redirect(`/profile/${user.username}`)
   }
 
   return json({ userId: user.id, username: user.username })
@@ -325,7 +325,7 @@ export default function DoctorOnboarding() {
   )
 }
 
-const AnimateHeight = ({ children }: { children: React.ReactNode }) => {
+export const AnimateHeight = ({ children }: { children: React.ReactNode }) => {
   return (
     <motion.div
       initial={{ opacity: 0, height: 0 }}
