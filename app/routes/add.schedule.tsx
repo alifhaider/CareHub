@@ -363,7 +363,6 @@ export default function AddSchedule() {
                             })}
                           />
 
-                          {/* <input {...getInputProps(fields.weeklyDays, {type: "checkbox", value:day, s})} /> */}
                           <span>{day}</span>
                         </label>
                       </li>
@@ -379,6 +378,14 @@ export default function AddSchedule() {
                 />
               </>
             ) : null}
+
+            <p className="mt-2 text-xs text-secondary-foreground">
+              <strong>Note: </strong>Repeated schedules can be created all at
+              once. <br /> For example, if you set a schedule for every
+              Saturday, 52 individual schedules will be generated. <br />{' '}
+              However, each schedule must be edited one by one; simultaneous
+              editing is not possible.
+            </p>
           </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <Field
@@ -484,7 +491,6 @@ function RepeatCheckbox({ field, label }: CheckboxProps) {
         className="flex items-center space-x-1 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
       >
         {/* @ts-expect-error @ts-ignore */}
-
         <Checkbox
           className="rounded-full"
           {...getInputProps(field, { type: 'checkbox' })}
