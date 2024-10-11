@@ -1,6 +1,8 @@
 # Note
 ⛔❌ This idea is getting reimplemented with React Native. ⛔❌ 
+
 So probably, this will no longer be updated. 
+
 To follow, [Link to Mobile App Repo](https://github.com/carehuborg/CareHub.git)
 
 # CareHub
