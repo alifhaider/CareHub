@@ -1,5 +1,5 @@
 # Note
-This idea is getting reimplemented with React Native. To follow, [click here](https://github.com/carehuborg/CareHub.git)
+This idea is getting reimplemented with React Native. To follow, [Link to React Native Repo](https://github.com/carehuborg/CareHub.git)
 
 # CareHub
 
