@@ -3,7 +3,7 @@
 
 So probably, this will no longer be updated. 
 
-To follow, [Link to Mobile App Repo](https://github.com/carehuborg/CareHub.git)
+To follow, [Link to Mobile App Repo ➡️](https://github.com/carehuborg/CareHub.git)
 
 # CareHub
 
