@@ -83,7 +83,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             },
           },
           doctor: {
-            select: { fullName: true, user: { select: { username: true } } },
+            select: { user: { select: { username: true, fullName: true } } },
           },
         },
       },
@@ -162,9 +162,7 @@ export default function User() {
         <div className="h-32 w-32 rounded-sm bg-primary-foreground shadow-sm" />
         <div className="w-full">
           <div className="flex items-center justify-between">
-            <SectionTitle>
-              {user.doctor?.fullName ?? user.username}
-            </SectionTitle>
+            <SectionTitle>{user.fullName ?? user.username}</SectionTitle>
             {isDoctor && isOwner ? (
               <Button asChild variant="outline">
                 <Link to="/profile/edit">Edit Profile</Link>
@@ -216,7 +214,7 @@ export default function User() {
                   to={`/profile/${appointment.doctor.user.username}`}
                   className="text-blue-400 underline"
                 >
-                  {appointment.doctor.fullName ??
+                  {appointment.doctor.user.fullName ??
                     appointment.doctor.user.username}
                 </Link>
               </li>

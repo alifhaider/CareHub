@@ -1,16 +1,17 @@
 import { Link } from '@remix-run/react'
-import { Star } from 'lucide-react'
+import { Star, PercentSquareIcon } from 'lucide-react'
 import { Button } from './ui/button'
 
 type UserCardProps = {
   username: string
+  fullName: string | null
   doctor: {
-    fullName: string | null
     rating: number
     bio: string
     _count: {
       schedules: number
     }
+    image: string | null
     specialties: {
       id: string
       name: string
@@ -18,11 +19,20 @@ type UserCardProps = {
   } | null
 }
 
-export default function UserCard({ doctor, username }: UserCardProps) {
+export default function UserCard({
+  doctor,
+  username,
+  fullName,
+}: UserCardProps) {
   return (
     <li className="h-full">
       <div className="flex h-full flex-col justify-between rounded-sm border bg-background py-4 hover:shadow-lg">
         <div className="relative mx-auto h-20 w-20 rounded-sm bg-secondary">
+          <img
+            src={doctor?.image ?? '/avatar.png'}
+            alt={fullName ?? username}
+            className="h-full w-full rounded-sm object-cover"
+          />
           <div className="absolute -bottom-1 left-1/2 flex w-max -translate-x-1/2 items-center justify-center gap-0.5 rounded-md bg-secondary-foreground px-1 text-xs text-background shadow-lg">
             <Star className="h-3 w-3" />
             {doctor?.rating}
@@ -33,7 +43,7 @@ export default function UserCard({ doctor, username }: UserCardProps) {
           className="group mt-2 flex items-end justify-center px-4"
         >
           <h3 className="text-lg font-semibold group-hover:underline">
-            {doctor?.fullName ?? username}
+            {fullName ?? username}
           </h3>
         </Link>
         <ul className="mt-4 flex flex-wrap justify-between text-sm">

@@ -6,7 +6,6 @@ import {
   type MetaFunction,
 } from '@remix-run/node'
 import { Form, Link, useActionData, useSearchParams } from '@remix-run/react'
-import { z } from 'zod'
 import { parseWithZod } from '@conform-to/zod'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
@@ -21,6 +20,7 @@ import { useIsPending } from '~/utils/misc'
 import { PasswordSchema, UsernameSchema } from '~/utils/user-validation'
 import { authSessionStorage } from '~/services/session.server'
 import { safeRedirect } from 'remix-utils/safe-redirect'
+import { z } from 'zod'
 
 const LoginFormSchema = z.object({
   username: UsernameSchema,

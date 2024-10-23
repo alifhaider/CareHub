@@ -1,9 +1,9 @@
 # Note
-⛔❌ This idea is getting reimplemented with React Native. ⛔❌ 
 
-So probably, this will no longer be updated. 
+Thinking of also making a mobile app
 
-To follow, [Link to Mobile App Repo ➡️](https://github.com/carehuborg/CareHub.git)
+To follow,
+[Link to Mobile App Repo ➡️](https://github.com/carehuborg/CareHub.git)
 
 # CareHub
 
@@ -35,14 +35,5 @@ And then start the app with
 
 npm run dev
 
-```
-
-## TODO:
-
-- Profile page
-  - View all the locations a doctor created as his schedule plans
-  - Clicking a schedule plan will go to booking page for that schedule
-
-```
 
 ```

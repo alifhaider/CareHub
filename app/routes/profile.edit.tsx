@@ -64,7 +64,6 @@ export async function action({ request }: ActionFunctionArgs) {
     await tx.doctor.update({
       where: { userId: doctor.userId },
       data: {
-        fullName: submission.value.fullName,
         phone: submission.value.phoneNumber,
         bio: submission.value.bio,
         specialties: {
@@ -128,15 +127,6 @@ export default function ProfileEdit() {
                 name="username"
                 value={doctor?.user.username}
               />
-              <Field
-                labelProps={{ children: 'Full Name' }}
-                inputProps={{
-                  defaultValue: doctor?.fullName ?? '',
-                  ...getInputProps(fields.fullName, { type: 'text' }),
-                }}
-                errors={fields.fullName.errors}
-              />
-
               <Field
                 labelProps={{ children: 'Phone Number' }}
                 inputProps={{

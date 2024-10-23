@@ -115,13 +115,18 @@ async function seed() {
   console.time('👨‍⚕️ Creating users...')
   const users = await Promise.all(
     Array.from({ length: totalUsers }).map(async () => {
-      const fullName = faker.person.fullName()
+      const person = faker.internet
+
       // remove spaces and special characters
-      const username = fullName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+      const username = person
+        .userName()
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .toLowerCase()
       const user = await prisma.user.create({
         data: {
-          email: `${username}@ch.com`,
-          username: username,
+          email: person.email(),
+          username,
+          fullName: person.displayName(),
           password: {
             create: {
               hash: await bcrypt.hash('password', 10),
@@ -141,7 +146,6 @@ async function seed() {
         data: {
           bio: faker.person.bio(),
           userId: users[index].id,
-          fullName: `Dr. ${faker.person.fullName()}`,
           phone: faker.phone.number(),
           specialties: {
             createMany: {
@@ -154,6 +158,7 @@ async function seed() {
               })),
             },
           },
+          image: faker.image.avatar(),
           rating: Math.floor(Math.random() * 5),
           education: {
             createMany: {

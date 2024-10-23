@@ -27,7 +27,7 @@ export async function loader() {
               schedules: true,
             },
           },
-          fullName: true,
+          image: true,
           bio: true,
           rating: true,
           specialties: {
@@ -77,8 +77,13 @@ export default function Index() {
             to choose the best healthcare professional for your needs.
           </p>
           <ul className="mt-6 grid grid-cols-4 items-stretch gap-6">
-            {users.map(({ id, username, doctor }) => (
-              <UserCard key={id} username={username} doctor={doctor} />
+            {users.map(({ id, username, doctor, fullName }) => (
+              <UserCard
+                key={id}
+                username={username}
+                doctor={doctor}
+                fullName={fullName}
+              />
             ))}
           </ul>
 

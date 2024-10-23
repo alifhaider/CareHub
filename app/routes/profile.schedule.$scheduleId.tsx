@@ -50,7 +50,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const schedule = await prisma.schedule.findUnique({
     where: { id: scheduleId },
     include: {
-      doctor: { include: { user: { select: { id: true, username: true } } } },
+      doctor: {
+        include: {
+          user: { select: { id: true, username: true, fullName: true } },
+        },
+      },
     },
   })
   return { schedule }
@@ -73,7 +77,8 @@ export default function Booking() {
   const scheduleStartTime = formatTime(schedule.startTime)
   const scheduleEndTime = formatTime(schedule.endTime)
 
-  const doctorName = schedule.doctor.fullName ?? schedule.doctor.user.username
+  const doctorName =
+    schedule.doctor.user.fullName ?? schedule.doctor.user.username
 
   // Monday, June 12, 2023
   const formattedDate = format(new Date(schedule.date), 'EEEE, MMMM d, yyyy')

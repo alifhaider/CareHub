@@ -3,6 +3,7 @@ CREATE TABLE "User" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "email" TEXT NOT NULL,
     "username" TEXT NOT NULL,
+    "fullName" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
@@ -17,8 +18,8 @@ CREATE TABLE "Password" (
 -- CreateTable
 CREATE TABLE "Doctor" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "fullName" TEXT,
     "phone" TEXT,
+    "image" TEXT,
     "userId" TEXT NOT NULL,
     "bio" TEXT NOT NULL,
     "rating" INTEGER NOT NULL DEFAULT 0,
@@ -44,9 +45,13 @@ CREATE TABLE "Schedule" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "doctorId" TEXT NOT NULL,
     "locationId" TEXT NOT NULL,
-    "day" TEXT NOT NULL,
-    "startTime" DATETIME NOT NULL,
-    "endTime" DATETIME NOT NULL,
+    "serialFee" INTEGER,
+    "discountFee" INTEGER,
+    "visitFee" INTEGER,
+    "depositAmount" INTEGER,
+    "date" DATETIME NOT NULL,
+    "startTime" TEXT NOT NULL,
+    "endTime" TEXT NOT NULL,
     "maxAppointments" INTEGER NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
@@ -72,8 +77,7 @@ CREATE TABLE "Booking" (
     "scheduleId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "doctorId" TEXT NOT NULL,
-    "status" TEXT DEFAULT 'ACCEPTED',
-    "date" DATETIME NOT NULL,
+    "status" TEXT DEFAULT 'PENDING',
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "Booking_scheduleId_fkey" FOREIGN KEY ("scheduleId") REFERENCES "Schedule" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -100,18 +104,6 @@ CREATE TABLE "DoctorSpecialty" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "DoctorSpecialty_doctorId_fkey" FOREIGN KEY ("doctorId") REFERENCES "Doctor" ("userId") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
--- CreateTable
-CREATE TABLE "Fee" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "scheduleId" TEXT NOT NULL,
-    "serial" INTEGER,
-    "discount" INTEGER,
-    "visit" INTEGER,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Fee_scheduleId_fkey" FOREIGN KEY ("scheduleId") REFERENCES "Schedule" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateIndex

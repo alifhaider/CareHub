@@ -50,7 +50,6 @@ const SpecialtySchema = z.object({
 
 export const OnboardingSchema = z.object({
   userId: z.string({ message: 'User ID is required' }),
-  fullName: z.string({ message: 'Full name is required(ex: Dr. John Doe)' }),
   phoneNumber: z.string().optional(),
   educations: z
     .array(EducationSchema)
@@ -89,7 +88,6 @@ export async function action({ request }: ActionFunctionArgs) {
 
   await prisma.doctor.create({
     data: {
-      fullName: submission.value.fullName,
       bio: submission.value.bio ?? '',
       education: {
         create: submission.value.educations.map(education => ({
@@ -152,14 +150,6 @@ export default function DoctorOnboarding() {
             <div className="grid grid-cols-2 gap-4">
               <input type="hidden" name="userId" value={userId} />
               <input type="hidden" name="username" value={username} />
-              <Field
-                labelProps={{ children: 'Full Name' }}
-                inputProps={{
-                  ...getInputProps(fields.fullName, { type: 'text' }),
-                }}
-                errors={fields.fullName.errors}
-              />
-
               <Field
                 labelProps={{ children: 'Phone Number' }}
                 inputProps={{

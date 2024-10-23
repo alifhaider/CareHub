@@ -21,8 +21,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     where: {
       OR: [
         {
-          fullName: { contains: query },
-          user: { username: { contains: query } },
+          user: {
+            username: { contains: query },
+            fullName: { contains: query },
+          },
         },
         {
           schedules: {
@@ -48,8 +50,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
         include: {
           doctor: {
             select: {
-              fullName: true,
               bio: true,
+              image: true,
               rating: true,
               specialties: { select: { id: true, name: true } },
               _count: { select: { schedules: true } },
@@ -100,7 +102,12 @@ export default function Search() {
       </div>
       <ul className="mt-6 grid grid-cols-1 items-stretch gap-6 md:grid-cols-3 lg:grid-cols-4">
         {users.map(({ id, user }) => (
-          <UserCard key={id} doctor={user.doctor} username={user.username} />
+          <UserCard
+            key={id}
+            doctor={user.doctor}
+            username={user.username}
+            fullName={user.fullName}
+          />
         ))}
       </ul>
     </div>
