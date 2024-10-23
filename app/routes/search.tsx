@@ -1,9 +1,12 @@
 import { json, LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { Form, useLoaderData, useSearchParams } from '@remix-run/react'
+import { Form, Link, useLoaderData, useSearchParams } from '@remix-run/react'
 import { PageTitle } from '~/components/typography'
 import { Input } from '~/components/ui/input'
 import { prisma } from '~/db.server'
-import UserCard from '~/components/user-card'
+import { Card, CardContent } from '~/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
+import { Badge } from '~/components/ui/badge'
+import { Star } from 'lucide-react'
 
 export const meta: MetaFunction = () => {
   return [
@@ -17,7 +20,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const query = searchParams.get('s') ?? ''
   const specialtiesQuery = searchParams.get('specialties') ?? ''
   const locationQuery = searchParams.get('location') ?? ''
-  const users = await prisma.doctor.findMany({
+  const doctors = await prisma.doctor.findMany({
     where: {
       OR: [
         {
@@ -53,6 +56,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
               bio: true,
               image: true,
               rating: true,
+              schedules: {
+                select: {
+                  id: true,
+                  date: true,
+                  startTime: true,
+                  endTime: true,
+                  location: true,
+                },
+              },
               specialties: { select: { id: true, name: true } },
               _count: { select: { schedules: true } },
             },
@@ -61,12 +73,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
       },
     },
   })
-  return json({ users })
+
+  return json({ doctors })
 }
 
 export default function Search() {
   const [searchParams] = useSearchParams()
-  const { users } = useLoaderData<typeof loader>()
+  const { doctors } = useLoaderData<typeof loader>()
   return (
     <div className="page-container">
       <div className="flex flex-col gap-4 md:flex-row md:items-end">
@@ -100,16 +113,82 @@ export default function Search() {
           </div>
         </Form>
       </div>
-      <ul className="mt-6 grid grid-cols-1 items-stretch gap-6 md:grid-cols-3 lg:grid-cols-4">
-        {users.map(({ id, user }) => (
-          <UserCard
-            key={id}
-            doctor={user.doctor}
-            username={user.username}
-            fullName={user.fullName}
-          />
-        ))}
-      </ul>
+      <div className="mt-12 flex flex-col gap-6 lg:flex-row">
+        <div className="w-full lg:w-2/3">
+          {doctors.map(({ user }) => {
+            const doctor = user.doctor
+            if (!doctor) return null
+            return (
+              <Link key={user.id} to={`/profile/${user.username}`}>
+                <Card className="mb-6">
+                  <CardContent className="flex items-start p-6">
+                    <Avatar className="relative mr-6 h-24 w-24 overflow-visible">
+                      {doctor.image && (
+                        <AvatarImage
+                          className="h-full w-full rounded-full object-cover"
+                          src={doctor.image}
+                          alt={user.fullName ?? user.username}
+                        />
+                      )}
+                      <AvatarFallback>
+                        {user?.fullName
+                          ?.split(' ')
+                          .map(n => n[0])
+                          .join('')}
+                      </AvatarFallback>
+                      <div className="absolute -bottom-1 left-1/2 flex -translate-x-1/2 items-center rounded-md bg-secondary-foreground px-1">
+                        <Star className="h-3 w-3 text-yellow-400" />
+                        <span className="text-sm font-medium text-secondary">
+                          {doctor.rating}
+                        </span>
+                      </div>
+                    </Avatar>
+                    <div className="flex-1">
+                      <h2 className="mb-2 text-2xl font-semibold">
+                        {user.fullName ?? user.username}
+                      </h2>
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        {doctor.specialties.map((specialty, index) => (
+                          <Badge key={index} variant="secondary">
+                            {specialty.name}
+                          </Badge>
+                        ))}
+                      </div>
+
+                      <div className="space-y-2">
+                        {/* {doctor.timeRanges.map((range, index) => (
+        <TooltipProvider key={index}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="inline-block bg-gray-100 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 cursor-pointer">
+                {range.time}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="flex items-center">
+                <MapPin className="mr-1" size={16} />
+                {range.location}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ))} */}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )
+          })}
+        </div>
+        <div className="h-[calc(100vh-2rem)] w-full lg:sticky lg:top-4 lg:w-1/3">
+          <div className="flex h-full items-center justify-center rounded-lg bg-gray-200 p-4">
+            <p className="text-lg font-semibold text-gray-600">
+              Google Map Placeholder
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
