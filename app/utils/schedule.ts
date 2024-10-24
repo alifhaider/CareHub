@@ -39,6 +39,7 @@ export function formatTime(time?: string) {
   const parsedTime = parse(time.trim(), 'H:mm', new Date())
   return format(parsedTime, 'hh:mm a')
 }
+
 export function getUpcomingDateSchedules(schedules: TSchedule[]): TSchedule[] {
   const now = new Date()
   const today = new Date()
