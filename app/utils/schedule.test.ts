@@ -95,19 +95,20 @@ const futureSecondSchedule = {
 }
 
 const futureSameDaySchedules = [futureFirstSchedule, futureSecondSchedule]
+const dayAfterTomorrowSchedule = {
+  id: '7',
+  date: new Date(today.getTime() + 172800000).toISOString().split('T')[0], // Day after tomorrow
+  startTime: '09:00',
+  endTime: '11:00',
+  ...sampleLocation,
+  ...sampleFee,
+}
 
-const futureSchedules = [
+const futureSchedules = [...futureSameDaySchedules, dayAfterTomorrowSchedule]
+
+const futureUnSortedSchedules = [
+  dayAfterTomorrowSchedule,
   ...futureSameDaySchedules,
-  {
-    id: '7',
-    date: new Date(new Date().getTime() + 172800000)
-      .toISOString()
-      .split('T')[0], // Day after tomorrow
-    startTime: '09:00',
-    endTime: '11:00',
-    ...sampleLocation,
-    ...sampleFee,
-  },
 ]
 
 const invalidDateSchedules = [
@@ -202,5 +203,10 @@ describe('getUpcomingDateSchedules', () => {
       futureFirstSchedule,
     ])
     expect(result).toEqual([futureFirstSchedule, futureSecondSchedule])
+  })
+
+  it('should return sorted schedules by date', () => {
+    const result = getUpcomingDateSchedules(futureUnSortedSchedules)
+    expect(result).toEqual(futureSameDaySchedules)
   })
 })
