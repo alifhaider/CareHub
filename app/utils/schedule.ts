@@ -36,74 +36,71 @@ export function formatTime(time?: string) {
   return format(parsedTime, 'hh:mm a')
 }
 
-// returns schedules for the upcoming day
 export function getUpcomingDateSchedules(schedules: TSchedule[]): TSchedule[] {
+  const now = new Date()
   const today = new Date()
   today.setHours(0, 0, 0, 0) // Normalize to start of the day
 
-  const normalizeDate = (
-    dateString: string,
-    startTime: string,
-    endTime: string,
-  ) => {
-    if (!dateString || !isValidTime(startTime) || !isValidTime(endTime))
-      return ''
-    const date = dateString.split('T')[0]
-    if (!isValidDate(date)) return ''
-    return new Date(date).toISOString().split('T')[0] // returns the date part
+  const normalizeDate = (dateString: string): Date | null => {
+    const date = new Date(dateString)
+    return isNaN(date.getTime()) ? null : date
   }
 
-  const isEndTimePassed = (schedule: TSchedule) => {
-    if (
-      !isValidTime(schedule.endTime) ||
-      !isValidDate(schedule.date) ||
-      !isValidTime(schedule.startTime)
-    )
-      return true
+  const isEndTimePassed = (schedule: TSchedule): boolean => {
+    const scheduleDate = normalizeDate(schedule.date)
+    if (!scheduleDate || !isValidTime(schedule.endTime)) return true
+
     const [endHour, endMinute] = schedule.endTime.split(':').map(Number)
-    const scheduleEndTime = new Date(schedule.date)
+    const scheduleEndTime = new Date(scheduleDate)
     scheduleEndTime.setHours(endHour, endMinute)
 
-    return new Date() > scheduleEndTime // Check if current time is after the schedule's end time
+    return now > scheduleEndTime // Check if the current time is after the schedule's end time
   }
 
-  // Find the nearest upcoming schedule day
-  const upcomingDays = schedules
-    .map(schedule =>
-      normalizeDate(schedule.date, schedule.startTime, schedule.endTime),
+  // Filter out schedules whose end times have passed and that are in the future
+  const upcomingSchedules = schedules.filter(schedule => {
+    if (
+      !isValidDate(schedule.date) ||
+      !isValidTime(schedule.startTime) ||
+      !isValidTime(schedule.endTime)
     )
-    .filter(day => new Date(day) >= today) // Filter future dates
-    .sort() // Automatically sorts strings in ascending order
+      return false
+    const scheduleDate = normalizeDate(schedule.date)
+    return scheduleDate && scheduleDate >= today && !isEndTimePassed(schedule)
+  })
 
-  // Filter today's schedules and check if any of them are still valid (i.e., endTime hasn't passed)
-  const todaySchedules = schedules.filter(
-    schedule =>
-      normalizeDate(schedule.date, schedule.startTime, schedule.endTime) ===
-        normalizeDate(
-          today.toISOString(),
-          today.getHours().toString(),
-          today.getMinutes().toString(),
-        ) && !isEndTimePassed(schedule),
-  )
+  // Sort by date and time
+  upcomingSchedules.sort((a, b) => {
+    const aDate = normalizeDate(a.date)!
+    const bDate = normalizeDate(b.date)!
 
-  console.log('todaySchedules', todaySchedules)
+    if (aDate.getTime() !== bDate.getTime()) {
+      return aDate.getTime() - bDate.getTime() // Sort by date
+    }
 
-  // If there are valid schedules for today, return them
-  if (todaySchedules.length > 0) {
-    return todaySchedules
+    // If dates are the same, sort by start time
+    const [aStartHour, aStartMinute] = a.startTime.split(':').map(Number)
+    const [bStartHour, bStartMinute] = b.startTime.split(':').map(Number)
+
+    if (aStartHour !== bStartHour) {
+      return aStartHour - bStartHour
+    }
+    return aStartMinute - bStartMinute
+  })
+
+  if (upcomingSchedules.length === 0) {
+    return []
   }
 
-  // If no valid schedules for today, find the next available day
-  const nearestDay = upcomingDays.find(day => new Date(day) > today)
-  if (!nearestDay) return [] // No upcoming schedules
+  // Get the nearest upcoming date
+  const nearestDay = normalizeDate(upcomingSchedules[0].date)!
 
-  // Filter schedules for the nearest day
-  const nextDaySchedules = schedules.filter(
+  // Return only schedules for that nearest day
+  return upcomingSchedules.filter(
     schedule =>
-      normalizeDate(schedule.date, schedule.startTime, schedule.endTime) ===
-      nearestDay,
+      normalizeDate(schedule.date)!.toDateString() ===
+      nearestDay.toDateString(),
   )
-  return nextDaySchedules
 }
 
 export function getFormattedTimeDifference(
@@ -114,7 +111,6 @@ export function getFormattedTimeDifference(
   const scheduleDate = new Date(date)
   const currentTime = new Date()
 
-  // Check if the date is today
   const today = isToday(scheduleDate)
 
   // Extract hours and minutes from startTime and endTime
