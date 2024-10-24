@@ -33,8 +33,8 @@ export function getUpcomingDateSchedules(schedules: TSchedule[]): TSchedule[] {
   today.setHours(0, 0, 0, 0) // Normalize to start of the day
   const normalizeDate = (date: string) => {
     if (!date) return ''
-    // if (!date.trim().match(/^\d{4}-\d{2}-\d{2}$/)) return ''
-    return new Date(date).toISOString().split('T')[0]
+    if (!date.trim().match(/^\d{4}-\d{2}-\d{2}$/)) return ''
+    return new Date(date).toISOString().split('T')[0] // Ensure this returns the date part
   }
 
   // Find the nearest upcoming schedule day
@@ -44,6 +44,8 @@ export function getUpcomingDateSchedules(schedules: TSchedule[]): TSchedule[] {
     .sort() // Automatically sorts strings in ascending order
 
   const nearestDay = upcomingDays[0]
+
+  if (!nearestDay) return [] // No upcoming schedules
 
   // Filter schedules for the nearest day
   const nextDaySchedules = schedules.filter(

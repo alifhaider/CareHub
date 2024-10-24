@@ -36,11 +36,12 @@ const pastSchedules = [
     ...sampleFee,
   },
 ]
-
+const today = new Date()
+const todayString = today.toISOString().split('T')[0]
 const todaysSchedules = [
   {
     id: '3',
-    date: new Date().toISOString(),
+    date: todayString,
     startTime: '09:00',
     endTime: '11:00',
     ...sampleLocation,
@@ -48,7 +49,7 @@ const todaysSchedules = [
   },
   {
     id: '4',
-    date: new Date().toISOString(),
+    date: todayString,
     startTime: '14:00',
     endTime: '16:00',
     ...sampleLocation,
@@ -59,7 +60,7 @@ const todaysSchedules = [
 const futureSameDaySchedules = [
   {
     id: '5',
-    date: new Date(new Date().getTime() + 86400000).toISOString(), // Tomorrow
+    date: new Date(today.getTime() + 86400000).toISOString().split('T')[0], // Tomorrow
     startTime: '09:00',
     endTime: '11:00',
     ...sampleLocation,
@@ -67,7 +68,7 @@ const futureSameDaySchedules = [
   },
   {
     id: '6',
-    date: new Date(new Date().getTime() + 86400000).toISOString(), // Tomorrow
+    date: new Date(today.getTime() + 86400000).toISOString().split('T')[0], // Tomorrow
     startTime: '14:00',
     endTime: '16:00',
     ...sampleLocation,
@@ -79,7 +80,9 @@ const futureSchedules = [
   ...futureSameDaySchedules,
   {
     id: '7',
-    date: new Date(new Date().getTime() + 172800000).toISOString(), // Day after tomorrow
+    date: new Date(new Date().getTime() + 172800000)
+      .toISOString()
+      .split('T')[0], // Day after tomorrow
     startTime: '09:00',
     endTime: '11:00',
     ...sampleLocation,
@@ -145,12 +148,31 @@ describe('getUpcomingDateSchedules', () => {
   })
 
   // fix this
-  // it('should skip schedules with no date but valid time', () => {
-  //   const result = getUpcomingDateSchedules([
-  //     ...pastSchedules,
-  //     ...invalidDateSchedules,
-  //   ])
+  it('should skip schedules with no date but valid time', () => {
+    const result = getUpcomingDateSchedules([
+      ...pastSchedules,
+      ...invalidDateSchedules,
+    ])
 
-  //   expect(result).toEqual([]) // Today’s schedules
-  // })
+    expect(result).toEqual([]) // Today’s schedules
+  })
+
+  it('should return an empty array if no schedules are provided', () => {
+    const result = getUpcomingDateSchedules([])
+    expect(result).toEqual([]) // No schedules
+  })
+
+  it('should return an empty array of schedules if invalid time is provided', () => {
+    const result = getUpcomingDateSchedules([
+      {
+        id: '1',
+        date: new Date().toISOString(),
+        startTime: 'invalid-time',
+        endTime: '11:00',
+        ...sampleLocation,
+        ...sampleFee,
+      },
+    ])
+    expect(result).toEqual([]) // No schedules
+  })
 })
