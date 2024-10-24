@@ -6,7 +6,15 @@ import { prisma } from '~/db.server'
 import { Card, CardContent } from '~/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Badge } from '~/components/ui/badge'
-import { Star } from 'lucide-react'
+import { MapPin, Star } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '~/components/ui/tooltip'
+import { formatTime, getUpcomingDateSchedules } from '~/utils/schedule'
+import { formatDistance } from 'date-fns'
 
 export const meta: MetaFunction = () => {
   return [
@@ -62,7 +70,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
                   date: true,
                   startTime: true,
                   endTime: true,
-                  location: true,
+                  serialFee: true,
+                  visitFee: true,
+                  discountFee: true,
+                  location: {
+                    select: {
+                      id: true,
+                      address: true,
+                      name: true,
+                      city: true,
+                      state: true,
+                      zip: true,
+                    },
+                  },
                 },
               },
               specialties: { select: { id: true, name: true } },
@@ -117,7 +137,10 @@ export default function Search() {
         <div className="w-full lg:w-2/3">
           {doctors.map(({ user }) => {
             const doctor = user.doctor
-            if (!doctor) return null
+            if (!doctor || !doctor.schedules) return null
+            const closestDateSchedules = getUpcomingDateSchedules(
+              doctor.schedules,
+            )
             return (
               <Link key={user.id} to={`/profile/${user.username}`}>
                 <Card className="mb-6">
@@ -156,23 +179,31 @@ export default function Search() {
                       </div>
 
                       <div className="space-y-2">
-                        {/* {doctor.timeRanges.map((range, index) => (
-        <TooltipProvider key={index}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="inline-block bg-gray-100 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 cursor-pointer">
-                {range.time}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="flex items-center">
-                <MapPin className="mr-1" size={16} />
-                {range.location}
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      ))} */}
+                        {closestDateSchedules.map((schedule, index) => (
+                          <TooltipProvider key={index}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="mr-2 inline-block cursor-pointer rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
+                                  {formatTime(schedule?.startTime)} -{' '}
+                                  {formatTime(schedule?.endTime)}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="flex items-center">
+                                  <MapPin className="mr-1" size={16} />
+                                  {schedule?.location.name}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ))}
+                        <span className="text-sm text-gray-500">
+                          {formatDistance(
+                            closestDateSchedules[0]?.date,
+                            new Date(),
+                            { addSuffix: true },
+                          )}
+                        </span>
                       </div>
                     </div>
                   </CardContent>

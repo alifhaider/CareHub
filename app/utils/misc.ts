@@ -9,13 +9,6 @@ export function typedBoolean<T>(
   return Boolean(value)
 }
 
-// time is a string in the format "2: 14" or "14: 00"
-// should return 02:14 AM or 02:14 PM
-export function formatTime(time: string) {
-  const parsedTime = parse(time.trim(), 'H:mm', new Date())
-  return format(parsedTime, 'hh:mm a')
-}
-
 export function getErrorMessage(error: unknown) {
   if (typeof error === 'string') return error
   if (

@@ -15,7 +15,12 @@ import { Calendar, CustomCell } from '~/components/ui/calendar'
 import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
 import { authSessionStorage } from '~/services/session.server'
-import { formatTime, invariantResponse } from '~/utils/misc'
+import { invariantResponse } from '~/utils/misc'
+import {
+  formatTime,
+  getUpcomingDateSchedules,
+  TSchedule,
+} from '~/utils/schedule'
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -57,7 +62,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             },
           },
           schedules: {
-            // where: { startTime: { gte: today } },
             include: {
               location: {
                 select: {
@@ -112,9 +116,7 @@ export async function action({ request }: LoaderFunctionArgs) {
 export default function User() {
   const { isDoctor, isOwner, user } = useLoaderData<typeof loader>()
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>()
-  const schedules = user.doctor?.schedules
-  const today = new Date()
-  today.setHours(0, 0, 0, 0) // Normalize to start of the day
+  const schedules = user.doctor?.schedules ?? []
 
   const scheduleTimes = schedules?.map(schedule => ({
     id: schedule.id,
@@ -128,21 +130,8 @@ export default function User() {
     setSelectedDate(date)
   }
 
-  // find the nearest upcoming schedule day
-  const upcomingDays = schedules
-    ?.map(schedule => new Date(schedule.date).setHours(0, 0, 0, 0)) // Normalize to start of the day
-    .filter(day => day >= today.getTime()) // Filter out past days
-    .sort((a, b) => a - b) // Sort in ascending order
-
-  const nearestDay = upcomingDays?.[0]
-
   // Filter out schedules for the nearest day
-  const upcomingSchedules = nearestDay
-    ? schedules?.filter(schedule => {
-        const scheduleDay = new Date(schedule.date).setHours(0, 0, 0, 0)
-        return scheduleDay === nearestDay
-      })
-    : []
+  const upcomingSchedules = getUpcomingDateSchedules(schedules)
 
   const selectedSchedule = user.doctor?.schedules?.filter(schedule => {
     if (!selectedDate) return
@@ -272,26 +261,8 @@ export function ErrorBoundary() {
   )
 }
 
-type ScheduleProp = {
-  id: string
-  date: string
-  startTime: string
-  endTime: string
-  location: {
-    id: string
-    name: string
-    address: string
-    city: string
-    state: string | null
-    zip: string | null
-  }
-  serialFee: number | null
-  discountFee: number | null
-  visitFee: number | null
-}
-
 type ScheduleProps = {
-  schedules: ScheduleProp[] | undefined
+  schedules: TSchedule[] | undefined
   isOwner: boolean
   isDoctor: boolean
   username: string
