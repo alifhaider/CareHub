@@ -18,12 +18,16 @@ export type TSchedule = {
   visitFee: number | null
 }
 
-function isValidTime(time: string) {
-  return time.trim().match(/^\d{1,2}:\d{1,2}$/)
-}
-
-function isValidDate(date: string) {
-  return date.trim().match(/^\d{4}-\d{2}-\d{2}$/)
+const isValidTime = (time: string): boolean => {
+  const [hour, minute] = time.split(':').map(Number)
+  return (
+    !isNaN(hour) &&
+    !isNaN(minute) &&
+    hour >= 0 &&
+    hour <= 23 &&
+    minute >= 0 &&
+    minute <= 59
+  )
 }
 
 // time is a string in the format "2: 14" or "14: 00"
@@ -43,18 +47,6 @@ export function getUpcomingDateSchedules(schedules: TSchedule[]): TSchedule[] {
   const normalizeDate = (dateString: string): Date | null => {
     const date = new Date(dateString)
     return isNaN(date.getTime()) ? null : date
-  }
-
-  const isValidTime = (time: string): boolean => {
-    const [hour, minute] = time.split(':').map(Number)
-    return (
-      !isNaN(hour) &&
-      !isNaN(minute) &&
-      hour >= 0 &&
-      hour <= 23 &&
-      minute >= 0 &&
-      minute <= 59
-    )
   }
 
   const isScheduleValid = (schedule: TSchedule): boolean => {
