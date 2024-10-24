@@ -35,7 +35,6 @@ export function formatTime(time?: string) {
   const parsedTime = parse(time.trim(), 'H:mm', new Date())
   return format(parsedTime, 'hh:mm a')
 }
-
 export function getUpcomingDateSchedules(schedules: TSchedule[]): TSchedule[] {
   const now = new Date()
   const today = new Date()
@@ -46,31 +45,35 @@ export function getUpcomingDateSchedules(schedules: TSchedule[]): TSchedule[] {
     return isNaN(date.getTime()) ? null : date
   }
 
-  const isEndTimePassed = (schedule: TSchedule): boolean => {
+  const isValidTime = (time: string): boolean => {
+    const [hour, minute] = time.split(':').map(Number)
+    return (
+      !isNaN(hour) &&
+      !isNaN(minute) &&
+      hour >= 0 &&
+      hour <= 23 &&
+      minute >= 0 &&
+      minute <= 59
+    )
+  }
+
+  const isScheduleValid = (schedule: TSchedule): boolean => {
     const scheduleDate = normalizeDate(schedule.date)
-    if (!scheduleDate || !isValidTime(schedule.endTime)) return true
+    if (
+      !scheduleDate ||
+      !isValidTime(schedule.startTime) ||
+      !isValidTime(schedule.endTime)
+    )
+      return false
 
     const [endHour, endMinute] = schedule.endTime.split(':').map(Number)
     const scheduleEndTime = new Date(scheduleDate)
     scheduleEndTime.setHours(endHour, endMinute)
 
-    return now > scheduleEndTime // Check if the current time is after the schedule's end time
+    return scheduleDate >= today && now <= scheduleEndTime
   }
 
-  // Filter out schedules whose end times have passed and that are in the future
-  const upcomingSchedules = schedules.filter(schedule => {
-    if (
-      !isValidDate(schedule.date) ||
-      !isValidTime(schedule.startTime) ||
-      !isValidTime(schedule.endTime)
-    )
-      return false
-    const scheduleDate = normalizeDate(schedule.date)
-    return scheduleDate && scheduleDate >= today && !isEndTimePassed(schedule)
-  })
-
-  // Sort by date and time
-  upcomingSchedules.sort((a, b) => {
+  const upcomingSchedules = schedules.filter(isScheduleValid).sort((a, b) => {
     const aDate = normalizeDate(a.date)!
     const bDate = normalizeDate(b.date)!
 
@@ -79,27 +82,17 @@ export function getUpcomingDateSchedules(schedules: TSchedule[]): TSchedule[] {
     }
 
     // If dates are the same, sort by start time
-    const [aStartHour, aStartMinute] = a.startTime.split(':').map(Number)
-    const [bStartHour, bStartMinute] = b.startTime.split(':').map(Number)
-
-    if (aStartHour !== bStartHour) {
-      return aStartHour - bStartHour
-    }
-    return aStartMinute - bStartMinute
+    return a.startTime.localeCompare(b.startTime)
   })
 
   if (upcomingSchedules.length === 0) {
     return []
   }
 
-  // Get the nearest upcoming date
-  const nearestDay = normalizeDate(upcomingSchedules[0].date)!
+  const nearestDay = normalizeDate(upcomingSchedules[0].date)!.toDateString()
 
-  // Return only schedules for that nearest day
   return upcomingSchedules.filter(
-    schedule =>
-      normalizeDate(schedule.date)!.toDateString() ===
-      nearestDay.toDateString(),
+    schedule => normalizeDate(schedule.date)!.toDateString() === nearestDay,
   )
 }
 
