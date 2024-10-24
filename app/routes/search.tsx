@@ -13,7 +13,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '~/components/ui/tooltip'
-import { formatTime, getUpcomingDateSchedules } from '~/utils/schedule'
+import {
+  formatTime,
+  getFormattedTimeDifference,
+  getUpcomingDateSchedules,
+} from '~/utils/schedule'
 import { formatDistance } from 'date-fns'
 
 export const meta: MetaFunction = () => {
@@ -141,6 +145,13 @@ export default function Search() {
             const closestDateSchedules = getUpcomingDateSchedules(
               doctor.schedules,
             )
+            console.log('closestDateSchedules', closestDateSchedules)
+            console.log(new Date().toISOString())
+            const formattedDateDifference = getFormattedTimeDifference(
+              closestDateSchedules[0]?.date,
+              closestDateSchedules[0]?.startTime,
+              closestDateSchedules[closestDateSchedules.length - 1]?.endTime,
+            )
             return (
               <Link key={user.id} to={`/profile/${user.username}`}>
                 <Card className="mb-6">
@@ -198,11 +209,7 @@ export default function Search() {
                           </TooltipProvider>
                         ))}
                         <span className="text-sm text-gray-500">
-                          {formatDistance(
-                            closestDateSchedules[0]?.date,
-                            new Date(),
-                            { addSuffix: true },
-                          )}
+                          {formattedDateDifference}
                         </span>
                       </div>
                     </div>

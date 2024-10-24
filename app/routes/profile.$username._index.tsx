@@ -195,7 +195,7 @@ export default function User() {
                 </span>
                 {' - '}
                 <span className="text-accent-foreground">
-                  {appointment.schedule.startTime} -{' '}
+                  {formatTime(appointment.schedule.startTime)} -{' '}
                   {appointment.schedule.endTime}
                 </span>
 
@@ -296,7 +296,7 @@ const Schedules = ({ schedules, isDoctor, isOwner }: ScheduleProps) => {
                   <MapPin className="h-8 w-8" />
                   <div>
                     <h6 className="flex items-end text-2xl font-bold leading-none">
-                      {schedule.location.name}{' '}
+                      {schedule.location.name}
                       <span className="text-xs font-normal">
                         /{formatTime(schedule.startTime)} -{' '}
                         {formatTime(schedule.endTime)}

@@ -57,6 +57,25 @@ const todaysSchedules = [
   },
 ]
 
+const todaySchedulesWithPassedEndTime = [
+  {
+    id: '3',
+    date: todayString,
+    startTime: `${today.getHours()}:${today.getMinutes() - 20}`,
+    endTime: `${today.getHours()}:${today.getMinutes() - 15}`,
+    ...sampleLocation,
+    ...sampleFee,
+  },
+  {
+    id: '4',
+    date: todayString,
+    startTime: `${today.getHours()}:${today.getMinutes() - 10}`,
+    endTime: `${today.getHours()}:${today.getMinutes() - 5}`,
+    ...sampleLocation,
+    ...sampleFee,
+  },
+]
+
 const futureSameDaySchedules = [
   {
     id: '5',
@@ -129,14 +148,6 @@ describe('formatTime', () => {
 })
 
 describe('getUpcomingDateSchedules', () => {
-  it('should return the current date schedules if past and future schedules are provided', () => {
-    const result = getUpcomingDateSchedules([
-      ...pastSchedules,
-      ...todaysSchedules,
-    ])
-    expect(result).toEqual([...todaysSchedules]) // Today’s schedules
-  })
-
   it('should return the future schedules if only future schedules are provided', () => {
     const result = getUpcomingDateSchedules(futureSchedules)
     expect(result).toEqual(futureSameDaySchedules) // All future schedules
@@ -174,5 +185,13 @@ describe('getUpcomingDateSchedules', () => {
       },
     ])
     expect(result).toEqual([]) // No schedules
+  })
+
+  it('should return next day schedules if today’s schedules have passed', () => {
+    const result = getUpcomingDateSchedules([
+      ...todaySchedulesWithPassedEndTime,
+      ...futureSchedules,
+    ])
+    expect(result).toEqual(futureSameDaySchedules) // Tomorrow’s schedules
   })
 })
