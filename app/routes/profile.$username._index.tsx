@@ -181,9 +181,9 @@ export default function User() {
         </div>
       </div>
 
-      <Spacer variant="lg" />
-      {isOwner ? (
+      {isOwner && user.bookings.length > 0 ? (
         <>
+          <Spacer variant="lg" />
           <h2 className="text-3xl font-medium text-lime-500">
             Booked Appointments
           </h2>
@@ -214,7 +214,7 @@ export default function User() {
 
       {isDoctor ? (
         <>
-          <Spacer variant="md" />
+          <Spacer variant="lg" />
           <div className="flex flex-col gap-10 md:flex-row">
             <div>
               <h4 className="mb-4 text-3xl font-medium text-lime-500">
@@ -226,6 +226,9 @@ export default function User() {
                   Day: (props: DayProps) => (
                     <CustomCell scheduleTimes={scheduleTimes} {...props} />
                   ),
+                }}
+                formatters={{
+                  formatCaption: (date: Date) => format(date, 'MMMM yyyy'),
                 }}
                 mode="single"
               />
@@ -276,7 +279,7 @@ const Schedules = ({ schedules, isDoctor, isOwner }: ScheduleProps) => {
       {schedules && schedules?.length > 0 && (
         <div className="relative flex items-center">
           <span className="h-0.5 w-full border"></span>
-          <h5 className="mx-1 text-nowrap text-sm font-medium text-secondary-foreground">
+          <h5 className="mx-1 text-nowrap text-4xl font-bold text-secondary-foreground">
             {format(schedules[0].date ?? new Date(), 'dd MMMM, yyyy')}
           </h5>
           <span className="h-0.5 w-full border"></span>

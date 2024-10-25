@@ -37,6 +37,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       user: {
         select: {
           username: true,
+          fullName: true,
         },
       },
       specialties: true,
@@ -60,6 +61,13 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   await prisma.$transaction(async tx => {
+    // Update user's basic info
+    await tx.user.update({
+      where: { id: doctor.userId },
+      data: {
+        fullName: submission.value.fullName,
+      },
+    })
     // Update doctor's basic info
     await tx.doctor.update({
       where: { userId: doctor.userId },
@@ -126,6 +134,15 @@ export default function ProfileEdit() {
                 type="hidden"
                 name="username"
                 value={doctor?.user.username}
+              />
+              <Field
+                labelProps={{ children: 'Full Name' }}
+                inputProps={{
+                  placeholder: 'John Doe',
+                  defaultValue: doctor?.user.fullName ?? '',
+                  ...getInputProps(fields.fullName, { type: 'text' }),
+                }}
+                errors={fields.fullName.errors}
               />
               <Field
                 labelProps={{ children: 'Phone Number' }}

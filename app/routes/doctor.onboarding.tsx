@@ -50,6 +50,7 @@ const SpecialtySchema = z.object({
 
 export const OnboardingSchema = z.object({
   userId: z.string({ message: 'User ID is required' }),
+  fullName: z.string().optional(),
   phoneNumber: z.string().optional(),
   educations: z
     .array(EducationSchema)
@@ -157,6 +158,15 @@ export default function DoctorOnboarding() {
                   ...getInputProps(fields.phoneNumber, { type: 'tel' }),
                 }}
                 errors={fields.phoneNumber.errors}
+              />
+
+              <Field
+                labelProps={{ children: 'Full Name' }}
+                inputProps={{
+                  placeholder: 'John Doe',
+                  ...getInputProps(fields.fullName, { type: 'text' }),
+                }}
+                errors={fields.fullName.errors}
               />
             </div>
 
