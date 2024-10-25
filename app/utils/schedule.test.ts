@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { formatTime, getUpcomingDateSchedules } from './schedule'
+import {
+  formatTime,
+  getFormattedTimeDifference,
+  getUpcomingDateSchedules,
+} from './schedule'
 import { parse, format } from 'date-fns'
 
 const sampleLocation = {
@@ -94,7 +98,7 @@ const futureSecondSchedule = {
   ...sampleFee,
 }
 
-const futureSameDaySchedules = [futureFirstSchedule, futureSecondSchedule]
+const upcomingSameDaySchedules = [futureFirstSchedule, futureSecondSchedule]
 const dayAfterTomorrowSchedule = {
   id: '7',
   date: new Date(today.getTime() + 172800000).toISOString().split('T')[0], // Day after tomorrow
@@ -104,11 +108,11 @@ const dayAfterTomorrowSchedule = {
   ...sampleFee,
 }
 
-const futureSchedules = [...futureSameDaySchedules, dayAfterTomorrowSchedule]
+const futureSchedules = [...upcomingSameDaySchedules, dayAfterTomorrowSchedule]
 
 const futureUnSortedSchedules = [
   dayAfterTomorrowSchedule,
-  ...futureSameDaySchedules,
+  ...upcomingSameDaySchedules,
 ]
 
 const invalidDateSchedules = [
@@ -152,7 +156,7 @@ describe('formatTime', () => {
 describe('getUpcomingDateSchedules', () => {
   it('should return the future schedules if only future schedules are provided', () => {
     const result = getUpcomingDateSchedules(futureSchedules)
-    expect(result).toEqual(futureSameDaySchedules) // All future schedules
+    expect(result).toEqual(upcomingSameDaySchedules) // All future schedules
   })
 
   it('should return an empty array if all schedules are in the past', () => {
@@ -189,12 +193,12 @@ describe('getUpcomingDateSchedules', () => {
     expect(result).toEqual([]) // No schedules
   })
 
-  it(`should return next day schedules if today’s schedules have passed`, () => {
+  it(`should return next day schedules if today’s schedules are passed their end time`, () => {
     const result = getUpcomingDateSchedules([
       ...todaySchedulesWithPassedEndTime,
       ...futureSchedules,
     ])
-    expect(result).toEqual(futureSameDaySchedules) // Tomorrow’s schedules
+    expect(result).toEqual(upcomingSameDaySchedules) // Tomorrow’s schedules
   })
 
   it('should return sorted schedules by time', () => {
@@ -207,6 +211,60 @@ describe('getUpcomingDateSchedules', () => {
 
   it('should return sorted schedules by date', () => {
     const result = getUpcomingDateSchedules(futureUnSortedSchedules)
-    expect(result).toEqual(futureSameDaySchedules)
+    expect(result).toEqual(upcomingSameDaySchedules)
+  })
+})
+
+describe('getFormattedTimeDifference', () => {
+  it('should return nothing if the date or time is invalid', () => {
+    const invalidDate = getFormattedTimeDifference(
+      'invalid-date',
+      '09:00',
+      '11:00',
+    )
+    expect(invalidDate).toBe('')
+    const invalidStartTime = getFormattedTimeDifference(
+      new Date().toISOString(),
+      'invalid-time',
+      '11:00',
+    )
+    expect(invalidStartTime).toBe('')
+    const invalidEndTime = getFormattedTimeDifference(
+      new Date().toISOString(),
+      '09:00',
+      'invalid-time',
+    )
+    expect(invalidEndTime).toBe('')
+  })
+
+  it('should return today if the date is today and time is in between the range', () => {
+    const today = new Date()
+    const result = getFormattedTimeDifference(
+      today.toISOString(),
+      today.getHours() - 1 + ':00',
+      today.getHours() + 1 + ':00',
+    )
+    expect(result).toBe('Today')
+  })
+
+  it('should return today if the date is today and time is in 4 hours', () => {
+    const today = new Date()
+    const result = getFormattedTimeDifference(
+      today.toISOString(),
+      today.getHours() + ':00',
+      today.getHours() + 4 + ':00',
+    )
+    expect(result).toBe('Today')
+  })
+
+  it('should return tomorrow if the date is tomorrow and time is in 4 hours', () => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const result = getFormattedTimeDifference(
+      tomorrow.toISOString(),
+      tomorrow.getHours() + ':00',
+      tomorrow.getHours() + 4 + ':00',
+    )
+    expect(result).toBe('in 1 day')
   })
 })

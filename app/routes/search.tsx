@@ -149,75 +149,73 @@ export default function Search() {
               closestDateSchedules[closestDateSchedules.length - 1]?.endTime,
             )
             return (
-              <Link key={user.id} to={`/profile/${user.username}`}>
-                <Card className="mb-6">
-                  <CardContent className="flex flex-col items-start gap-2 p-2 md:flex-row md:p-6">
-                    <Avatar className="relative mr-6 h-12 w-12 overflow-visible md:h-24 md:w-24">
-                      {doctor.image && (
-                        <AvatarImage
-                          className="h-full w-full rounded-full object-cover"
-                          src={doctor.image}
-                          alt={user.fullName ?? user.username}
-                        />
-                      )}
-                      <AvatarFallback>
-                        {user?.fullName
-                          ?.split(' ')
-                          .map(n => n[0])
-                          .join('')}
-                      </AvatarFallback>
-                      <div className="absolute -bottom-1 left-1/2 flex -translate-x-1/2 items-center justify-center gap-1 rounded-md bg-secondary-foreground px-1">
-                        <Star className="h-3 w-3 text-yellow-400" />
-                        <span className="text-xs font-medium text-secondary md:text-sm">
-                          {doctor.rating}
-                        </span>
-                      </div>
-                    </Avatar>
-                    <div className="flex-1">
-                      <h2 className="mb-2 text-lg font-semibold md:text-2xl">
-                        {user.fullName ?? user.username}
-                      </h2>
-                      <div className="mb-2 flex flex-wrap gap-2">
-                        {doctor.specialties.map((specialty, index) => (
-                          <Badge key={index} variant="secondary">
-                            {specialty.name}
-                          </Badge>
-                        ))}
-                      </div>
-
-                      <div className="space-y-2">
-                        {closestDateSchedules.map((schedule, index) => (
-                          <TooltipProvider key={index}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="mr-2 inline-block cursor-pointer rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
-                                  {formatTime(schedule?.startTime)} -{' '}
-                                  {formatTime(schedule?.endTime)}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="flex items-center">
-                                  <MapPin className="mr-1" size={16} />
-                                  {schedule?.location.name}
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ))}
-                        <span className="text-sm text-gray-500">
-                          {formattedDateDifference}
-                        </span>
-                      </div>
-
-                      <div className="mt-2">
-                        <p className="text-sm text-primary">
-                          {doctor.bio ?? 'No bio available'}
-                        </p>
-                      </div>
+              <Card className="mb-6" key={user.id}>
+                <CardContent className="flex flex-col items-start gap-2 p-2 md:flex-row md:p-6">
+                  <Avatar className="relative mr-6 h-12 w-12 overflow-visible md:h-24 md:w-24">
+                    {doctor.image && (
+                      <AvatarImage
+                        className="h-full w-full rounded-full object-cover"
+                        src={doctor.image}
+                        alt={user.fullName ?? user.username}
+                      />
+                    )}
+                    <AvatarFallback>
+                      {user?.fullName
+                        ?.split(' ')
+                        .map(n => n[0])
+                        .join('')}
+                    </AvatarFallback>
+                    <div className="absolute -bottom-1 left-1/2 flex -translate-x-1/2 items-center justify-center gap-1 rounded-md bg-secondary-foreground px-1">
+                      <Star className="h-3 w-3 text-yellow-400" />
+                      <span className="text-xs font-medium text-secondary md:text-sm">
+                        {doctor.rating}
+                      </span>
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h2 className="mb-2 text-lg font-semibold md:text-2xl">
+                      {user.fullName ?? user.username}
+                    </h2>
+                    <div className="mb-2 flex flex-wrap gap-2">
+                      {doctor.specialties.map((specialty, index) => (
+                        <Badge key={index} variant="secondary">
+                          {specialty.name}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    <div className="space-y-2">
+                      {closestDateSchedules.map((schedule, index) => (
+                        <TooltipProvider key={index}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="mr-2 inline-block cursor-pointer rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
+                                {formatTime(schedule?.startTime)} -{' '}
+                                {formatTime(schedule?.endTime)}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="flex items-center">
+                                <MapPin className="mr-1" size={16} />
+                                {schedule?.location.name}
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ))}
+                      <span className="text-sm text-gray-500">
+                        {formattedDateDifference}
+                      </span>
+                    </div>
+
+                    <div className="mt-2">
+                      <p className="text-sm text-primary">
+                        {doctor.bio ?? 'No bio available'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             )
           })}
         </div>

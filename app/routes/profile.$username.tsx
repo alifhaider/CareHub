@@ -271,7 +271,12 @@ type ScheduleProps = {
   username: string
 }
 
-const Schedules = ({ schedules, isDoctor, isOwner }: ScheduleProps) => {
+const Schedules = ({
+  schedules,
+  isDoctor,
+  isOwner,
+  username,
+}: ScheduleProps) => {
   return (
     <div className="flex-1">
       <h4 className="mb-4 text-3xl font-medium text-lime-500">Schedules</h4>
@@ -312,7 +317,7 @@ const Schedules = ({ schedules, isDoctor, isOwner }: ScheduleProps) => {
                     <div className="mt-4">
                       {!isOwner && (
                         <Link
-                          to={`/profile/schedule/${schedule.id}`}
+                          to={`/profile/${username}/schedule/${schedule.id}`}
                           className="flex w-max items-start rounded-md bg-amber-300 px-2 py-1 text-secondary"
                         >
                           Book Now

@@ -9,7 +9,6 @@ import invariant from 'tiny-invariant'
 import { PageTitle } from '~/components/typography'
 import { prisma } from '~/db.server'
 import { requireUser } from '~/services/auth.server'
-import { formatTime } from '~/utils/misc'
 
 import { CalendarIcon, ClockIcon, DollarSignIcon, UserIcon } from 'lucide-react'
 import { Button } from '~/components/ui/button'
@@ -25,6 +24,7 @@ import { Field, TextareaField } from '~/components/forms'
 import { z } from 'zod'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
+import { formatTime } from '~/utils/schedule'
 
 const BookingFormSchema = z.object({
   name: z.string(),
@@ -44,6 +44,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  console.log('running loader')
   await requireUser(request)
   const scheduleId = params.scheduleId
   invariant(scheduleId, 'Schedule ID is required')

@@ -30,6 +30,10 @@ const isValidTime = (time: string): boolean => {
   )
 }
 
+const isValidDate = (date: string): boolean => {
+  return !isNaN(new Date(date).getTime())
+}
+
 // time is a string in the format "2: 14" or "14: 00"
 // should return 02:14 AM or 02:14 PM
 // handle edge cases like invalid time
@@ -47,7 +51,7 @@ export function getUpcomingDateSchedules(schedules: TSchedule[]): TSchedule[] {
 
   const normalizeDate = (dateString: string): Date | null => {
     const date = new Date(dateString)
-    return isNaN(date.getTime()) ? null : date
+    return isValidDate(dateString) ? date : null
   }
 
   const isScheduleValid = (schedule: TSchedule): boolean => {
@@ -94,6 +98,9 @@ export function getFormattedTimeDifference(
   startTime: string,
   endTime: string,
 ) {
+  if (!isValidDate(date) || !isValidTime(startTime) || !isValidTime(endTime)) {
+    return ''
+  }
   const scheduleDate = new Date(date)
   const currentTime = new Date()
 
