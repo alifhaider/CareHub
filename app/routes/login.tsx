@@ -21,6 +21,14 @@ import { PasswordSchema, UsernameSchema } from '~/utils/user-validation'
 import { authSessionStorage } from '~/services/session.server'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 import { z } from 'zod'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '~/components/ui/card'
 
 const LoginFormSchema = z.object({
   username: UsernameSchema,
@@ -28,6 +36,10 @@ const LoginFormSchema = z.object({
   redirectTo: z.string().optional(),
   remember: z.boolean().optional(),
 })
+
+export const meta: MetaFunction = () => {
+  return [{ title: 'Login / CH' }]
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireAnonymous(request)
@@ -95,94 +107,83 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-full flex-col justify-center pb-32 pt-20">
-      <div className="mx-auto w-full max-w-md">
-        <div className="flex flex-col gap-3 text-center">
-          <h1 className="text-h1">Welcome back!</h1>
-          <p className="text-body-md text-muted-foreground">
-            Please enter your details.
-          </p>
-        </div>
+      <Card className="mx-auto w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Welcome back!</CardTitle>
+          <CardDescription>Please enter your details.</CardDescription>
+        </CardHeader>
 
-        <div className="mt-10" />
+        <Form method="POST" {...getFormProps(form)}>
+          {/* <AuthenticityTokenInput /> */}
+          {/* <HoneypotInputs /> */}
+          <CardContent>
+            <Field
+              labelProps={{ children: 'Username' }}
+              inputProps={{
+                ...getInputProps(fields.username, { type: 'text' }),
+                autoFocus: true,
+                className: 'lowercase',
+              }}
+              errors={fields.username.errors}
+            />
 
-        <div>
-          <div className="mx-auto w-full max-w-md px-8">
-            <Form method="POST" {...getFormProps(form)}>
-              {/* <AuthenticityTokenInput /> */}
-              {/* <HoneypotInputs /> */}
-              <Field
-                labelProps={{ children: 'Username' }}
-                inputProps={{
-                  ...getInputProps(fields.username, { type: 'text' }),
-                  autoFocus: true,
-                  className: 'lowercase',
+            <Field
+              labelProps={{ children: 'Password' }}
+              inputProps={{
+                ...getInputProps(fields.password, { type: 'password' }),
+              }}
+              errors={fields.password.errors}
+            />
+
+            <div className="flex justify-between">
+              <CheckboxField
+                labelProps={{
+                  htmlFor: fields.remember.id,
+                  children: 'Remember me',
                 }}
-                errors={fields.username.errors}
-              />
-
-              <Field
-                labelProps={{ children: 'Password' }}
-                inputProps={{
-                  ...getInputProps(fields.password, { type: 'password' }),
+                // @ts-expect-error @ts-ignore
+                buttonProps={{
+                  ...getInputProps(fields.remember, {
+                    type: 'checkbox',
+                  }),
                 }}
-                errors={fields.password.errors}
+                errors={fields.remember.errors}
               />
-
-              <div className="flex justify-between">
-                <CheckboxField
-                  labelProps={{
-                    htmlFor: fields.remember.id,
-                    children: 'Remember me',
-                  }}
-                  // @ts-expect-error @ts-ignore
-                  buttonProps={{
-                    ...getInputProps(fields.remember, {
-                      type: 'checkbox',
-                    }),
-                  }}
-                  errors={fields.remember.errors}
-                />
-                <div>
-                  <Link
-                    to="/forgot-password"
-                    className="text-body-xs font-semibold"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-              </div>
-
-              <input
-                {...getInputProps(fields.redirectTo, { type: 'hidden' })}
-              />
-              <ErrorList errors={form.errors} id={form.errorId} />
-
-              <div className="flex items-center justify-between gap-6 pt-3">
-                <StatusButton
-                  className="w-full"
-                  status={
-                    isPending ? 'pending' : (actionData?.status ?? 'idle')
-                  }
-                  type="submit"
-                  disabled={isPending}
+              <div>
+                <Link
+                  to="/forgot-password"
+                  className="text-sm font-semibold text-cyan-400 hover:underline"
                 >
-                  Log in
-                </StatusButton>
+                  Forgot password?
+                </Link>
               </div>
-            </Form>
-            <div className="flex items-center justify-center gap-2 pt-6">
-              <span className="text-muted-foreground">New here?</span>
-              <Link to="/signup">Create an account</Link>
             </div>
-          </div>
-        </div>
-      </div>
+
+            <input {...getInputProps(fields.redirectTo, { type: 'hidden' })} />
+            <ErrorList errors={form.errors} id={form.errorId} />
+          </CardContent>
+          <CardFooter>
+            <StatusButton
+              className="w-full"
+              status={isPending ? 'pending' : (actionData?.status ?? 'idle')}
+              type="submit"
+              disabled={isPending}
+            >
+              Log in
+            </StatusButton>
+          </CardFooter>
+          <CardFooter>
+            <p>
+              New here?
+              <Link to="/signup" className="ml-2 text-cyan-400 hover:underline">
+                Create an account
+              </Link>
+            </p>
+          </CardFooter>
+        </Form>
+      </Card>
     </div>
   )
-}
-
-export const meta: MetaFunction = () => {
-  return [{ title: 'Login / CH' }]
 }
 
 export function ErrorBoundary() {
