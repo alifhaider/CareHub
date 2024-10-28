@@ -142,18 +142,16 @@ export default function Search() {
           {doctors.map(({ user }) => {
             const doctor = user.doctor
             if (!doctor || !doctor.schedules) return null
-            const closestDateSchedules = getUpcomingDateSchedules(
-              doctor.schedules,
-            )
+            const upcomingSchedules = getUpcomingDateSchedules(doctor.schedules)
 
-            if (closestDateSchedules.length === 0) return null
+            if (upcomingSchedules.length === 0) return null
 
-            const nextSchedule = closestDateSchedules[0]
+            const nextSchedule = upcomingSchedules[0]
 
             const formattedDateDifference = getFormattedTimeDifference(
               nextSchedule.date,
               nextSchedule.startTime,
-              closestDateSchedules[closestDateSchedules.length - 1].endTime,
+              upcomingSchedules[upcomingSchedules.length - 1].endTime,
             )
             return (
               <Card className="mb-6" key={user.id}>
@@ -197,7 +195,7 @@ export default function Search() {
                     </div>
 
                     <div className="space-y-2">
-                      {closestDateSchedules.map((schedule, index) => (
+                      {upcomingSchedules.map((schedule, index) => (
                         <TooltipProvider key={index}>
                           <Tooltip>
                             <TooltipTrigger asChild>

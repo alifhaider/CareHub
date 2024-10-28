@@ -63,20 +63,10 @@ export function getUpcomingDateSchedules(schedules: TSchedule[]): TSchedule[] {
     )
       return false
 
-    const [startHour, startMinute] = schedule.startTime.split(':').map(Number)
     const [endHour, endMinute] = schedule.endTime.split(':').map(Number)
-    const scheduleStartTime = new Date(scheduleDate)
     const scheduleEndTime = new Date(scheduleDate)
-
-    scheduleStartTime.setHours(startHour, startMinute)
     scheduleEndTime.setHours(endHour, endMinute)
 
-    // If schedule is today, ensure its start time is in the future
-    if (scheduleDate.getTime() === today.getTime()) {
-      return now < scheduleStartTime && now <= scheduleEndTime
-    }
-
-    // Otherwise, check that the schedule is in the future
     return scheduleDate >= today && now <= scheduleEndTime
   }
 
@@ -107,7 +97,6 @@ export function getUpcomingDateSchedules(schedules: TSchedule[]): TSchedule[] {
 // even if just 1 minute has passed, it returns the next day schedule
 // So, in this function, we calculate the time difference between the schedule date and the current time
 // If the schedule date is today, return "Today"
-// Otherwise, return the time difference (e.g., "in 14 hours", "3 days ago")
 
 export function getFormattedTimeDifference(
   date: string,
