@@ -42,39 +42,40 @@ const pastSchedules = [
 ]
 const today = new Date()
 const todayString = today.toISOString().split('T')[0]
-const todaysSchedules = [
-  {
-    id: '3',
-    date: todayString,
-    startTime: '09:00',
-    endTime: '11:00',
-    ...sampleLocation,
-    ...sampleFee,
-  },
-  {
-    id: '4',
-    date: todayString,
-    startTime: '14:00',
-    endTime: '16:00',
-    ...sampleLocation,
-    ...sampleFee,
-  },
-]
 
 const todaySchedulesWithPassedEndTime = [
   {
     id: '3',
     date: todayString,
-    startTime: `${today.getHours()}:${today.getMinutes() - 20}`,
-    endTime: `${today.getHours()}:${today.getMinutes() - 15}`,
+    startTime: `${today.getHours() - 2}:${today.getMinutes()}`,
+    endTime: `${today.getHours() - 1}:${today.getMinutes()}`,
     ...sampleLocation,
     ...sampleFee,
   },
   {
     id: '4',
     date: todayString,
-    startTime: `${today.getHours()}:${today.getMinutes() - 10}`,
-    endTime: `${today.getHours()}:${today.getMinutes() - 5}`,
+    startTime: `${today.getHours() - 4}:${today.getMinutes()}`,
+    endTime: `${today.getHours() - 3}:${today.getMinutes()}`,
+    ...sampleLocation,
+    ...sampleFee,
+  },
+]
+
+const todaySchedulesInFutureTime = [
+  {
+    id: '10',
+    date: todayString,
+    startTime: `${today.getHours() + 1}:${today.getMinutes()}`,
+    endTime: `${today.getHours() + 2}:${today.getMinutes()}`,
+    ...sampleLocation,
+    ...sampleFee,
+  },
+  {
+    id: '11',
+    date: todayString,
+    startTime: `${today.getHours() + 3}:${today.getMinutes()}`,
+    endTime: `${today.getHours() + 4}:${today.getMinutes()}`,
     ...sampleLocation,
     ...sampleFee,
   },
@@ -213,6 +214,14 @@ describe('getUpcomingDateSchedules', () => {
     const result = getUpcomingDateSchedules(futureUnSortedSchedules)
     expect(result).toEqual(upcomingSameDaySchedules)
   })
+
+  it('should return only the future schedules of the same day if passed and future schedules are provided', () => {
+    const result = getUpcomingDateSchedules([
+      ...todaySchedulesInFutureTime,
+      ...todaySchedulesWithPassedEndTime,
+    ])
+    expect(result).toEqual(todaySchedulesInFutureTime) // Today’s schedules
+  })
 })
 
 describe('getFormattedTimeDifference', () => {
@@ -247,7 +256,7 @@ describe('getFormattedTimeDifference', () => {
     expect(result).toBe('Today')
   })
 
-  it.only('should return today if the date is today and time is in 4 hours', () => {
+  it('should return today if the date is today', () => {
     const today = new Date()
     const result = getFormattedTimeDifference(
       today.toISOString(),
@@ -258,7 +267,7 @@ describe('getFormattedTimeDifference', () => {
     expect(result).toBe('Today')
   })
 
-  it('should return tomorrow if the date is tomorrow and time is in 4 hours', () => {
+  it('should return in 1 day if upcoming schedule date is tomorrows', () => {
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
     const result = getFormattedTimeDifference(
