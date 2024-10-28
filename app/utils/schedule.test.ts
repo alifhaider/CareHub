@@ -247,13 +247,14 @@ describe('getFormattedTimeDifference', () => {
     expect(result).toBe('Today')
   })
 
-  it('should return today if the date is today and time is in 4 hours', () => {
+  it.only('should return today if the date is today and time is in 4 hours', () => {
     const today = new Date()
     const result = getFormattedTimeDifference(
       today.toISOString(),
       today.getHours() + ':00',
       today.getHours() + 4 + ':00',
     )
+    console.log(result)
     expect(result).toBe('Today')
   })
 
@@ -265,6 +266,7 @@ describe('getFormattedTimeDifference', () => {
       tomorrow.getHours() + ':00',
       tomorrow.getHours() + 4 + ':00',
     )
+    console.log(result)
     expect(result).toBe('in 1 day')
   })
 })

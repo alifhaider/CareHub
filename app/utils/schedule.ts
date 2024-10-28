@@ -101,10 +101,9 @@ export function getFormattedTimeDifference(
   if (!isValidDate(date) || !isValidTime(startTime) || !isValidTime(endTime)) {
     return ''
   }
+
   const scheduleDate = new Date(date)
   const currentTime = new Date()
-
-  const today = isToday(scheduleDate)
 
   // Extract hours and minutes from startTime and endTime
   const [startHour, startMinute] = startTime.split(':').map(Number)
@@ -117,14 +116,11 @@ export function getFormattedTimeDifference(
   const end = new Date(scheduleDate)
   end.setHours(endHour, endMinute)
 
-  // Check if the current time is within the schedule's time range
-  const isWithinTimeRange = currentTime >= start && currentTime <= end
-
-  // If today and within the time range, return "Today"
-  if (today && isWithinTimeRange) {
+  // Check if the schedule date is today (ignoring time range)
+  if (isToday(scheduleDate)) {
     return 'Today'
   }
 
-  // Otherwise, return the time difference using formatDistance
+  // If not today, return the time difference (e.g., "in 14 hours", "3 days ago")
   return formatDistance(scheduleDate, currentTime, { addSuffix: true })
 }

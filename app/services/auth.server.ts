@@ -6,7 +6,8 @@ import { prisma } from '~/db.server'
 import { combineResponseInits } from '~/utils/misc'
 import { authSessionStorage } from './session.server'
 
-const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30
+const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30 // 30 days
+
 export const getSessionExpirationDate = () =>
   new Date(Date.now() + SESSION_EXPIRATION_TIME)
 

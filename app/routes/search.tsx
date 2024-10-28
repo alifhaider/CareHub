@@ -6,7 +6,7 @@ import { prisma } from '~/db.server'
 import { Card, CardContent } from '~/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Badge } from '~/components/ui/badge'
-import { MapPin, Star } from 'lucide-react'
+import { MapPin, MoveUpRight, Star } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
@@ -19,6 +19,7 @@ import {
   getUpcomingDateSchedules,
 } from '~/utils/schedule'
 import { formatDistance } from 'date-fns'
+import React, { useEffect } from 'react'
 
 export const meta: MetaFunction = () => {
   return [
@@ -104,6 +105,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function Search() {
   const [searchParams] = useSearchParams()
   const { doctors } = useLoaderData<typeof loader>()
+
   return (
     <div className="page-container">
       <div className="flex flex-col gap-6 lg:flex-row">
@@ -143,10 +145,15 @@ export default function Search() {
             const closestDateSchedules = getUpcomingDateSchedules(
               doctor.schedules,
             )
+
+            if (closestDateSchedules.length === 0) return null
+
+            const nextSchedule = closestDateSchedules[0]
+
             const formattedDateDifference = getFormattedTimeDifference(
-              closestDateSchedules[0]?.date,
-              closestDateSchedules[0]?.startTime,
-              closestDateSchedules[closestDateSchedules.length - 1]?.endTime,
+              nextSchedule.date,
+              nextSchedule.startTime,
+              closestDateSchedules[closestDateSchedules.length - 1].endTime,
             )
             return (
               <Card className="mb-6" key={user.id}>
@@ -173,9 +180,14 @@ export default function Search() {
                     </div>
                   </Avatar>
                   <div className="flex-1">
-                    <h2 className="mb-2 text-lg font-semibold md:text-2xl">
-                      {user.fullName ?? user.username}
-                    </h2>
+                    <Link
+                      to={`/profile/${user.username}`}
+                      className="hover:text-accent-foreground/80"
+                    >
+                      <h2 className="mb-2 text-lg font-semibold md:text-2xl">
+                        {user.fullName ?? user.username}{' '}
+                      </h2>
+                    </Link>
                     <div className="mb-2 flex flex-wrap gap-2">
                       {doctor.specialties.map((specialty, index) => (
                         <Badge key={index} variant="secondary">
@@ -189,10 +201,14 @@ export default function Search() {
                         <TooltipProvider key={index}>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <div className="mr-2 inline-block cursor-pointer rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
-                                {formatTime(schedule?.startTime)} -{' '}
-                                {formatTime(schedule?.endTime)}
-                              </div>
+                              <Link
+                                to={`/profile/${user.username}/schedule/${schedule.id}`}
+                              >
+                                <div className="mr-2 inline-block cursor-pointer rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
+                                  {formatTime(schedule?.startTime)} -{' '}
+                                  {formatTime(schedule?.endTime)}
+                                </div>
+                              </Link>
                             </TooltipTrigger>
                             <TooltipContent>
                               <p className="flex items-center">

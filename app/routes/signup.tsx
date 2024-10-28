@@ -11,6 +11,7 @@ import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { prisma } from '~/db.server'
 import {
+  ConfirmPasswordSchema,
   EmailSchema,
   PasswordSchema,
   UsernameSchema,
@@ -25,25 +26,27 @@ const SignupFormSchema = z
     username: UsernameSchema,
     email: EmailSchema,
     password: PasswordSchema,
-    confirmPassword: PasswordSchema,
-    agreeToTermsOfServiceAndPrivacyPolicy: z.boolean({
-      required_error:
-        'You must agree to the terms of service and privacy policy',
-    }),
-    remember: z.boolean().optional(),
+    confirmPassword: ConfirmPasswordSchema,
+    agreeToTermsOfServiceAndPrivacyPolicy: z
+      .string({ required_error: 'You must agree to the terms of service' })
+      .refine(value => value === 'true', {
+        message: 'You must agree to the terms of service and privacy policy',
+      }),
+    remember: z.string().optional(),
   })
   .superRefine(({ confirmPassword, password }, ctx) => {
     if (confirmPassword !== password) {
       ctx.addIssue({
         path: ['confirmPassword'],
         code: 'custom',
-        message: 'The passwords must match',
+        message: 'Passwords do not match',
       })
     }
   })
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
+  console.log('formData in action', Object.fromEntries(formData))
   // await validateCSRF(formData, request.headers)
   // checkHoneypot(formData)
   const submission = await parseWithZod(formData, {
@@ -95,7 +98,7 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirect('/', {
     headers: {
       'set-cookie': await sessionStorage.commitSession(cookieSession, {
-        expires: remember ? getSessionExpirationDate() : undefined,
+        expires: remember === 'true' ? getSessionExpirationDate() : undefined,
       }),
     },
   })
@@ -113,6 +116,7 @@ export default function SignupRoute() {
     id: 'signup-form',
     lastResult: actionData,
     onValidate({ formData }) {
+      console.log('formData', Object.fromEntries(formData))
       return parseWithZod(formData, { schema: SignupFormSchema })
     },
     shouldRevalidate: 'onBlur',
@@ -184,10 +188,12 @@ export default function SignupRoute() {
                 'Do you agree to our Terms of Service and Privacy Policy?',
             }}
             // @ts-expect-error @ts-ignore
-            buttonProps={getInputProps(
-              fields.agreeToTermsOfServiceAndPrivacyPolicy,
-              { type: 'checkbox' },
-            )}
+            buttonProps={{
+              ...getInputProps(fields.agreeToTermsOfServiceAndPrivacyPolicy, {
+                type: 'checkbox',
+              }),
+              value: 'true',
+            }}
             errors={fields.agreeToTermsOfServiceAndPrivacyPolicy.errors}
           />
           <CheckboxField
@@ -196,7 +202,10 @@ export default function SignupRoute() {
               children: 'Remember me',
             }}
             // @ts-expect-error @ts-ignore
-            buttonProps={getInputProps(fields.remember, { type: 'checkbox' })}
+            buttonProps={{
+              ...getInputProps(fields.remember, { type: 'checkbox' }),
+              value: 'true',
+            }}
             errors={fields.remember.errors}
           />
 
