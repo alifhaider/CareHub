@@ -15,22 +15,14 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { PageTitle } from '~/components/typography'
 import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
-import { DAYS, ScheduleSchema, ScheduleType } from './add.schedule'
 import { z } from 'zod'
-import { redirectWithSuccess } from 'remix-toast'
+import { redirectWithError, redirectWithSuccess } from 'remix-toast'
 import { Button } from '~/components/ui/button'
 import { useState } from 'react'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { LocationCombobox } from './resources.location-combobox'
 import { Label } from '~/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
-import { ErrorList, Field } from '~/components/forms'
+import { Field } from '~/components/forms'
 import {
   Popover,
   PopoverContent,
@@ -41,6 +33,34 @@ import { format } from 'date-fns'
 import { Calendar } from '~/components/ui/calendar'
 import { cn } from '~/utils/misc'
 import { Checkbox } from '~/components/ui/checkbox'
+
+export const UpdateScheduleSchema = z
+  .object({
+    locationId: z.string({ message: 'Select a location' }),
+    userId: z.string({ message: 'User ID is required' }),
+    username: z.string({ message: 'Username is required' }),
+    date: z.string({ message: 'Select a date for the schedule' }),
+    startTime: z.string({ message: 'Provide your schedule start time' }),
+    endTime: z.string({ message: 'Provide your schedule end time' }),
+    maxAppointment: z
+      .number()
+      .gt(0, { message: 'Maximum appointments must be greater than 0' }),
+    visitingFee: z.number({ message: 'Add visiting fee' }),
+    serialFee: z.number({ message: 'Add schedule fee' }),
+    discount: z.number().optional(),
+  })
+  .refine(
+    data => {
+      if (data.endTime && data.startTime > data.endTime) {
+        return false
+      }
+      return true
+    },
+    {
+      message: 'Start time must be before the End time',
+      path: ['startTime'],
+    },
+  )
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Schedule / CH' }]
@@ -77,13 +97,29 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
+  const scheduleId = params.scheduleId
+
+  if (!scheduleId) {
+    return redirectWithError('/', {
+      message: 'Schedule not found',
+    })
+  }
 
   const submission = await parseWithZod(formData, {
     schema: () =>
-      ScheduleSchema.transform(async (data, ctx) => {
-        const schedule = { id: 1 } // perform schedule update here
+      UpdateScheduleSchema.transform(async (data, ctx) => {
+        const schedule = await prisma.schedule.update({
+          where: { id: scheduleId },
+          data: {
+            locationId: data.locationId,
+            startTime: data.startTime,
+            endTime: data.endTime,
+            date: new Date(data.date),
+            maxAppointments: data.maxAppointment,
+          },
+        })
 
         if (!schedule) {
           ctx.addIssue({
@@ -110,21 +146,12 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function EditSchedule() {
   const data = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
-  const [scheduleType, setScheduleType] = useState<ScheduleType>()
   const [date, setDate] = useState<Date>()
 
   const [form, fields] = useForm({
     lastResult: actionData,
     onValidate({ formData }) {
-      console.log(
-        formData.get('locationId'),
-        formData.getAll('days'),
-        formData.get('startTime'),
-        formData.get('endTime'),
-        formData.get('maxAppointment'),
-        formData.get('repeat'),
-      )
-      return parseWithZod(formData, { schema: ScheduleSchema })
+      return parseWithZod(formData, { schema: UpdateScheduleSchema })
     },
     shouldRevalidate: 'onSubmit',
   })
@@ -147,23 +174,6 @@ export default function EditSchedule() {
             field={fields.locationId}
             selectedLocation={data.schedule.location}
           />
-          <div className="space-y-1">
-            <Label htmlFor="scheduleType">Schedule Type</Label>
-            <Select
-              defaultValue={scheduleType}
-              onValueChange={value => setScheduleType(value as ScheduleType)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ScheduleType.SINGLE_DAY}>One Day</SelectItem>
-                <SelectItem value={ScheduleType.REPEAT_WEEKS}>
-                  Repeat Weekly
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
           <div>
             <div className="flex items-center gap-8">
               <Field
@@ -193,77 +203,36 @@ export default function EditSchedule() {
             />
           </div>
           <div className="flex flex-col gap-2">
-            {scheduleType === ScheduleType.SINGLE_DAY ? (
-              <>
-                <Label htmlFor="date" className="mb-1">
-                  Date
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={'outline'}
-                      className={cn(
-                        'mb-2 w-[240px] justify-start text-left font-normal',
-                        !date && 'text-muted-foreground',
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, 'PPP') : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <RepeatCheckbox
-                  fields={fields}
-                  type="monthly"
-                  label="Repeat this schedule date for every month"
+            <Label htmlFor="date" className="mb-1">
+              Date
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={'outline'}
+                  className={cn(
+                    'mb-2 w-[240px] justify-start text-left font-normal',
+                    !date && 'text-muted-foreground',
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, 'PPP') : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  initialFocus
                 />
-              </>
-            ) : null}
-            {scheduleType === ScheduleType.REPEAT_WEEKS ? (
-              <>
-                <Label className="text-sm font-bold">Days</Label>
-
-                <fieldset>
-                  <ul className="grid grid-cols-3 gap-x-4 gap-y-2">
-                    {DAYS.map(day => (
-                      <li key={day} className="flex space-x-2">
-                        <label className="flex items-center space-x-2 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          {/* @ts-expect-error @ts-ignore */}
-                          <Checkbox
-                            {...getInputProps(fields.weeklyDays, {
-                              type: 'checkbox',
-                              value: day,
-                            })}
-                          />
-                          <span>{day}</span>
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="px-4 pb-3 pt-1">
-                    <ErrorList errors={fields.weeklyDays.errors} />
-                  </div>
-                </fieldset>
-                <RepeatCheckbox
-                  fields={fields}
-                  type="weekly"
-                  label="Repeat these schedule days for every week"
-                />
-                <RepeatCheckbox
-                  fields={fields}
-                  type="monthly"
-                  label="Repeat these schedule days for every month"
-                />
-              </>
-            ) : null}
+              </PopoverContent>
+            </Popover>
+            <RepeatCheckbox
+              fields={fields}
+              type="monthly"
+              label="Repeat this schedule date for every month"
+            />
           </div>
         </div>
 

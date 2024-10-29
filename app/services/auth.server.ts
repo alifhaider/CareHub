@@ -168,3 +168,23 @@ export async function verifyUserPassword(
 
   return { id: userWithPassword.id }
 }
+
+export async function resetUserPassword({
+  username,
+  password,
+}: {
+  username: User['username']
+  password: string
+}) {
+  const hashedPassword = await getPasswordHash(password)
+  return prisma.user.update({
+    where: { username },
+    data: {
+      password: {
+        update: {
+          hash: hashedPassword,
+        },
+      },
+    },
+  })
+}

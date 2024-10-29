@@ -74,8 +74,8 @@ export enum ScheduleType {
   SINGLE_DAY = 'single_day',
   REPEAT_WEEKS = 'repeat_weeks',
 }
-const DaysEnum = z.enum(DAYS)
-type DaysEnum = z.infer<typeof DaysEnum>
+export const DaysEnum = z.enum(DAYS)
+export type DaysEnum = z.infer<typeof DaysEnum>
 
 export const ScheduleSchema = z
   .object({
