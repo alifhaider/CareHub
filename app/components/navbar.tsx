@@ -21,7 +21,13 @@ import { Input } from './ui/input'
 
 const hideSearchFieldForRoutes = ['search', 'login', 'signup']
 
-export default function Navbar({ username }: { username?: string }) {
+export default function Navbar({
+  username,
+  isDoctor = false,
+}: {
+  username?: string
+  isDoctor?: boolean
+}) {
   const location = useLocation()
   const isHidden = hideSearchFieldForRoutes.some(route =>
     location.pathname.includes(route),
@@ -60,13 +66,24 @@ export default function Navbar({ username }: { username?: string }) {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button
-            asChild
-            variant="outline"
-            className="h-7 rounded-none border-primary py-0 text-sm font-bold"
-          >
-            <Link to="/doctor/join">Become a doctor</Link>
-          </Button>
+          {isDoctor ? (
+            <Button
+              asChild
+              variant="outline"
+              className="h-7 rounded-none border-primary py-0 text-sm font-bold"
+            >
+              <Link to="/doctor/dashboard/overview">Dashboard</Link>
+            </Button>
+          ) : (
+            <Button
+              asChild
+              variant="outline"
+              className="h-7 rounded-none border-primary py-0 text-sm font-bold"
+            >
+              <Link to="/doctor/join">Become a doctor</Link>
+            </Button>
+          )}
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -102,12 +119,21 @@ export default function Navbar({ username }: { username?: string }) {
                   </Link>
                 </div>
               )}
-              <Link to="/doctor/join">
-                <DropdownMenuItem>
-                  <BriefcaseMedical className="h-4 w-4" />
-                  Become a doctor
-                </DropdownMenuItem>
-              </Link>
+              {isDoctor ? (
+                <Link to="/doctor/dashboard/overview">
+                  <DropdownMenuItem>
+                    <BriefcaseMedical className="h-4 w-4" />
+                    Dashboard
+                  </DropdownMenuItem>
+                </Link>
+              ) : (
+                <Link to="/doctor/join">
+                  <DropdownMenuItem>
+                    <BriefcaseMedical className="h-4 w-4" />
+                    Become a doctor
+                  </DropdownMenuItem>
+                </Link>
+              )}
 
               <hr className="border-primary-foreground" />
 

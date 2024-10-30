@@ -22,6 +22,7 @@ import {
 } from '~/components/ui/card'
 import { StatusButton } from '~/components/ui/status-button'
 import { prisma } from '~/db.server'
+import { prepareVerification } from '~/services/verify.server'
 import { useIsPending } from '~/utils/misc'
 import { EmailSchema, UsernameSchema } from '~/utils/user-validation'
 
@@ -69,30 +70,28 @@ export async function action({ request }: ActionFunctionArgs) {
     select: { email: true, username: true },
   })
 
-  // const { verifyUrl, redirectTo, otp } = await prepareVerification({
-  //   period: 10 * 60,
-  //   request,
-  //   type: 'reset-password',
-  //   target: usernameOrEmail,
-  // })
-  // const response = await sendEmail({
-  //   to: user.email,
-  //   subject: `Epic Notes Password Reset`,
-  //   react: (
-  //     <ForgotPasswordEmail onboardingUrl={verifyUrl.toString()} otp={otp} />
-  //   ),
-  // })
+  const { verifyUrl, redirectTo, otp } = await prepareVerification({
+    period: 10 * 60,
+    request,
+    type: 'reset-password',
+    target: usernameOrEmail,
+  })
+  const response = await sendEmail({
+    to: user.email,
+    subject: `Epic Notes Password Reset`,
+    react: (
+      <ForgotPasswordEmail onboardingUrl={verifyUrl.toString()} otp={otp} />
+    ),
+  })
 
-  // if (response.status === 'success') {
-  //   return redirect(redirectTo.toString())
-  // } else {
-  //   return json(
-  //     { result: submission.reply({ formErrors: [response.error.message] }) },
-  //     { status: 500 },
-  //   )
-  // }
-
-  return redirect('/')
+  if (response.status === 'success') {
+    return redirect(redirectTo.toString())
+  } else {
+    return json(
+      { result: submission.reply({ formErrors: [response.error.message] }) },
+      { status: 500 },
+    )
+  }
 }
 
 function ForgotPasswordEmail({

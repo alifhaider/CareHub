@@ -35,9 +35,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const userId = cookieSession.get('userId')
   const user = userId
     ? await prisma.user.findUnique({
-        select: {
-          id: true,
-          username: true,
+        include: {
+          doctor: {
+            select: {
+              id: true,
+            },
+          },
         },
         where: { id: userId },
       })
@@ -45,6 +48,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json(
     {
       user: user,
+      isDoctor: Boolean(user?.doctor?.id),
       theme: getTheme(),
       toast,
     },
@@ -62,7 +66,12 @@ export default function AppWithProviders() {
 }
 
 export function App() {
-  const { user, theme: loaderTheme, toast } = useLoaderData<typeof loader>()
+  const {
+    user,
+    theme: loaderTheme,
+    toast,
+    isDoctor,
+  } = useLoaderData<typeof loader>()
   const [theme] = useTheme()
   const { toast: notify } = useToast()
 
@@ -87,7 +96,7 @@ export function App() {
       <body className="bg-background">
         <div>
           <Toaster />
-          <Navbar username={user?.username} />
+          <Navbar username={user?.username} isDoctor={isDoctor} />
           <Outlet />
         </div>
         <ScrollRestoration />

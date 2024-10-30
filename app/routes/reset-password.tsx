@@ -27,7 +27,7 @@ import { requireAnonymous, resetUserPassword } from '~/services/auth.server'
 import { verifySessionStorage } from '~/utils/verification.server'
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Forgot Password / CH' }]
+  return [{ title: 'Reset Password / CH' }]
 }
 
 export const resetPasswordUsernameSessionKey = 'resetPasswordUsername'

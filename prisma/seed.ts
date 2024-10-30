@@ -209,6 +209,14 @@ async function seed() {
       const startTimeHours = Math.floor(Math.random() * 4) + 8 // 8AM - 12PM
       const endTimeHours = Math.floor(Math.random() * 4) + 13 // 1PM - 5PM
 
+      const visitFee = Math.floor(Math.random() * 1000)
+      const serialFee = Math.floor(Math.random() * 1000)
+      // 10% of the total fee as discount
+      const discountFee = Math.floor(Number(visitFee + serialFee) / 10)
+      const depositAmount = Math.floor(
+        Number(visitFee + serialFee - discountFee) / 10,
+      )
+
       const schedule = await prisma.schedule.create({
         data: {
           doctorId: doctors[Math.floor(Math.random() * totalDoctors)].userId,
@@ -217,10 +225,10 @@ async function seed() {
           endTime: `${endTimeHours}:${faker.date.anytime().getMinutes()}`,
           locationId: scheduleLocations[index % totalScheduleLocations].id,
           maxAppointments: Math.floor(Math.random() * 10),
-          serialFee: Math.floor(Math.random() * 1000),
-          discountFee: Math.floor(Math.random() * 1000),
-          visitFee: Math.floor(Math.random() * 1000),
-          depositAmount: Math.floor(Math.random() * 1000),
+          serialFee,
+          visitFee,
+          depositAmount,
+          discountFee,
         },
       })
       return schedule
@@ -243,6 +251,21 @@ async function seed() {
     }),
   )
   console.timeEnd('👨‍⚕️ Creating bookings...')
+
+  console.time('🌱 Seeding reviews...')
+  await Promise.all(
+    Array.from({ length: totalAppointments }).map(async (_, index) => {
+      const review = await prisma.review.create({
+        data: {
+          rating: Math.floor(Math.random() * 5),
+          comment: faker.lorem.sentence(),
+          doctorId: doctors[Math.floor(Math.random() * totalDoctors)].userId,
+        },
+      })
+      return review
+    }),
+  )
+  console.timeEnd('🌱 Seeding reviews...')
 
   await prisma.user.create({
     data: {

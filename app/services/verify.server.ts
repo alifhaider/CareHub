@@ -1,5 +1,7 @@
-import { Submission } from '@conform-to/react'
 import { z } from 'zod'
+import { generateTOTP, verifyTOTP } from '~/services/totp.server'
+import { prisma } from '~/db.server'
+import { getDomainUrl } from '~/utils/misc'
 
 export const codeQueryParam = 'code'
 export const targetQueryParam = 'target'
@@ -9,21 +11,24 @@ const types = ['onboarding', 'reset-password', 'change-email', '2fa'] as const
 const VerificationTypeSchema = z.enum(types)
 export type VerificationTypes = z.infer<typeof VerificationTypeSchema>
 
-export const VerifySchema = z.object({
-  [codeQueryParam]: z.string().min(6).max(6),
-  [typeQueryParam]: VerificationTypeSchema,
-  [targetQueryParam]: z.string(),
-  [redirectToQueryParam]: z.string().optional(),
-})
-
-export type VerifyFunctionArgs = {
+export function getRedirectToUrl({
+  request,
+  type,
+  target,
+  redirectTo,
+}: {
   request: Request
-  submission: Submission<
-    z.input<typeof VerifySchema>,
-    string[],
-    z.output<typeof VerifySchema>
-  >
-  body: FormData | URLSearchParams
+  type: VerificationTypes
+  target: string
+  redirectTo?: string
+}) {
+  const redirectToUrl = new URL(`${getDomainUrl(request)}/verify`)
+  redirectToUrl.searchParams.set(typeQueryParam, type)
+  redirectToUrl.searchParams.set(targetQueryParam, target)
+  if (redirectTo) {
+    redirectToUrl.searchParams.set(redirectToQueryParam, redirectTo)
+  }
+  return redirectToUrl
 }
 
 export async function prepareVerification({

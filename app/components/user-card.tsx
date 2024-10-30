@@ -61,7 +61,7 @@ export default function UserCard({
           <strong>Total schedules:</strong> {doctor?._count.schedules}
         </p>
         <Button asChild className="mx-4 mt-4">
-          <Link to={`/profile/${username}`}>Book appointment</Link>
+          <Link to={`/profile/${username}`}>Check Schedules</Link>
         </Button>
       </div>
     </li>

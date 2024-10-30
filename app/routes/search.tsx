@@ -1,12 +1,11 @@
 import { json, LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { Form, Link, useLoaderData, useSearchParams } from '@remix-run/react'
-import { PageTitle } from '~/components/typography'
 import { Input } from '~/components/ui/input'
 import { prisma } from '~/db.server'
 import { Card, CardContent } from '~/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Badge } from '~/components/ui/badge'
-import { MapPin, MoveUpRight, Star } from 'lucide-react'
+import { MapPin, Star } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
@@ -18,8 +17,6 @@ import {
   getFormattedTimeDifference,
   getUpcomingDateSchedules,
 } from '~/utils/schedule'
-import { formatDistance } from 'date-fns'
-import React, { useEffect } from 'react'
 
 export const meta: MetaFunction = () => {
   return [
@@ -33,6 +30,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const query = searchParams.get('s') ?? ''
   const specialtiesQuery = searchParams.get('specialties') ?? ''
   const locationQuery = searchParams.get('location') ?? ''
+
+  //make queries case-insensitive
+
   const doctors = await prisma.doctor.findMany({
     where: {
       OR: [

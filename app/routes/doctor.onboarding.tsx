@@ -78,6 +78,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const user = await requireUser(request)
   const formData = await request.formData()
   const submission = parseWithZod(formData, {
     schema: OnboardingSchema,
@@ -110,7 +111,7 @@ export async function action({ request }: ActionFunctionArgs) {
     },
   })
 
-  return redirectWithSuccess('/profile/${username}', {
+  return redirectWithSuccess(`/profile/${user.username}`, {
     message: 'Congratulations! You have successfully became a CareHub doctor.',
     description: 'You can now start adding your schedule.',
   })
