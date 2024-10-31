@@ -54,13 +54,13 @@ export default function Index() {
           <h1 className="text-6xl font-extrabold">
             Find and Book Your Doctor&apos;s Appointment
           </h1>
-          <p className="mt-6 text-xl font-medium">
+          <p className="text-xxl mt-6 font-medium">
             Take control of your health with our user-friendly platform. Search
             for doctors in your area, check their availability, and book
             appointments—all in one place.
           </p>
 
-          <p className="mt-2 text-xl font-medium">
+          <p className="text-xxl mt-2 font-medium">
             Schedule appointments with just a few clicks. Our streamlined
             booking system ensures you can find an available slot that fits your
             schedule without any hassle.
@@ -71,7 +71,7 @@ export default function Index() {
       <section className="mt-20 bg-primary-foreground py-20">
         <div className="mx-auto max-w-7xl">
           <SectionTitle>Search for Top-Rated Doctors</SectionTitle>
-          <p className="mt-6 w-3/4 text-xl">
+          <p className="text-xxl mt-6 w-3/4">
             Browse through a comprehensive list of certified and experienced
             doctors across various specialties. Read patient reviews and ratings
             to choose the best healthcare professional for your needs.
@@ -99,17 +99,17 @@ export default function Index() {
         <SectionTitle>Simple and Fast Booking Process</SectionTitle>
         <div className="flex">
           <div className="w-2/3">
-            <p className="mt-6 w-3/4 text-xl">
+            <p className="text-xxl mt-6 w-3/4">
               Schedule appointments with just a few clicks. Our streamlined
               booking system ensures you can find an available slot that fits
               your schedule without any hassle.
             </p>
-            <p className="mt-6 w-3/4 text-xl">
+            <p className="text-xxl mt-6 w-3/4">
               Whether you&apos;re at home or on the go, our platform is fully
               responsive and accessible from any device. Book appointments
               whenever and wherever it&apos;s convenient for you.
             </p>
-            <p className="mt-6 w-3/4 text-xl">
+            <p className="text-xxl mt-6 w-3/4">
               Keep track of your upcoming appointments, reschedule or cancel if
               needed, and receive reminders—all from your personalized
               dashboard.

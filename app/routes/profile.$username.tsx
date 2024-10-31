@@ -147,79 +147,49 @@ export default function User() {
 
   return (
     <div className="page-container">
-      <div className="flex gap-6">
-        <div className="h-32 w-32 rounded-sm bg-primary-foreground shadow-sm" />
-        <div className="w-full">
-          <div className="flex items-center justify-between">
-            <SectionTitle>{user.fullName ?? user.username}</SectionTitle>
-            {isDoctor && isOwner ? (
-              <Button asChild variant="outline">
-                <Link to="/profile/edit">Edit Profile</Link>
-              </Button>
+      <div>
+        <div className="flex gap-6">
+          <div className="h-32 w-32 rounded-sm bg-primary-foreground shadow-sm" />
+          <div className="w-full">
+            <div className="flex items-center justify-between">
+              <SectionTitle>{user.fullName ?? user.username}</SectionTitle>
+              {isDoctor && isOwner ? (
+                <Button asChild variant="outline">
+                  <Link to="/profile/edit">Profile Settings</Link>
+                </Button>
+              ) : null}
+            </div>
+            {isDoctor ? (
+              <>
+                <ul className="mt-2 flex items-center gap-4">
+                  {user.doctor?.specialties.map(specialty => (
+                    <li key={specialty.id} className="flex items-center gap-1">
+                      <div className="h-2 w-2 rounded-full bg-amber-300"></div>
+                      {specialty.name}
+                    </li>
+                  ))}
+                </ul>
+                <ul className="text-accent-foreground">
+                  {user.doctor?.education.map(education => (
+                    <li key={education.id}>
+                      {education.degree} | {education.institute}
+                      <span className="ml-1 text-sm">({education.year})</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
             ) : null}
           </div>
-          {isDoctor ? (
-            <>
-              <ul className="mt-2 flex items-center gap-4">
-                {user.doctor?.specialties.map(specialty => (
-                  <li key={specialty.id} className="flex items-center gap-1">
-                    <div className="h-2 w-2 rounded-full bg-amber-300"></div>
-                    {specialty.name}
-                  </li>
-                ))}
-              </ul>
-              <ul className="text-accent-foreground">
-                {user.doctor?.education.map(education => (
-                  <li key={education.id}>
-                    {education.degree} | {education.institute}
-                    <span className="ml-1 text-sm">({education.year})</span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : null}
         </div>
+        <Spacer variant="md" />
+        <p>{user.doctor?.bio}</p>
       </div>
-
-      {isOwner && user.bookings.length > 0 ? (
-        <>
-          <Spacer variant="lg" />
-          <h2 className="text-3xl font-medium text-lime-500">
-            Booked Appointments
-          </h2>
-          <ul>
-            {user.bookings.map(appointment => (
-              <li key={appointment.id}>
-                <span className="text-accent-foreground">
-                  {new Date(appointment.schedule.date).toDateString()}
-                </span>
-                {' - '}
-                <span className="text-accent-foreground">
-                  {formatTime(appointment.schedule.startTime)} -{' '}
-                  {appointment.schedule.endTime}
-                </span>
-
-                <Link
-                  to={`/profile/${appointment.doctor.user.username}`}
-                  className="text-blue-400 underline"
-                >
-                  {appointment.doctor.user.fullName ??
-                    appointment.doctor.user.username}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : null}
 
       {isDoctor ? (
         <>
           <Spacer variant="lg" />
           <div className="flex flex-col gap-10 md:flex-row">
             <div>
-              <h4 className="mb-4 text-3xl font-medium text-lime-500">
-                Availabilty Calendar
-              </h4>
               <Calendar
                 onSelect={handleDateClick}
                 components={{
@@ -279,8 +249,6 @@ const Schedules = ({
 }: ScheduleProps) => {
   return (
     <div className="flex-1">
-      <h4 className="mb-4 text-3xl font-medium text-lime-500">Schedules</h4>
-      <Spacer variant="sm" />
       {schedules && schedules?.length > 0 && (
         <div className="relative flex items-center">
           <span className="h-0.5 w-full border"></span>
@@ -292,7 +260,11 @@ const Schedules = ({
       )}
       <Spacer variant="sm" />
 
-      <ul className="space-y-4">
+      {schedules && schedules?.length === 0 ? (
+        <p className="text-lg text-accent-foreground">No available schedules</p>
+      ) : null}
+
+      <ul className="max-h-[40rem] space-y-4 overflow-y-auto">
         {schedules?.map(schedule => (
           <li
             key={schedule.location.id}
@@ -346,7 +318,7 @@ const Schedules = ({
                   </div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-accent-foreground">
+                  <div className="text-xxl font-bold text-accent-foreground">
                     Visit Fee: {schedule.visitFee}tk
                   </div>
                   <div className="text-secondary-foreground">

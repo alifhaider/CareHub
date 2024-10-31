@@ -20,6 +20,7 @@ import { getToast } from 'remix-toast'
 import { useEffect } from 'react'
 import { useToast } from './hooks/use-toast'
 import { Toaster } from './components/ui/toaster'
+import Footer from './components/footer'
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: stylesheet },
@@ -98,6 +99,7 @@ export function App() {
           <Toaster />
           <Navbar username={user?.username} isDoctor={isDoctor} />
           <Outlet />
+          <Footer />
         </div>
         <ScrollRestoration />
         <Scripts />

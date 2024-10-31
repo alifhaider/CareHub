@@ -245,7 +245,7 @@ export default function AddSchedule() {
   })
 
   return (
-    <div className="mx-auto max-w-7xl py-10">
+    <div className="mx-auto max-w-7xl px-4 py-10">
       <PageTitle>Add Schedule_</PageTitle>
       <HelpText />
       <Form method="post" className="mt-10" {...getFormProps(form)}>

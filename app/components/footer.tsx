@@ -1,0 +1,147 @@
+import { Link } from '@remix-run/react'
+
+const UserLinks = [
+  { to: '/appointments', label: 'Appointment History' },
+  { to: '/profile', label: 'Profile' },
+  { to: '/reviews', label: 'User Reviews' },
+]
+
+const CompanyLinks = [
+  { to: '/about', label: 'About' },
+  { to: '/press', label: 'Press' },
+  { to: '/policies', label: 'Policies' },
+]
+
+const LocationsLinks = [
+  { to: '/locations/bangladesh', label: 'Bangladesh' },
+  { to: '/locations/india', label: 'India' },
+]
+
+const ExploreLinks = [
+  { to: '/book', label: 'Book a Doctor' },
+  { to: '/trust-and-safety', label: 'Trust & Safety' },
+  { to: '/help', label: 'Get Help' },
+]
+
+export default function Footer() {
+  return (
+    <footer className="bg-primary-foreground text-secondary-foreground">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="px-10">
+          <h2 className="mb-4 text-lg font-semibold text-primary">Reminders</h2>
+          <div className="max-w-4xl space-y-4 text-sm">
+            <p>
+              * When booking an appointment, please have your medical history,
+              current medications, and insurance information ready. Arrive 15
+              minutes early for your first visit.
+            </p>
+
+            <p>
+              * If you need to cancel or reschedule your appointment, please do
+              so at least 24 hours in advance.
+            </p>
+
+            <p>
+              * If you have any questions or need assistance, please contact us
+              at{' '}
+              <a
+                href="mailto:support@carehub.com"
+                className="text-cyan-400 underline"
+              >
+                support@carehub.com
+              </a>
+              .
+            </p>
+
+            <p>
+              * CareHub is not a healthcare provider. We are a platform that
+              helps you find and book appointments with healthcare providers.
+            </p>
+
+            <p>
+              * If you are experiencing a medical emergency, call 911 or visit
+              the nearest emergency room.
+            </p>
+
+            <p>
+              * CareHub is a registered trademark of CareHub, Inc. All rights
+              reserved.
+            </p>
+          </div>
+        </div>
+
+        <hr className="my-6" />
+
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <FooterLinkSection title="User" links={UserLinks} />
+          <FooterLinkSection title="CareHub" links={CompanyLinks} />
+          <FooterLinkSection title="Locations" links={LocationsLinks} />
+          <FooterLinkSection title="Explore" links={ExploreLinks} />
+        </div>
+
+        {/* Bottom Section */}
+        <div className="mt-12 border-t border-gray-200 pt-8">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <div className="flex flex-wrap space-x-6">
+              <span className="text-sm">&copy; 2024 CareHub</span>
+              <Link
+                to="/terms"
+                className="text-sm transition-all hover:text-cyan-400 hover:underline"
+              >
+                Terms
+              </Link>
+              <Link
+                to="/privacy"
+                className="text-sm transition-all hover:text-cyan-400 hover:underline"
+              >
+                Privacy
+              </Link>
+              <Link
+                to="/sitemap"
+                className="text-sm transition-all hover:text-cyan-400 hover:underline"
+              >
+                Sitemap
+              </Link>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2 md:mt-0 md:gap-6">
+              <button className="text-sm transition-all hover:text-cyan-400 hover:underline">
+                Cookie preferences
+              </button>
+              <button className="text-sm transition-all hover:text-cyan-400 hover:underline">
+                Do not sell or share my personal information
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+const FooterLinkSection = ({
+  title,
+  links,
+}: {
+  title: string
+  links: { to: string; label: string }[]
+}) => {
+  return (
+    <div>
+      <h2 className="mb-4 text-sm font-bold text-secondary-foreground">
+        {title}
+      </h2>
+      <ul className="space-y-2">
+        {links.map(link => (
+          <li key={link.to}>
+            <Link
+              to={link.to}
+              className="text-xs font-medium transition-all hover:text-cyan-400 hover:underline"
+            >
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
