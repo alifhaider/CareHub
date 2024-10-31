@@ -40,9 +40,9 @@ npm run dev
 
 ### Todos
 User
-[ ] User can reset password
-[ ] User can book a schedule (With Special Note
-[ ] Make the `/search` route fully functional
-[ ] User can see their booking history
+- [ ] User can reset password
+- [ ] User can book a schedule (With Special Note
+- [ ] Make the `/search` route fully functional
+- [ ] User can see their booking history
 Doctor
-[-] Dashboard Overview Contain real data
+- [x] Dashboard Overview Contain real data
