@@ -44,5 +44,7 @@ User
 - [ ] User can book a schedule (With Special Note
 - [ ] Make the `/search` route fully functional
 - [ ] User can see their booking history
+
 Doctor
-- [x] Dashboard Overview Contain real data
+- [ ] Dashboard Overview Contain real data
+- [ ] Doctor can see upcoming appointment schedule
