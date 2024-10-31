@@ -5,7 +5,7 @@ import {
 } from '@remix-run/node'
 import { Form, Link, useLoaderData } from '@remix-run/react'
 import { format } from 'date-fns'
-import { MapPin } from 'lucide-react'
+import { MapPin, Settings, StarIcon } from 'lucide-react'
 import React from 'react'
 import { DayProps } from 'react-day-picker'
 import { Spacer } from '~/components/spacer'
@@ -146,8 +146,8 @@ export default function User() {
   const displayedSchedules = selectedDate ? selectedSchedule : upcomingSchedules
 
   return (
-    <div className="page-container">
-      <div>
+    <div>
+      <div className="container">
         <div className="flex gap-6">
           <div className="h-32 w-32 rounded-sm bg-primary-foreground shadow-sm" />
           <div className="w-full">
@@ -155,7 +155,10 @@ export default function User() {
               <SectionTitle>{user.fullName ?? user.username}</SectionTitle>
               {isDoctor && isOwner ? (
                 <Button asChild variant="outline">
-                  <Link to="/profile/edit">Profile Settings</Link>
+                  <Link to="/profile/edit" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Profile Settings
+                  </Link>
                 </Button>
               ) : null}
             </div>
@@ -188,7 +191,7 @@ export default function User() {
       {isDoctor ? (
         <>
           <Spacer variant="lg" />
-          <div className="flex flex-col gap-10 md:flex-row">
+          <div className="container flex flex-col gap-10 md:flex-row">
             <div>
               <Calendar
                 onSelect={handleDateClick}
@@ -216,8 +219,9 @@ export default function User() {
         </>
       ) : null}
 
-      <Spacer variant="md" />
+      <Spacer variant="lg" />
       {isDoctor ? <Reviews /> : null}
+      <Spacer variant="lg" />
     </div>
   )
 }
@@ -345,95 +349,96 @@ const Schedules = ({
 }
 
 const Reviews = () => {
+  const overallRating = 4.8
+  const totalReviews = 2489
+  const reviews = [
+    {
+      id: 1,
+      author: 'Sarah Johnson',
+      avatar: '/placeholder.svg',
+      rating: 5,
+      date: 'February 02, 2024',
+      comment:
+        'Dr. Smith was incredibly thorough and patient. He took the time to explain everything in detail and answer all my questions. The appointment scheduling was smooth, and the wait time was minimal.',
+      verified: true,
+    },
+    {
+      id: 2,
+      author: 'Michael Chen',
+      avatar: '/placeholder.svg',
+      rating: 1,
+      date: 'January 2024',
+      comment:
+        'Very professional and knowledgeable. The online booking system was convenient, and the staff was friendly and helpful. Would definitely recommend!',
+      verified: true,
+    },
+    {
+      id: 3,
+      author: 'Emily Williams',
+      avatar: '/placeholder.svg',
+      rating: 4,
+      date: 'January 2024',
+      comment:
+        'Good experience overall. The doctor was knowledgeable and professional. The only minor issue was a slight delay in the appointment time.',
+      verified: true,
+    },
+  ]
   return (
-    <div>
-      <h4 className="mb-4 text-3xl font-medium text-lime-500">Reviews</h4>
-      <ul>
-        <li className="rounded-md bg-secondary px-4 py-2">
-          <div className="flex items-center gap-4">
-            <div className="rounded-full bg-primary-foreground" />
-            <div>
-              <div className="mx-auto mt-10 w-full max-w-xl rounded-lg bg-white p-6 shadow-md">
-                <div className="flex items-center gap-4">
-                  <img src="" alt="Doctor" />
+    <div className="container">
+      <h4 className="text-sm font-extrabold">RATINGS AND REVIEWS</h4>
 
-                  <div>
-                    <h2 className="text-2xl font-semibold text-gray-800">
-                      Dr. Kristi Marquardt
-                    </h2>
-                    <p className="text-sm text-gray-500">Cardiologist</p>
-                    <div className="mt-2 flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor"
-                        className="h-5 w-5 text-yellow-400"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M12 .288l2.833 8.718h9.167l-7.417 5.385 2.833 8.719-7.416-5.387-7.417 5.387 2.834-8.719-7.417-5.385h9.166z" />
-                      </svg>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor"
-                        className="h-5 w-5 text-yellow-400"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M12 .288l2.833 8.718h9.167l-7.417 5.385 2.833 8.719-7.416-5.387-7.417 5.387 2.834-8.719-7.417-5.385h9.166z" />
-                      </svg>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor"
-                        className="h-5 w-5 text-yellow-400"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M12 .288l2.833 8.718h9.167l-7.417 5.385 2.833 8.719-7.416-5.387-7.417 5.387 2.834-8.719-7.417-5.385h9.166z" />
-                      </svg>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor"
-                        className="h-5 w-5 text-yellow-400"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M12 .288l2.833 8.718h9.167l-7.417 5.385 2.833 8.719-7.416-5.387-7.417 5.387 2.834-8.719-7.417-5.385h9.166z" />
-                      </svg>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor"
-                        className="h-5 w-5 text-gray-300"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M12 .288l2.833 8.718h9.167l-7.417 5.385 2.833 8.719-7.416-5.387-7.417 5.387 2.834-8.719-7.417-5.385h9.166z" />
-                      </svg>
-                      <span className="ml-2 text-gray-600">(4.0)</span>
-                    </div>
-                  </div>
-                </div>
+      <p className="flex items-center gap-2 text-6xl font-extrabold">
+        {overallRating}
+        <span>
+          <StarIcon className="h-6 w-6 fill-cyan-400 stroke-cyan-400" />
+        </span>
+      </p>
 
-                <div className="mt-6">
-                  <p className="text-gray-700">
-                    Dr. Kristi Marquardt is an exceptional Physiatrist. His
-                    attention to detail and dedication to patient care are truly
-                    commendable. He took the time to explain everything
-                    thoroughly and made me feel at ease throughout the
-                    consultation.
-                  </p>
-                </div>
+      <p className="mt-1 text-sm">({totalReviews} Rating)</p>
 
-                <div className="mt-4 flex items-center justify-between text-gray-600">
-                  <div className="flex items-center">
-                    <div className="ml-3">
-                      <p className="font-semibold">John Doe</p>
-                      <p className="text-sm">August 15, 2024</p>
-                    </div>
-                  </div>
-                  <button className="text-blue-500 hover:underline">
-                    See all reviews
-                  </button>
-                </div>
+      <Spacer variant="md" />
+
+      <h6 className="text-sm font-extrabold uppercase text-secondary-foreground">
+        Reviews
+      </h6>
+      <ul className="max-w-4xl py-2">
+        {reviews.map(review => (
+          <li
+            key={review.id}
+            className="flex items-start gap-4 border-b py-6 first:pt-0"
+          >
+            <div className="h-10 w-10 rounded-full bg-primary-foreground" />
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                {Array.from({ length: 5 }, (_, i) => (
+                  <span key={i}>
+                    <StarIcon
+                      className={`h-5 w-5 ${review.rating > i && 'fill-cyan-400'} stroke-cyan-400`}
+                    />
+                  </span>
+                ))}
               </div>
+              <p className="font-montserrat text-xs font-semibold text-secondary-foreground">
+                {review.author}
+                <span className="ml-2 text-[11px] font-medium text-muted-foreground">
+                  {review.date}
+                </span>
+              </p>
+
+              <p className="text-sm text-secondary-foreground">
+                {review.comment}
+              </p>
             </div>
-          </div>
-        </li>
+          </li>
+        ))}
       </ul>
+
+      <Spacer variant="md" />
+      <div className="flex max-w-4xl items-center justify-center">
+        <Button asChild variant="default">
+          <Link to="/reviews">See More</Link>
+        </Button>
+      </div>
     </div>
   )
 }

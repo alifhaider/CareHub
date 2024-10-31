@@ -83,7 +83,7 @@
   }
 
   .page-container {
-    @apply px-6 py-10 lg:px-12;
+    @apply px-4 py-10 lg:px-12;
   }
 
   .sticky-form {
