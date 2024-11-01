@@ -271,7 +271,7 @@ const Schedules = ({
       <ul className="max-h-[40rem] space-y-4 overflow-y-auto">
         {schedules?.map(schedule => (
           <li
-            key={schedule.location.id}
+            key={schedule.id}
             className="flex items-center rounded-md border transition-all"
           >
             <div className="h-full w-full px-4 py-6">

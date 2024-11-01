@@ -1,5 +1,6 @@
 import type { MetaFunction } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
+import Reminder from '~/components/reminder'
 import { SectionTitle } from '~/components/typography'
 import { Button } from '~/components/ui/button'
 import UserCard from '~/components/user-card'
@@ -48,8 +49,8 @@ export async function loader() {
 export default function Index() {
   const users = useLoaderData<typeof loader>()
   return (
-    <div className="py-10">
-      <section className="mx-auto flex max-w-7xl flex-col gap-10 md:flex-row">
+    <>
+      <section className="mx-auto mt-10 flex max-w-7xl flex-col gap-10 md:flex-row">
         <div>
           <h1 className="text-6xl font-extrabold">
             Find and Book Your Doctor&apos;s Appointment
@@ -121,6 +122,8 @@ export default function Index() {
           </div>
         </div>
       </section>
-    </div>
+
+      <Reminder />
+    </>
   )
 }

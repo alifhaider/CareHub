@@ -33,6 +33,8 @@ import { format } from 'date-fns'
 import { Calendar } from '~/components/ui/calendar'
 import { cn } from '~/utils/misc'
 import { Checkbox } from '~/components/ui/checkbox'
+import { Spacer } from '~/components/spacer'
+import { checkOverlapSchedule } from '~/services/schedule.server'
 
 export const UpdateScheduleSchema = z
   .object({
@@ -51,10 +53,7 @@ export const UpdateScheduleSchema = z
   })
   .refine(
     data => {
-      if (data.endTime && data.startTime > data.endTime) {
-        return false
-      }
-      return true
+      return !(data.startTime > data.endTime)
     },
     {
       message: 'Start time must be before the End time',
@@ -98,7 +97,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  console.log('running action')
   const formData = await request.formData()
+  console.log('formData', formData)
   const scheduleId = params.scheduleId
 
   if (!scheduleId) {
@@ -107,9 +108,39 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
   }
 
+  console.log('scheduleId', scheduleId, 'running action')
+
   const submission = await parseWithZod(formData, {
     schema: () =>
       UpdateScheduleSchema.transform(async (data, ctx) => {
+        const startTime = data.startTime
+        const endTime = data.endTime
+        const date = new Date(data.date)
+
+        const schedules = await prisma.schedule.findMany({
+          where: {
+            doctorId: data.userId,
+            date,
+          },
+        })
+
+        const isScheduleOverlapped = checkOverlapSchedule([date], schedules, {
+          startTime,
+          endTime,
+        })
+
+        // Check if any of the results are `true`
+        const hasOverlap = isScheduleOverlapped.some(Boolean)
+
+        if (hasOverlap) {
+          ctx.addIssue({
+            path: ['form'],
+            code: 'custom',
+            message: 'Schedule is overlapped with another schedule',
+          })
+          return z.NEVER
+        }
+
         const schedule = await prisma.schedule.update({
           where: { id: scheduleId },
           data: {
@@ -124,7 +155,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         if (!schedule) {
           ctx.addIssue({
             code: 'custom',
-            message: 'Could not create schedule',
+            message: 'Could not update schedule',
           })
           return z.NEVER
         }
@@ -146,11 +177,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function EditSchedule() {
   const data = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
-  const [date, setDate] = useState<Date>()
+  const [date, setDate] = useState<Date>(new Date(data.schedule.date))
 
   const [form, fields] = useForm({
     lastResult: actionData,
     onValidate({ formData }) {
+      console.log('formData', formData)
       return parseWithZod(formData, { schema: UpdateScheduleSchema })
     },
     shouldRevalidate: 'onSubmit',
@@ -159,7 +191,8 @@ export default function EditSchedule() {
   return (
     <div className="mx-auto max-w-7xl py-10">
       <PageTitle>Edit Schedule</PageTitle>
-      <Form method="post" className="mt-10" {...getFormProps(form)}>
+      <Spacer variant="lg" />
+      <Form method="patch" className="space-y-8" {...getFormProps(form)}>
         <div className="grid grid-cols-1 gap-12 align-top md:grid-cols-2">
           <input
             {...getInputProps(fields.userId, { type: 'hidden' })}
@@ -223,51 +256,21 @@ export default function EditSchedule() {
                 <Calendar
                   mode="single"
                   selected={date}
-                  onSelect={setDate}
+                  onSelect={selectedDate =>
+                    selectedDate && setDate(selectedDate)
+                  }
                   initialFocus
                 />
               </PopoverContent>
             </Popover>
-            <RepeatCheckbox
-              fields={fields}
-              type="monthly"
-              label="Repeat this schedule date for every month"
-            />
           </div>
         </div>
 
         <div className="mt-12 flex items-center justify-center">
-          <Button type="submit">Update Schedule</Button>
+          <Button>Update Schedule</Button>
         </div>
       </Form>
       <pre>{JSON.stringify(data, null, 2)}</pre>
-    </div>
-  )
-}
-
-type CheckboxProps = {
-  fields: ReturnType<typeof useForm>[1]
-  type: 'weekly' | 'monthly'
-  label: string
-}
-
-function RepeatCheckbox({ fields, type, label }: CheckboxProps) {
-  const field = type === 'weekly' ? fields.repeatWeeks : fields.repeatMonths
-
-  return (
-    <div className="items-top flex space-x-2">
-      <label
-        htmlFor={field.id}
-        className="flex items-center space-x-1 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-      >
-        {/* @ts-expect-error @ts-ignore */}
-
-        <Checkbox
-          className="rounded-full"
-          {...getInputProps(field, { type: 'checkbox' })}
-        />
-        <span className="text-sm">{label}</span>
-      </label>
     </div>
   )
 }

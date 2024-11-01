@@ -50,6 +50,7 @@ import {
   getWeeklyScheduleDates,
 } from '~/services/schedule.server'
 import { prisma } from '~/db.server'
+import { Spacer } from '~/components/spacer'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Schedule / CH' }]
@@ -98,10 +99,7 @@ export const ScheduleSchema = z
   })
   .refine(
     data => {
-      if (data.endTime && data.startTime > data.endTime) {
-        return false
-      }
-      return true
+      return !(data.startTime > data.endTime)
     },
     {
       message: 'Start time must be before the End time',
@@ -159,7 +157,7 @@ export async function action({ request }: ActionFunctionArgs) {
           ? getMonthlyScheduleDates(oneDay, isRepetiveMonth)
           : getWeeklyScheduleDates(weeklyDays, isRepetiveWeek)
 
-        const schedules = await prisma.schedule.findMany({
+        const existingSchedules = await prisma.schedule.findMany({
           where: {
             doctorId: data.userId,
             date: {
@@ -170,7 +168,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const isScheduleOverlapped = checkOverlapSchedule(
           scheduleDates,
-          schedules,
+          existingSchedules,
           { startTime, endTime },
         )
 
@@ -186,7 +184,7 @@ export async function action({ request }: ActionFunctionArgs) {
           return z.NEVER
         }
 
-        const schedule = await prisma.schedule.createMany({
+        const schedules = await prisma.schedule.createMany({
           data: scheduleDates.map(date => ({
             doctorId: data.userId,
             locationId,
@@ -200,7 +198,7 @@ export async function action({ request }: ActionFunctionArgs) {
           })),
         })
 
-        if (!schedule) {
+        if (!schedules) {
           ctx.addIssue({
             path: ['form'],
             code: 'custom',
@@ -209,7 +207,7 @@ export async function action({ request }: ActionFunctionArgs) {
           return z.NEVER
         }
 
-        return { ...data, schedule }
+        return { ...data, schedule: schedules }
       }),
     async: true,
   })
@@ -246,9 +244,10 @@ export default function AddSchedule() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
-      <PageTitle>Add Schedule_</PageTitle>
+      <PageTitle>Add Schedule</PageTitle>
       <HelpText />
-      <Form method="post" className="mt-10" {...getFormProps(form)}>
+      <Spacer variant="lg" />
+      <Form method="post" className="space-y-8" {...getFormProps(form)}>
         <div className="grid grid-cols-1 gap-12 align-top md:grid-cols-2">
           <input
             {...getInputProps(fields.userId, { type: 'hidden' })}
