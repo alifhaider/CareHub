@@ -48,3 +48,4 @@ User
 Doctor
 - [ ] Dashboard Overview Contain real data
 - [ ] Doctor can see upcoming appointment schedule
+- [ ] Can apply discount all the schedules
