@@ -24,7 +24,6 @@ remove `.example` and keep it as `.env` will do the job
 Then run to seed and configure database
 
 ```
-
 npm run setup
 
 ```
@@ -32,10 +31,7 @@ npm run setup
 And then start the app with
 
 ```
-
 npm run dev
-
-
 ```
 
 ### Todos
