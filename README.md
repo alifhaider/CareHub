@@ -25,7 +25,6 @@ Then run to seed and configure database
 
 ```
 npm run setup
-
 ```
 
 And then start the app with
