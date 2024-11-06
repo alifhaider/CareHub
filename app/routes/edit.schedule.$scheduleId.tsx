@@ -110,66 +110,66 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   console.log('scheduleId', scheduleId, 'running action')
 
-  const submission = await parseWithZod(formData, {
-    schema: () =>
-      UpdateScheduleSchema.transform(async (data, ctx) => {
-        const startTime = data.startTime
-        const endTime = data.endTime
-        const date = new Date(data.date)
+  // const submission = await parseWithZod(formData, {
+  //   schema: () =>
+  //     UpdateScheduleSchema.transform(async (data, ctx) => {
+  //       const startTime = data.startTime
+  //       const endTime = data.endTime
+  //       const date = new Date(data.date)
 
-        const schedules = await prisma.schedule.findMany({
-          where: {
-            doctorId: data.userId,
-            date,
-          },
-        })
+  //       const schedules = await prisma.schedule.findMany({
+  //         where: {
+  //           doctorId: data.userId,
+  //           date,
+  //         },
+  //       })
 
-        const isScheduleOverlapped = checkOverlapSchedule([date], schedules, {
-          startTime,
-          endTime,
-        })
+  //       const isScheduleOverlapped = checkOverlapSchedule([date], schedules, {
+  //         startTime,
+  //         endTime,
+  //       })
 
-        // Check if any of the results are `true`
-        const hasOverlap = isScheduleOverlapped.some(Boolean)
+  //       // Check if any of the results are `true`
+  //       const hasOverlap = isScheduleOverlapped.some(Boolean)
 
-        if (hasOverlap) {
-          ctx.addIssue({
-            path: ['form'],
-            code: 'custom',
-            message: 'Schedule is overlapped with another schedule',
-          })
-          return z.NEVER
-        }
+  //       if (hasOverlap) {
+  //         ctx.addIssue({
+  //           path: ['form'],
+  //           code: 'custom',
+  //           message: 'Schedule is overlapped with another schedule',
+  //         })
+  //         return z.NEVER
+  //       }
 
-        const schedule = await prisma.schedule.update({
-          where: { id: scheduleId },
-          data: {
-            locationId: data.locationId,
-            startTime: data.startTime,
-            endTime: data.endTime,
-            date: new Date(data.date),
-            maxAppointments: data.maxAppointment,
-          },
-        })
+  //       const schedule = await prisma.schedule.update({
+  //         where: { id: scheduleId },
+  //         data: {
+  //           locationId: data.locationId,
+  //           startTime: data.startTime,
+  //           endTime: data.endTime,
+  //           date: new Date(data.date),
+  //           maxAppointments: data.maxAppointment,
+  //         },
+  //       })
 
-        if (!schedule) {
-          ctx.addIssue({
-            code: 'custom',
-            message: 'Could not update schedule',
-          })
-          return z.NEVER
-        }
+  //       if (!schedule) {
+  //         ctx.addIssue({
+  //           code: 'custom',
+  //           message: 'Could not update schedule',
+  //         })
+  //         return z.NEVER
+  //       }
 
-        return { ...data, schedule }
-      }),
-    async: true,
-  })
+  //       return { ...data, schedule }
+  //     }),
+  //   async: true,
+  // })
 
-  if (submission.status !== 'success') {
-    return json(submission.reply({ formErrors: ['Could not update schedule'] }))
-  }
-  const { username } = submission.value
-  return redirectWithSuccess(`/profile/${username}`, {
+  // if (submission.status !== 'success') {
+  //   return json(submission.reply({ formErrors: ['Could not update schedule'] }))
+  // }
+  // const { username } = submission.value
+  return redirectWithSuccess(`/profile/${'username'}`, {
     message: 'Schedule updated successfully',
   })
 }

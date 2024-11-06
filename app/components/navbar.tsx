@@ -36,7 +36,7 @@ export default function Navbar({
   return (
     <nav className="sticky inset-0 z-50 mx-auto flex h-[73px] items-center justify-between border-b bg-background px-4 py-4 lg:px-12">
       <div className="flex w-full items-center justify-between">
-        <a href="/" className="text-xxl font-bold">
+        <a href="/" className="font-bold">
           Care<span className="text-lime-500">Hub</span>
         </a>
         <div className="hidden w-[400px] lg:block">

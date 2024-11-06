@@ -107,7 +107,7 @@ export default function Search() {
   const { doctors } = useLoaderData<typeof loader>()
 
   return (
-    <div className="page-container">
+    <div className="container">
       <div className="flex flex-col gap-6 lg:flex-row">
         <div className="w-full lg:w-2/3">
           <Form

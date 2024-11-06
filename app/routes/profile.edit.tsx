@@ -121,7 +121,7 @@ export default function ProfileEdit() {
   const educations = fields.educations.getFieldList()
   const specialties = fields.specialties.getFieldList()
   return (
-    <div className="page-container">
+    <div className="container">
       <Card className="mx-auto max-w-2xl border-none shadow-none">
         <CardHeader>
           <CardTitle className="text-3xl font-bold">Edit Profile</CardTitle>

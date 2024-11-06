@@ -146,7 +146,7 @@ export default function User() {
   const displayedSchedules = selectedDate ? selectedSchedule : upcomingSchedules
 
   return (
-    <div>
+    <>
       <div className="container">
         <div className="flex gap-6">
           <div className="h-32 w-32 rounded-sm bg-primary-foreground shadow-sm" />
@@ -222,7 +222,7 @@ export default function User() {
       <Spacer variant="lg" />
       {isDoctor ? <Reviews /> : null}
       <Spacer variant="lg" />
-    </div>
+    </>
   )
 }
 
@@ -322,7 +322,7 @@ const Schedules = ({
                   </div>
                 </div>
                 <div>
-                  <div className="text-xxl font-bold text-accent-foreground">
+                  <div className="font-bold text-accent-foreground">
                     Visit Fee: {schedule.visitFee}tk
                   </div>
                   <div className="text-secondary-foreground">
@@ -394,7 +394,10 @@ const Reviews = () => {
         </span>
       </p>
 
-      <p className="mt-1 text-sm">({totalReviews} Rating)</p>
+      <p className="mt-1 text-sm">
+        &#40;
+        {totalReviews} {Number(totalReviews) > 1 ? 'Ratings' : 'Rating'}&#41;
+      </p>
 
       <Spacer variant="md" />
 
@@ -408,7 +411,7 @@ const Reviews = () => {
             className="flex items-start gap-4 border-b py-6 first:pt-0"
           >
             <div className="h-10 w-10 rounded-full bg-primary-foreground" />
-            <div className="space-y-4">
+            <div className="flex-1 space-y-4">
               <div className="flex gap-2">
                 {Array.from({ length: 5 }, (_, i) => (
                   <span key={i}>

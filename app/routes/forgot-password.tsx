@@ -76,6 +76,29 @@ export async function action({ request }: ActionFunctionArgs) {
     type: 'reset-password',
     target: usernameOrEmail,
   })
+
+  function sendEmail({
+    to,
+    subject,
+    react,
+  }: {
+    to: string
+    subject: string
+    react: JSX.Element
+  }) {
+    return fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        to,
+        subject,
+        react: react.toString(),
+      }),
+    }).then(res => res.json())
+  }
+
   const response = await sendEmail({
     to: user.email,
     subject: `Epic Notes Password Reset`,
@@ -103,7 +126,7 @@ function ForgotPasswordEmail({
 }) {
   return (
     // <E.Html lang="en" dir="ltr">
-    // 	<E.Container>
+    // 	<E.container px-4>
     // 		<h1>
     // 			<E.Text>Epic Notes Password Reset</E.Text>
     // 		</h1>
@@ -116,7 +139,7 @@ function ForgotPasswordEmail({
     // 			<E.Text>Or click the link:</E.Text>
     // 		</p>
     // 		<E.Link href={onboardingUrl}>{onboardingUrl}</E.Link>
-    // 	</E.Container>
+    // 	</E.container px-4>
     // </E.Html>
     <></>
   )

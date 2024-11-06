@@ -1,7 +1,7 @@
 export default function Reminder() {
   return (
     <section className="bg-primary-foreground">
-      <div className="container mx-auto border-b p-10">
+      <div className="container mx-auto border-b py-10">
         <h2 className="mb-4 text-lg font-semibold text-primary">Reminders</h2>
         <div className="max-w-4xl space-y-4 text-sm">
           <p>

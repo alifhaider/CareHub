@@ -21,6 +21,8 @@ import { useEffect } from 'react'
 import { useToast } from './hooks/use-toast'
 import { Toaster } from './components/ui/toaster'
 import Footer from './components/footer'
+import { Spacer } from './components/spacer'
+import Banner from './components/banner'
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: stylesheet },
@@ -97,7 +99,9 @@ export function App() {
       <body className="bg-background">
         <div>
           <Toaster />
+          <Banner />
           <Navbar username={user?.username} isDoctor={isDoctor} />
+          <Spacer variant="lg" />
           <Outlet />
           <Footer />
         </div>

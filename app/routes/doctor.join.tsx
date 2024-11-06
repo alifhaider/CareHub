@@ -9,12 +9,12 @@ export const meta: MetaFunction = () => {
 
 export default function BecomeDoctor() {
   return (
-    <div className="page-container space-y-12">
+    <div className="container space-y-12">
       <div>
         <h1 className="max-w-4xl text-4xl font-extrabold md:text-7xl">
           Start getting appointments from CareHub
         </h1>
-        <p className="text-xxl mt-4 max-w-2xl text-muted-foreground">
+        <p className="mt-4 max-w-2xl text-muted-foreground">
           Streamline your practice, reach more patients, and provide better care
           with our innovative healthcare platform.
         </p>
@@ -24,8 +24,8 @@ export default function BecomeDoctor() {
       </Button>
 
       <p className="text-muted-foreground">
-        <span className="text-xxl font-extrabold">C</span>reate your profile and
-        start getting appointments from CareHub.
+        <span className="font-extrabold">C</span>reate your profile and start
+        getting appointments from CareHub.
       </p>
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         <Card>

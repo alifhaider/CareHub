@@ -34,13 +34,16 @@ npm run dev
 ```
 
 ### Todos
+
 User
+
 - [ ] User can reset password
 - [ ] User can book a schedule (With Special Note
 - [ ] Make the `/search` route fully functional
 - [ ] User can see their booking history
 
 Doctor
+
 - [ ] Dashboard Overview Contain real data
 - [ ] Doctor can see upcoming appointment schedule
 - [ ] Can apply discount all the schedules

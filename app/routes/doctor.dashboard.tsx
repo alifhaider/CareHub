@@ -9,7 +9,7 @@ export const meta: MetaFunction = () => {
 
 export default function DoctorDashboard() {
   return (
-    <div className="container mx-auto space-y-6 p-4">
+    <div className="container mx-auto space-y-6">
       <PageTitle>Dashboard</PageTitle>
       <Tabs defaultValue="overview" className="w-full border-b">
         <TabsList className="grid w-max grid-cols-3">

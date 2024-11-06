@@ -91,7 +91,7 @@ export default function Booking() {
   const remainingAmount = Math.abs(totalCost - (schedule.depositAmount ?? 0))
 
   return (
-    <div className="page-container">
+    <div className="container">
       <Card className="mx-auto w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">
@@ -218,7 +218,7 @@ export default function Booking() {
 
 const NoScheduleFound = () => {
   return (
-    <div className="page-container flex justify-center">
+    <div className="container flex justify-center">
       <PageTitle>Could not find schedule</PageTitle>
     </div>
   )
