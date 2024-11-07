@@ -41,9 +41,13 @@ User
 - [ ] User can book a schedule (With Special Note
 - [ ] Make the `/search` route fully functional
 - [ ] User can see their booking history
+- [ ] Can cancel a booking (at least before 6hrs)
 
 Doctor
 
 - [ ] Dashboard Overview Contain real data
 - [ ] Doctor can see upcoming appointment schedule
 - [ ] Can apply discount all the schedules
+- [ ] add balance and currency type
+- [ ] add social accounts
+- [ ] schedule location with lat and long (for better position at map)
