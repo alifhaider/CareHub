@@ -42,6 +42,7 @@ User
 - [ ] Make the `/search` route fully functional
 - [ ] User can see their booking history
 - [ ] Can cancel a booking (at least before 6hrs)
+- [ ] integrate google map, with doctor location marks
 
 Doctor
 
