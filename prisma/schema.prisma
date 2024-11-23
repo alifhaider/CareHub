@@ -38,6 +38,9 @@ model Doctor {
   id      String  @id @default(cuid())
   phone    String?
   image String?
+
+  balance Int @default(0)
+  currency String @default("TAKA")
   
   specialties DoctorSpecialty[]
 
@@ -111,6 +114,8 @@ model ScheduleLocation {
 model Booking {
   id String @id @default(cuid())
 
+  note String?
+
   schedule   Schedule @relation(fields: [scheduleId], references: [id])
   scheduleId String
 
@@ -181,4 +186,3 @@ model Verification {
 
   @@unique([target, type])
 }
-

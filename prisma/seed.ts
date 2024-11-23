@@ -147,6 +147,8 @@ async function seed() {
           bio: faker.person.bio(),
           userId: users[index].id,
           phone: faker.phone.number(),
+          balance: Math.floor(Math.random() * 1000),
+          currency: faker.finance.currencyName(),
           specialties: {
             createMany: {
               data: Array.from({
@@ -245,6 +247,7 @@ async function seed() {
           scheduleId: schedules[index % totalSchedules].id,
           userId: users[index % totalUsers].id,
           doctorId: doctors[Math.floor(Math.random() * totalDoctors)].userId,
+          note: faker.lorem.sentence(),
         },
       })
       return appointment
