@@ -147,6 +147,8 @@ export default function User() {
 
   return (
     <>
+      <Spacer variant="lg" />
+
       <div className="container">
         <div className="flex gap-6">
           {user.doctor?.image ? (

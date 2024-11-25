@@ -4,7 +4,7 @@ import {
   useActionData,
   useLoaderData,
 } from '@remix-run/react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Space, Trash2 } from 'lucide-react'
 import { ErrorList, Field, TextareaField } from '~/components/forms'
 import { Button, buttonVariants } from '~/components/ui/button'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -33,6 +33,7 @@ import { cn } from '~/lib/utils'
 import { prisma } from '~/db.server'
 import { requireUser } from '~/services/auth.server'
 import { redirectWithSuccess } from 'remix-toast'
+import { Spacer } from '~/components/spacer'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Onboarding / CH' }]
@@ -137,6 +138,7 @@ export default function DoctorOnboarding() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Spacer variant="lg" />
       <Card className="mx-auto max-w-2xl border-none shadow-none">
         <CardHeader className="pt-0">
           <CardTitle className="text-3xl font-bold">
@@ -318,6 +320,7 @@ export default function DoctorOnboarding() {
           </Form>
         </CardContent>
       </Card>
+      <Spacer variant="lg" />
     </div>
   )
 }

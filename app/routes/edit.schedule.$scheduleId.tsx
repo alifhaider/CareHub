@@ -191,6 +191,7 @@ export default function EditSchedule() {
 
   return (
     <div className="mx-auto max-w-7xl py-10">
+      <Spacer variant="lg" />
       <PageTitle>Edit Schedule</PageTitle>
       <Spacer variant="lg" />
       <Form method="patch" className="space-y-8" {...getFormProps(form)}>
@@ -272,6 +273,7 @@ export default function EditSchedule() {
         </div>
       </Form>
       <pre>{JSON.stringify(data, null, 2)}</pre>
+      <Spacer variant="lg" />
     </div>
   )
 }

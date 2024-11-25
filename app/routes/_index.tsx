@@ -1,6 +1,7 @@
 import type { MetaFunction } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import Reminder from '~/components/reminder'
+import { Spacer } from '~/components/spacer'
 import { SectionTitle } from '~/components/typography'
 import { Button } from '~/components/ui/button'
 import UserCard from '~/components/user-card'
@@ -50,6 +51,7 @@ export default function Index() {
   const users = useLoaderData<typeof loader>()
   return (
     <>
+      <Spacer variant="lg" />
       <section className="mx-auto flex flex-col gap-10 md:container md:flex-row">
         <div className="space-y-4">
           <h1 className="text-4xl font-extrabold md:text-6xl">
@@ -124,7 +126,7 @@ export default function Index() {
           </div>
         </div>
       </section>
-
+      <Spacer variant="lg" />
       <Reminder />
     </>
   )

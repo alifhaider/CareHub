@@ -46,15 +46,18 @@ export default function Navbar({
               action="/search"
               className="relative flex w-full items-center"
             >
-              <Link
-                to={`/search?q=${encodeURIComponent('')}`}
-                className="absolute right-0 mr-2 flex cursor-pointer items-center rounded-full bg-primary px-2 py-2"
-              >
-                <Search
-                  className="h-3 w-3 text-primary-foreground dark:text-gray-400"
-                  aria-hidden="true"
-                />
-              </Link>
+              <div className="absolute right-0 mr-2 flex cursor-pointer items-center rounded-full bg-primary px-2 py-2">
+                <button type="submit">
+                  <Search
+                    className="h-3 w-3 text-primary-foreground dark:text-gray-400"
+                    aria-hidden="true"
+                  />
+                </button>
+                {/* 
+                <button type="submit" className="sr-only">
+                  Search
+                </button> */}
+              </div>
               <Input
                 className="w-full rounded-full border-2 border-transparent bg-secondary py-2 pr-10 text-sm leading-6 text-foreground transition-all duration-300 ease-in-out focus:border-primary focus:bg-background focus-visible:ring-offset-2 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-primary-foreground dark:focus:bg-gray-700"
                 placeholder="Search..."

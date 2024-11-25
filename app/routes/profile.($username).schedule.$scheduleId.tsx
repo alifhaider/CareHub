@@ -120,6 +120,7 @@ export default function Booking() {
 
   return (
     <div className="container">
+      <Spacer variant="lg" />
       <Card className="mx-auto w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">

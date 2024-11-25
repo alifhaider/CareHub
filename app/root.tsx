@@ -101,7 +101,6 @@ export function App() {
           <Toaster />
           <Banner />
           <Navbar username={user?.username} isDoctor={isDoctor} />
-          <Spacer variant="lg" />
           <Outlet />
           <Footer />
         </div>

@@ -243,199 +243,203 @@ export default function AddSchedule() {
   })
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <PageTitle>Add Schedule</PageTitle>
-      <HelpText />
+    <>
       <Spacer variant="lg" />
-      <Form method="post" className="space-y-8" {...getFormProps(form)}>
-        <div className="grid grid-cols-1 gap-12 align-top md:grid-cols-2">
-          <input
-            {...getInputProps(fields.userId, { type: 'hidden' })}
-            value={data.userId}
-          />
-          {/* this is to make the navigation after successful creation */}
-          <input
-            {...getInputProps(fields.username, { type: 'hidden' })}
-            value={data.username}
-          />
-          <LocationCombobox field={fields.locationId} />
-          <div className="space-y-1">
-            <Label htmlFor="scheduleType">Schedule Type</Label>
-            <Select
-              defaultValue={scheduleType}
-              {...getInputProps(fields.scheduleType, { type: 'hidden' })}
-              onValueChange={value => setScheduleType(value as ScheduleType)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ScheduleType.SINGLE_DAY}>One Day</SelectItem>
-                <SelectItem value={ScheduleType.REPEAT_WEEKS}>
-                  Repeat Weekly
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <div className="flex items-center gap-8">
+      <div className="mx-auto max-w-7xl">
+        <PageTitle>Add Schedule</PageTitle>
+        <HelpText />
+        <Spacer variant="lg" />
+        <Form method="post" className="space-y-8" {...getFormProps(form)}>
+          <div className="grid grid-cols-1 gap-12 align-top md:grid-cols-2">
+            <input
+              {...getInputProps(fields.userId, { type: 'hidden' })}
+              value={data.userId}
+            />
+            {/* this is to make the navigation after successful creation */}
+            <input
+              {...getInputProps(fields.username, { type: 'hidden' })}
+              value={data.username}
+            />
+            <LocationCombobox field={fields.locationId} />
+            <div className="space-y-1">
+              <Label htmlFor="scheduleType">Schedule Type</Label>
+              <Select
+                defaultValue={scheduleType}
+                {...getInputProps(fields.scheduleType, { type: 'hidden' })}
+                onValueChange={value => setScheduleType(value as ScheduleType)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ScheduleType.SINGLE_DAY}>
+                    One Day
+                  </SelectItem>
+                  <SelectItem value={ScheduleType.REPEAT_WEEKS}>
+                    Repeat Weekly
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <div className="flex items-center gap-8">
+                <Field
+                  labelProps={{ children: 'Start time', className: 'mb-1' }}
+                  inputProps={{
+                    defaultValue: '10:00',
+                    ...getInputProps(fields.startTime, { type: 'time' }),
+                  }}
+                  errors={fields.startTime.errors}
+                />
+                <Field
+                  labelProps={{ children: 'End time', className: 'mb-1' }}
+                  inputProps={{
+                    defaultValue: '17:00',
+                    ...getInputProps(fields.endTime, { type: 'time' }),
+                  }}
+                  errors={fields.endTime.errors}
+                />
+              </div>
               <Field
-                labelProps={{ children: 'Start time', className: 'mb-1' }}
+                labelProps={{ children: 'Maximum Appointments per day' }}
                 inputProps={{
-                  defaultValue: '10:00',
-                  ...getInputProps(fields.startTime, { type: 'time' }),
+                  defaultValue: 10,
+                  ...getInputProps(fields.maxAppointment, { type: 'number' }),
                 }}
-                errors={fields.startTime.errors}
-              />
-              <Field
-                labelProps={{ children: 'End time', className: 'mb-1' }}
-                inputProps={{
-                  defaultValue: '17:00',
-                  ...getInputProps(fields.endTime, { type: 'time' }),
-                }}
-                errors={fields.endTime.errors}
+                errors={fields.maxAppointment.errors}
               />
             </div>
-            <Field
-              labelProps={{ children: 'Maximum Appointments per day' }}
-              inputProps={{
-                defaultValue: 10,
-                ...getInputProps(fields.maxAppointment, { type: 'number' }),
-              }}
-              errors={fields.maxAppointment.errors}
-            />
+            <div className="flex flex-col gap-2">
+              {scheduleType === ScheduleType.SINGLE_DAY ? (
+                <>
+                  <Label htmlFor="date" className="mb-1">
+                    Date
+                  </Label>
+                  <input
+                    {...getInputProps(fields.oneDay, { type: 'hidden' })}
+                    value={date ? format(date, 'yyyy-MM-dd') : ''}
+                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={'outline'}
+                        className={cn(
+                          'mb-2 w-[240px] justify-start text-left font-normal',
+                          !date && 'text-muted-foreground',
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, 'PPP') : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <ErrorList errors={fields.oneDay.errors} />
+
+                  <RepeatCheckbox
+                    field={fields.repeatMonths}
+                    label="Repeat every month"
+                  />
+                </>
+              ) : null}
+              {scheduleType === ScheduleType.REPEAT_WEEKS ? (
+                <>
+                  <Label className="text-sm font-bold">Days</Label>
+
+                  <fieldset>
+                    <ul className="grid grid-cols-3 gap-x-4 gap-y-2">
+                      {DAYS.map(day => (
+                        <li key={day} className="flex space-x-2">
+                          <label className="flex items-center space-x-2 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                            {/* @ts-expect-error @ts-ignore */}
+                            <Checkbox
+                              {...getInputProps(fields.weeklyDays, {
+                                type: 'checkbox',
+                                value: day,
+                              })}
+                            />
+
+                            <span>{day}</span>
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="pt-1">
+                      <ErrorList errors={fields.weeklyDays.errors} />
+                    </div>
+                  </fieldset>
+                  <RepeatCheckbox
+                    field={fields.repeatWeeks}
+                    label="Repeat every week"
+                  />
+                </>
+              ) : null}
+
+              <p className="mt-2 text-sm text-secondary-foreground">
+                <ul className="list-disc space-y-2">
+                  <li>
+                    <strong>Note: </strong>Repeated schedules can be created all
+                    at once.
+                  </li>
+                  <li>
+                    For weekly schedules, 52 individual schedules will be
+                    generated.
+                  </li>
+                  <li>
+                    For monthly schedules, 12 individual schedules will be
+                    generated.
+                  </li>
+                </ul>
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              <Field
+                labelProps={{ children: 'Visiting Fee' }}
+                inputProps={{
+                  placeholder: '2000tk',
+                  ...getInputProps(fields.visitingFee, { type: 'number' }),
+                }}
+                errors={fields.visitingFee.errors}
+              />
+
+              <Field
+                labelProps={{ children: 'Serial Fee' }}
+                inputProps={{
+                  placeholder: '1000tk',
+                  ...getInputProps(fields.serialFee, { type: 'number' }),
+                }}
+                errors={fields.serialFee.errors}
+              />
+
+              <Field
+                labelProps={{ children: 'Discount' }}
+                inputProps={{
+                  defaultValue: 0,
+                  ...getInputProps(fields.discount, { type: 'number' }),
+                }}
+                errors={fields.discount.errors}
+              />
+            </div>
           </div>
-          <div className="flex flex-col gap-2">
-            {scheduleType === ScheduleType.SINGLE_DAY ? (
-              <>
-                <Label htmlFor="date" className="mb-1">
-                  Date
-                </Label>
-                <input
-                  {...getInputProps(fields.oneDay, { type: 'hidden' })}
-                  value={date ? format(date, 'yyyy-MM-dd') : ''}
-                />
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={'outline'}
-                      className={cn(
-                        'mb-2 w-[240px] justify-start text-left font-normal',
-                        !date && 'text-muted-foreground',
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, 'PPP') : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <ErrorList errors={fields.oneDay.errors} />
 
-                <RepeatCheckbox
-                  field={fields.repeatMonths}
-                  label="Repeat every month"
-                />
-              </>
-            ) : null}
-            {scheduleType === ScheduleType.REPEAT_WEEKS ? (
-              <>
-                <Label className="text-sm font-bold">Days</Label>
-
-                <fieldset>
-                  <ul className="grid grid-cols-3 gap-x-4 gap-y-2">
-                    {DAYS.map(day => (
-                      <li key={day} className="flex space-x-2">
-                        <label className="flex items-center space-x-2 text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          {/* @ts-expect-error @ts-ignore */}
-                          <Checkbox
-                            {...getInputProps(fields.weeklyDays, {
-                              type: 'checkbox',
-                              value: day,
-                            })}
-                          />
-
-                          <span>{day}</span>
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="pt-1">
-                    <ErrorList errors={fields.weeklyDays.errors} />
-                  </div>
-                </fieldset>
-                <RepeatCheckbox
-                  field={fields.repeatWeeks}
-                  label="Repeat every week"
-                />
-              </>
-            ) : null}
-
-            <p className="mt-2 text-sm text-secondary-foreground">
-              <ul className="list-disc space-y-2">
-                <li>
-                  <strong>Note: </strong>Repeated schedules can be created all
-                  at once.
-                </li>
-                <li>
-                  For weekly schedules, 52 individual schedules will be
-                  generated.
-                </li>
-                <li>
-                  For monthly schedules, 12 individual schedules will be
-                  generated.
-                </li>
-              </ul>
-            </p>
+          <div className="mt-12 flex items-center justify-center">
+            <Button type="submit">Create Schedule</Button>
           </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <Field
-              labelProps={{ children: 'Visiting Fee' }}
-              inputProps={{
-                placeholder: '2000tk',
-                ...getInputProps(fields.visitingFee, { type: 'number' }),
-              }}
-              errors={fields.visitingFee.errors}
-            />
 
-            <Field
-              labelProps={{ children: 'Serial Fee' }}
-              inputProps={{
-                placeholder: '1000tk',
-                ...getInputProps(fields.serialFee, { type: 'number' }),
-              }}
-              errors={fields.serialFee.errors}
-            />
-
-            <Field
-              labelProps={{ children: 'Discount' }}
-              inputProps={{
-                defaultValue: 0,
-                ...getInputProps(fields.discount, { type: 'number' }),
-              }}
-              errors={fields.discount.errors}
-            />
+          <div className="mt-4 flex items-center justify-center">
+            <ErrorList errors={form.errors} />
           </div>
-        </div>
-
-        <div className="mt-12 flex items-center justify-center">
-          <Button type="submit">Create Schedule</Button>
-        </div>
-
-        <div className="mt-4 flex items-center justify-center">
-          <ErrorList errors={form.errors} />
-        </div>
-      </Form>
-
+        </Form>
+      </div>
       <Spacer variant="lg" />
-    </div>
+    </>
   )
 }
 type CheckboxProps = {

@@ -9,6 +9,7 @@ import {
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 import { ErrorList, Field } from '~/components/forms'
+import { Spacer } from '~/components/spacer'
 import { PageTitle } from '~/components/typography'
 import {
   Accordion,
@@ -153,61 +154,65 @@ export default function AddLocation() {
     shouldRevalidate: 'onSubmit',
   })
   return (
-    <div className="mx-auto max-w-7xl py-10">
-      <PageTitle>Add Location_</PageTitle>
-      <HelpText />
-      <Form method="post" className="mt-10" {...getFormProps(form)}>
-        <div className="grid grid-cols-1 gap-4 align-top md:grid-cols-2">
-          <input type="hidden" name="userId" value={data.doctor.userId} />
-          <Field
-            labelProps={{ children: 'Location Name', className: 'mb-1' }}
-            inputProps={{
-              placeholder: 'Square Hospital',
-              ...getInputProps(fields.name, { type: 'text' }),
-            }}
-            errors={fields.name.errors}
-          />
-          <Field
-            labelProps={{ children: 'Address', className: 'mb-1' }}
-            inputProps={{
-              placeholder: '18/F West Panthapath',
-              ...getInputProps(fields.address, { type: 'text' }),
-            }}
-            errors={fields.address.errors}
-          />
-          <Field
-            labelProps={{ children: 'City', className: 'mb-1' }}
-            inputProps={{
-              placeholder: 'Dhaka',
-              ...getInputProps(fields.city, { type: 'text' }),
-            }}
-            errors={fields.city.errors}
-          />
-          <Field
-            labelProps={{ children: 'State', className: 'mb-1' }}
-            inputProps={{
-              placeholder: 'Dhaka',
-              ...getInputProps(fields.state, { type: 'text' }),
-            }}
-            errors={fields.state.errors}
-          />
-          <Field
-            labelProps={{ children: 'Zip Code', className: 'mb-1' }}
-            inputProps={{
-              placeholder: '1205',
-              ...getInputProps(fields.zip, { type: 'text' }),
-            }}
-            errors={fields.zip.errors}
-          />
-        </div>
-        <div className="flex flex-col items-center justify-center gap-4">
-          <div className="h-4">
-            <ErrorList size="lg" errors={form.errors} />
+    <>
+      <Spacer variant="lg" />
+      <div className="mx-auto max-w-7xl py-10">
+        <PageTitle>Add Location</PageTitle>
+        <HelpText />
+        <Form method="post" className="mt-10" {...getFormProps(form)}>
+          <div className="grid grid-cols-1 gap-4 align-top md:grid-cols-2">
+            <input type="hidden" name="userId" value={data.doctor.userId} />
+            <Field
+              labelProps={{ children: 'Location Name', className: 'mb-1' }}
+              inputProps={{
+                placeholder: 'Square Hospital',
+                ...getInputProps(fields.name, { type: 'text' }),
+              }}
+              errors={fields.name.errors}
+            />
+            <Field
+              labelProps={{ children: 'Address', className: 'mb-1' }}
+              inputProps={{
+                placeholder: '18/F West Panthapath',
+                ...getInputProps(fields.address, { type: 'text' }),
+              }}
+              errors={fields.address.errors}
+            />
+            <Field
+              labelProps={{ children: 'City', className: 'mb-1' }}
+              inputProps={{
+                placeholder: 'Dhaka',
+                ...getInputProps(fields.city, { type: 'text' }),
+              }}
+              errors={fields.city.errors}
+            />
+            <Field
+              labelProps={{ children: 'State', className: 'mb-1' }}
+              inputProps={{
+                placeholder: 'Dhaka',
+                ...getInputProps(fields.state, { type: 'text' }),
+              }}
+              errors={fields.state.errors}
+            />
+            <Field
+              labelProps={{ children: 'Zip Code', className: 'mb-1' }}
+              inputProps={{
+                placeholder: '1205',
+                ...getInputProps(fields.zip, { type: 'text' }),
+              }}
+              errors={fields.zip.errors}
+            />
           </div>
-          <Button type="submit">Create Location</Button>
-        </div>
-      </Form>
-    </div>
+          <div className="flex flex-col items-center justify-center gap-4">
+            <div className="h-4">
+              <ErrorList size="lg" errors={form.errors} />
+            </div>
+            <Button type="submit">Create Location</Button>
+          </div>
+        </Form>
+      </div>
+      <Spacer variant="lg" />
+    </>
   )
 }
 
