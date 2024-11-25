@@ -10,8 +10,10 @@ export const meta: MetaFunction = () => {
 export default function DoctorDashboard() {
   return (
     <div className="container mx-auto space-y-6">
-      <PageTitle>Dashboard</PageTitle>
-      <Tabs defaultValue="overview" className="w-full border-b">
+      <Tabs
+        defaultValue="overview"
+        className="mx-auto flex w-full max-w-2xl items-center justify-center border-b"
+      >
         <TabsList className="grid w-max grid-cols-3">
           <TabsTrigger value="overview" asChild>
             <Link to="/doctor/dashboard/overview">Overview</Link>
@@ -24,6 +26,7 @@ export default function DoctorDashboard() {
           </TabsTrigger>
         </TabsList>
       </Tabs>
+      <Spacer variant="sm" />
       <Outlet />
     </div>
   )

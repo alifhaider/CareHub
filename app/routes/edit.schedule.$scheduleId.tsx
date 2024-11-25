@@ -96,6 +96,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   })
 }
 
+// TODO: Implement the action function
 export async function action({ request, params }: ActionFunctionArgs) {
   console.log('running action')
   const formData = await request.formData()

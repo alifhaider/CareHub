@@ -38,7 +38,7 @@ npm run dev
 User
 
 - [ ] User can reset password
-- [ ] User can book a schedule (With Special Note
+- [x] User can book a schedule (With Special Note
 - [ ] Make the `/search` route fully functional
 - [ ] User can see their booking history
 - [ ] Can cancel a booking (at least before 6hrs)

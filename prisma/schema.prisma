@@ -16,6 +16,10 @@ model User {
   email    String    @unique
   username String    @unique
   fullName   String?
+
+  phone    String?
+  address  String?
+
   password Password?
 
   bookings Booking[]
@@ -36,7 +40,6 @@ model Password {
 
 model Doctor {
   id      String  @id @default(cuid())
-  phone    String?
   image String?
 
   balance Int @default(0)
@@ -114,6 +117,8 @@ model ScheduleLocation {
 model Booking {
   id String @id @default(cuid())
 
+  name String?
+  phone String?
   note String?
 
   schedule   Schedule @relation(fields: [scheduleId], references: [id])

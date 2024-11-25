@@ -61,7 +61,7 @@ export async function requireAnonymous(request: Request) {
 export async function requireUser(request: Request) {
   const userId = await requireUserId(request)
   const user = await prisma.user.findUnique({
-    select: { id: true, username: true },
+    select: { id: true, username: true, fullName: true, phone: true },
     where: { id: userId },
   })
   if (!user) {

@@ -51,7 +51,6 @@ const SpecialtySchema = z.object({
 export const OnboardingSchema = z.object({
   userId: z.string({ message: 'User ID is required' }),
   fullName: z.string().optional(),
-  phoneNumber: z.string().optional(),
   educations: z
     .array(EducationSchema)
     .nonempty({ message: 'Add at least one education (ex: MBBS, MD)' }),
@@ -74,7 +73,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect(`/profile/${user.username}`)
   }
 
-  return json({ userId: user.id, username: user.username })
+  return json({ user })
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -119,7 +118,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function DoctorOnboarding() {
   const lastResult = useActionData<typeof action>()
-  const { userId, username } = useLoaderData<typeof loader>()
+  const { user } = useLoaderData<typeof loader>()
 
   const [form, fields] = useForm({
     lastResult,
@@ -137,9 +136,9 @@ export default function DoctorOnboarding() {
   const specialties = fields.specialties.getFieldList()
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background">
       <Card className="mx-auto max-w-2xl border-none shadow-none">
-        <CardHeader>
+        <CardHeader className="pt-0">
           <CardTitle className="text-3xl font-bold">
             Doctor Onboarding
           </CardTitle>
@@ -150,22 +149,15 @@ export default function DoctorOnboarding() {
         <CardContent>
           <Form method="POST" className="space-y-8" {...getFormProps(form)}>
             <div className="grid grid-cols-2 gap-4">
-              <input type="hidden" name="userId" value={userId} />
-              <input type="hidden" name="username" value={username} />
-              <Field
-                labelProps={{ children: 'Phone Number' }}
-                inputProps={{
-                  placeholder: '+1234567890',
-                  ...getInputProps(fields.phoneNumber, { type: 'tel' }),
-                }}
-                errors={fields.phoneNumber.errors}
-              />
+              <input type="hidden" name="userId" value={user.id} />
+              <input type="hidden" name="username" value={user.username} />
 
               <Field
                 labelProps={{ children: 'Full Name' }}
                 inputProps={{
-                  placeholder: 'John Doe',
+                  placeholder: 'Dr. Md. Shahriar Hossain',
                   ...getInputProps(fields.fullName, { type: 'text' }),
+                  defaultValue: user.fullName ?? '',
                 }}
                 errors={fields.fullName.errors}
               />
@@ -184,6 +176,7 @@ export default function DoctorOnboarding() {
                             className="col-span-4"
                             labelProps={{ children: 'Institute' }}
                             inputProps={{
+                              placeholder: 'Dhaka Medical College',
                               ...getInputProps(educationFields.institute, {
                                 type: 'text',
                               }),
@@ -194,6 +187,7 @@ export default function DoctorOnboarding() {
                             className="col-span-2"
                             labelProps={{ children: 'Degree' }}
                             inputProps={{
+                              placeholder: 'MBBS',
                               ...getInputProps(educationFields.degree, {
                                 type: 'text',
                               }),
@@ -204,6 +198,7 @@ export default function DoctorOnboarding() {
                             className="col-span-2"
                             labelProps={{ children: 'Passed Year' }}
                             inputProps={{
+                              placeholder: '2010',
                               ...getInputProps(educationFields.passedYear, {
                                 type: 'text',
                               }),
@@ -259,6 +254,7 @@ export default function DoctorOnboarding() {
                             className="col-span-4"
                             labelProps={{ children: 'Name' }}
                             inputProps={{
+                              placeholder: 'Cardiology',
                               ...getInputProps(specialtyFields.name, {
                                 type: 'text',
                               }),

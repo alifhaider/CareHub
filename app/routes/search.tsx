@@ -17,6 +17,11 @@ import {
   getFormattedTimeDifference,
   getUpcomingDateSchedules,
 } from '~/utils/schedule'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '~/components/ui/popover'
 
 export const meta: MetaFunction = () => {
   return [
@@ -107,9 +112,9 @@ export default function Search() {
   const { doctors } = useLoaderData<typeof loader>()
 
   return (
-    <div className="container">
+    <div className="">
       <div className="flex flex-col gap-6 lg:flex-row">
-        <div className="w-full lg:w-2/3">
+        {/* <div className="w-full lg:w-2/3">
           <Form
             method="GET"
             action="/search"
@@ -232,6 +237,88 @@ export default function Search() {
               </Card>
             )
           })}
+        </div> */}
+        <div className="sticky top-0 z-50 bg-white shadow-md">
+          <div className="container mx-auto p-4">
+            <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+              {/* Location Input */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <div className="relative w-full sm:w-1/3">
+                    <input
+                      type="text"
+                      // value={location}
+                      // onChange={(e) => setLocation(e.target.value)}
+                      placeholder="City, address, or current location"
+                      className="w-full rounded-md border p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <span className="absolute right-3 top-3 text-gray-500">
+                      📍
+                    </span>
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <div className="flex flex-col space-y-2">
+                    <button className="rounded p-2 hover:bg-gray-200">
+                      Current Location
+                    </button>
+                    <button className="rounded p-2 hover:bg-gray-200">
+                      Anywhere
+                    </button>
+                    <button className="rounded p-2 hover:bg-gray-200">
+                      Keraniganj, Dhaka Division
+                    </button>
+                    <button className="rounded p-2 hover:bg-gray-200">
+                      Los Angeles
+                    </button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Doctor Name Input */}
+              <div className="relative w-full sm:w-1/3">
+                <input
+                  type="text"
+                  // value={doctorName}
+                  // onChange={(e) => setDoctorName(e.target.value)}
+                  placeholder="Doctor Name"
+                  className="w-full rounded-md border p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <span className="absolute right-3 top-3 text-gray-500">👨‍⚕️</span>
+              </div>
+
+              {/* Specialty Input */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <div className="relative w-full sm:w-1/3">
+                    <input
+                      type="text"
+                      // value={specialty}
+                      // onChange={(e) => setSpecialty(e.target.value)}
+                      placeholder="Specialty"
+                      className="w-full rounded-md border p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <span className="absolute right-3 top-3 text-gray-500">
+                      🩺
+                    </span>
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <div className="flex flex-col space-y-2">
+                    <button className="rounded p-2 hover:bg-gray-200">
+                      Cardiologist
+                    </button>
+                    <button className="rounded p-2 hover:bg-gray-200">
+                      Dentist
+                    </button>
+                    <button className="rounded p-2 hover:bg-gray-200">
+                      General Physician
+                    </button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
         </div>
         <div className="right-0 hidden h-[calc(100vh-6rem)] md:block lg:fixed lg:top-20 lg:w-1/3">
           <div className="flex h-full items-center justify-center rounded-lg bg-gray-200 p-4">

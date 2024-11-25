@@ -126,6 +126,7 @@ async function seed() {
         data: {
           email: person.email(),
           username,
+          phone: faker.phone.number(),
           fullName: person.displayName(),
           password: {
             create: {
@@ -146,7 +147,6 @@ async function seed() {
         data: {
           bio: faker.person.bio(),
           userId: users[index].id,
-          phone: faker.phone.number(),
           balance: Math.floor(Math.random() * 1000),
           currency: faker.finance.currencyName(),
           specialties: {
@@ -247,6 +247,8 @@ async function seed() {
           scheduleId: schedules[index % totalSchedules].id,
           userId: users[index % totalUsers].id,
           doctorId: doctors[Math.floor(Math.random() * totalDoctors)].userId,
+          name: users[index % totalUsers].fullName,
+          phone: users[index % totalUsers].phone,
           note: faker.lorem.sentence(),
         },
       })
@@ -274,6 +276,8 @@ async function seed() {
     data: {
       email: 'alif@haider.dev',
       username: 'alif',
+      fullName: 'Alif Haider',
+      phone: faker.phone.number(),
       password: {
         create: {
           hash: await bcrypt.hash('password', 10),

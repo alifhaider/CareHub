@@ -243,7 +243,7 @@ export default function AddSchedule() {
   })
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
+    <div className="mx-auto max-w-7xl">
       <PageTitle>Add Schedule</PageTitle>
       <HelpText />
       <Spacer variant="lg" />
@@ -378,12 +378,21 @@ export default function AddSchedule() {
               </>
             ) : null}
 
-            <p className="mt-2 text-xs text-secondary-foreground">
-              <strong>Note: </strong>Repeated schedules can be created all at
-              once. <br /> For example, if you set a schedule for every
-              Saturday, 52 individual schedules will be generated. <br />{' '}
-              However, each schedule must be edited one by one; simultaneous
-              editing is not possible.
+            <p className="mt-2 text-sm text-secondary-foreground">
+              <ul className="list-disc space-y-2">
+                <li>
+                  <strong>Note: </strong>Repeated schedules can be created all
+                  at once.
+                </li>
+                <li>
+                  For weekly schedules, 52 individual schedules will be
+                  generated.
+                </li>
+                <li>
+                  For monthly schedules, 12 individual schedules will be
+                  generated.
+                </li>
+              </ul>
             </p>
           </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -424,6 +433,8 @@ export default function AddSchedule() {
           <ErrorList errors={form.errors} />
         </div>
       </Form>
+
+      <Spacer variant="lg" />
     </div>
   )
 }

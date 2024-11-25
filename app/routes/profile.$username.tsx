@@ -149,7 +149,20 @@ export default function User() {
     <>
       <div className="container">
         <div className="flex gap-6">
-          <div className="h-32 w-32 rounded-sm bg-primary-foreground shadow-sm" />
+          {user.doctor?.image ? (
+            <img
+              src={user.doctor?.image}
+              alt={user.username}
+              className="h-32 w-32 rounded-sm shadow-sm"
+            />
+          ) : (
+            <img
+              src="/placeholder.svg"
+              alt={user.username}
+              className="h-32 w-32 rounded-sm bg-primary-foreground shadow-sm"
+            />
+          )}
+
           <div className="w-full">
             <div className="flex items-center justify-between">
               <SectionTitle>{user.fullName ?? user.username}</SectionTitle>

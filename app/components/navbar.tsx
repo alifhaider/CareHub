@@ -39,7 +39,7 @@ export default function Navbar({
         <a href="/" className="font-bold">
           Care<span className="text-lime-500">Hub</span>
         </a>
-        <div className="hidden w-[400px] lg:block">
+        <div className="hidden w-full max-w-xl lg:block">
           {!isHidden && (
             <Form
               method="GET"

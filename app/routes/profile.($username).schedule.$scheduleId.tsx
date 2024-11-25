@@ -1,5 +1,6 @@
 import {
   ActionFunctionArgs,
+  json,
   LoaderFunctionArgs,
   MetaFunction,
 } from '@remix-run/node'
@@ -25,11 +26,15 @@ import { z } from 'zod'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { formatTime } from '~/utils/schedule'
+import { Spacer } from '~/components/spacer'
 
 const BookingFormSchema = z.object({
+  doctorId: z.string(),
+  userId: z.string(),
+  scheduleId: z.string(),
   name: z.string(),
   phone: z.string(),
-  notes: z.string().optional(),
+  note: z.string().optional(),
 })
 
 export const meta: MetaFunction = () => {
@@ -39,13 +44,35 @@ export const meta: MetaFunction = () => {
   ]
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   await requireUser(request)
+  const formData = await request.formData()
+  const submission = parseWithZod(formData, {
+    schema: BookingFormSchema,
+  })
+
+  if (submission.status !== 'success') {
+    return json(
+      submission.reply({ formErrors: ['Could not complete booking'] }),
+    )
+  }
+
+  // Save the booking
+  // Send a confirmation email
+
+  const booking = await prisma.booking.create({
+    data: {
+      doctorId: submission.value.doctorId,
+      userId: submission.value.userId,
+      scheduleId: submission.value.scheduleId,
+      phone: submission.value.phone,
+      note: submission.value.note,
+    },
+  })
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  console.log('running loader')
-  await requireUser(request)
+  const user = await requireUser(request)
   const scheduleId = params.scheduleId
   invariant(scheduleId, 'Schedule ID is required')
   const schedule = await prisma.schedule.findUnique({
@@ -58,11 +85,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       },
     },
   })
-  return { schedule }
+
+  return { schedule, user }
 }
 
 export default function Booking() {
-  const { schedule } = useLoaderData<typeof loader>()
+  const { schedule, user } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
 
   const [form, fields] = useForm({
@@ -168,13 +196,31 @@ export default function Booking() {
             </div>
           </div>
 
+          <hr />
           <Form method="POST" {...getFormProps(form)}>
             <div className="space-y-4">
+              <p className="py-2 text-sm">
+                Please add{' '}
+                <strong className="underline">your or the patient's</strong>{' '}
+                information below
+              </p>
+
+              <input
+                {...getInputProps(fields.doctorId, { type: 'hidden' })}
+                value={schedule.doctorId}
+              />
+
+              <input
+                {...getInputProps(fields.userId, { type: 'hidden' })}
+                value={user.id}
+              />
+
               <div className="grid grid-cols-2 gap-4">
                 <Field
                   labelProps={{ children: 'Name' }}
                   inputProps={{
                     ...getInputProps(fields.name, { type: 'text' }),
+                    defaultValue: user.fullName ?? '',
                   }}
                   errors={fields.name.errors}
                 />
@@ -183,6 +229,7 @@ export default function Booking() {
                   labelProps={{ children: 'Phone' }}
                   inputProps={{
                     ...getInputProps(fields.phone, { type: 'tel' }),
+                    defaultValue: user.phone ?? '',
                   }}
                   errors={fields.phone.errors}
                 />
@@ -192,9 +239,9 @@ export default function Booking() {
                 <TextareaField
                   labelProps={{ children: 'Additional Notes' }}
                   textareaProps={{
-                    ...getInputProps(fields.notes, { type: 'text' }),
+                    ...getInputProps(fields.note, { type: 'text' }),
                   }}
-                  errors={fields.notes.errors}
+                  errors={fields.note.errors}
                 />
               </div>
             </div>
@@ -212,6 +259,8 @@ export default function Booking() {
           </Button>
         </CardFooter>
       </Card>
+
+      <Spacer variant="lg" />
     </div>
   )
 }

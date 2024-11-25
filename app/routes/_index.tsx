@@ -50,8 +50,8 @@ export default function Index() {
   const users = useLoaderData<typeof loader>()
   return (
     <>
-      <section className="mx-auto flex flex-col gap-10 md:flex-row">
-        <div className="container space-y-4">
+      <section className="mx-auto flex flex-col gap-10 md:container md:flex-row">
+        <div className="space-y-4">
           <h1 className="text-4xl font-extrabold md:text-6xl">
             Find and Book Your Doctor&apos;s Appointment
           </h1>
