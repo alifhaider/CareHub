@@ -34,6 +34,12 @@ const isValidDate = (date: string): boolean => {
   return !isNaN(new Date(date).getTime())
 }
 
+// get a time string like 9:20 and return 09:20
+export function formatTimeToTwoDigits(time: string): string {
+  const [hour, minute] = time.split(':').map(Number)
+  return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+}
+
 // time is a string in the format "2: 14" or "14: 00"
 // should return 02:14 AM or 02:14 PM
 // handle edge cases like invalid time
