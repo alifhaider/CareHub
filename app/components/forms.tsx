@@ -47,13 +47,15 @@ export function Field({
   const errorId = errors?.length ? `${id}-error` : undefined
   return (
     <div className={className}>
-      <Label htmlFor={id} {...labelProps} />
-      <Input
-        id={id}
-        aria-invalid={errorId ? true : undefined}
-        aria-describedby={errorId}
-        {...inputProps}
-      />
+      <div className="space-y-2">
+        <Label htmlFor={id} {...labelProps} />
+        <Input
+          id={id}
+          aria-invalid={errorId ? true : undefined}
+          aria-describedby={errorId}
+          {...inputProps}
+        />
+      </div>
       <div className="min-h-[32px] pt-1">
         {errorId ? <ErrorList id={errorId} errors={errors} /> : null}
       </div>
