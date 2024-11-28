@@ -7,6 +7,7 @@ import {
   redirect,
 } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { redirectWithSuccess } from 'remix-toast'
 import { z } from 'zod'
 import { ErrorList, Field } from '~/components/forms'
 import { Spacer } from '~/components/spacer'
@@ -137,7 +138,9 @@ export async function action({ request }: ActionFunctionArgs) {
       zip,
     },
   })
-  return redirect('/add/schedule')
+  return redirectWithSuccess('/add/schedule', {
+    message: 'Location created successfully',
+  })
 }
 
 export default function AddLocation() {
