@@ -5,13 +5,29 @@ import {
 } from '@remix-run/node'
 import { Form, Link, useLoaderData } from '@remix-run/react'
 import { format } from 'date-fns'
-import { MapPin, Settings, StarIcon } from 'lucide-react'
+import {
+  CalendarDays,
+  Clock,
+  Clock10Icon,
+  LucideHistory,
+  Mail,
+  MailIcon,
+  MapPin,
+  Phone,
+  Settings,
+  StarIcon,
+  UserIcon,
+} from 'lucide-react'
 import React from 'react'
 import { DayProps } from 'react-day-picker'
+import { jsonWithError, jsonWithSuccess } from 'remix-toast'
 import { Spacer } from '~/components/spacer'
 import { PageTitle, SectionTitle } from '~/components/typography'
+import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
+import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Calendar, CustomCell } from '~/components/ui/calendar'
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
 import { authSessionStorage } from '~/services/session.server'
@@ -27,6 +43,25 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { title: `${data?.user.username} / CH` },
     { name: 'description', content: `CareHub ${data?.user.username} Profile!` },
   ]
+}
+
+type Booking = {
+  id: string
+  phone: string | null
+  status: string | null
+  schedule: {
+    createdAt: string
+    date: string
+    startTime: string
+    endTime: string
+  }
+  doctor: {
+    image: string | null
+    user: {
+      username: string
+      fullName: string | null
+    }
+  }
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -81,13 +116,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         include: {
           schedule: {
             select: {
+              createdAt: true,
               date: true,
               startTime: true,
               endTime: true,
             },
           },
           doctor: {
-            select: { user: { select: { username: true, fullName: true } } },
+            select: {
+              user: { select: { username: true, fullName: true } },
+              image: true,
+            },
           },
         },
       },
@@ -106,11 +145,13 @@ export async function action({ request }: LoaderFunctionArgs) {
   const formData = await request.formData()
   const scheduleId = formData.get('scheduleId')
 
-  if (scheduleId) {
-    await prisma.schedule.delete({ where: { id: String(scheduleId) } })
+  if (!scheduleId) {
+    return jsonWithError({}, { message: 'Schedule not found' })
   }
 
-  return json({ status: 'success' })
+  await prisma.schedule.delete({ where: { id: String(scheduleId) } })
+
+  return jsonWithSuccess({}, { message: 'Schedule removed successfully' })
 }
 
 export default function User() {
@@ -146,10 +187,10 @@ export default function User() {
   const displayedSchedules = selectedDate ? selectedSchedule : upcomingSchedules
 
   return (
-    <>
-      <Spacer variant="lg" />
+    <main className="container">
+      <section className="flex-1">
+        <Spacer variant="lg" />
 
-      <div className="container">
         <div className="flex gap-6">
           {user.doctor?.image ? (
             <img
@@ -158,16 +199,15 @@ export default function User() {
               className="h-32 w-32 rounded-sm shadow-sm"
             />
           ) : (
-            <img
-              src="/placeholder.svg"
-              alt={user.username}
-              className="h-32 w-32 rounded-sm bg-primary-foreground shadow-sm"
-            />
+            <div className="h-32 w-32 rounded-sm bg-primary-foreground shadow-sm">
+              <UserIcon className="h-32 w-32" />
+            </div>
           )}
 
-          <div className="w-full">
+          <div className="w-full space-y-4">
             <div className="flex items-center justify-between">
               <SectionTitle>{user.fullName ?? user.username}</SectionTitle>
+
               {isDoctor && isOwner ? (
                 <Button asChild variant="outline">
                   <Link to="/profile/edit" className="flex items-center gap-2">
@@ -177,6 +217,15 @@ export default function User() {
                 </Button>
               ) : null}
             </div>
+            {!isDoctor ? (
+              <>
+                <p className="flex items-center gap-2 text-sm text-accent-foreground">
+                  <MailIcon className="h-4 w-4" />
+                  {user.email}
+                </p>
+              </>
+            ) : null}
+
             {isDoctor ? (
               <>
                 <ul className="mt-2 flex items-center gap-4">
@@ -201,14 +250,15 @@ export default function User() {
         </div>
         <Spacer variant="md" />
         <p>{user.doctor?.bio}</p>
-      </div>
+      </section>
 
       {isDoctor ? (
         <>
           <Spacer variant="lg" />
-          <div className="container flex flex-col gap-10 md:flex-row">
+          <div className="flex flex-col gap-10 md:flex-row">
             <div>
               <Calendar
+                className="p-0"
                 onSelect={handleDateClick}
                 components={{
                   Day: (props: DayProps) => (
@@ -235,9 +285,16 @@ export default function User() {
       ) : null}
 
       <Spacer variant="lg" />
-      {isDoctor ? <Reviews /> : null}
+      <BookedAppointments bookings={user.bookings} />
+
+      {isDoctor ? (
+        <>
+          <Spacer variant="lg" />
+          <Reviews />
+        </>
+      ) : null}
       <Spacer variant="lg" />
-    </>
+    </main>
   )
 }
 
@@ -458,5 +515,101 @@ const Reviews = () => {
         </Button>
       </div>
     </div>
+  )
+}
+
+const BookedAppointments = ({ bookings }: { bookings: Booking[] }) => {
+  return (
+    <section className="mx-auto w-full">
+      <SectionTitle>Booked Appointments</SectionTitle>
+
+      <Spacer variant="sm" />
+      <div className="space-y-8">
+        {bookings.map((booking, index) => (
+          <div key={booking.id} className="relative">
+            {index !== bookings.length - 1 && (
+              <div className="absolute bottom-0 left-8 top-16 w-px bg-gray-200 dark:bg-gray-700" />
+            )}
+            <Card>
+              <CardHeader className="flex flex-row items-center gap-4">
+                <Avatar className="h-16 w-16 border">
+                  {booking.doctor.image ? (
+                    <img
+                      className="h-16 w-16 rounded-full"
+                      src={booking.doctor.image}
+                      alt={
+                        booking.doctor.user.fullName ||
+                        booking.doctor.user.username
+                      }
+                    />
+                  ) : (
+                    <UserIcon className="h-8 w-8" />
+                  )}
+                </Avatar>
+                <div className="flex-1">
+                  <CardTitle>
+                    {booking.doctor.user.fullName ||
+                      booking.doctor.user.username}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Appointment on{' '}
+                    {format(new Date(booking.schedule.date), 'MMMM d, yyyy')}
+                  </p>
+                </div>
+                <Badge
+                  variant={
+                    booking.status === 'completed'
+                      ? 'default'
+                      : booking.status === 'upcoming'
+                        ? 'secondary'
+                        : 'destructive'
+                  }
+                >
+                  {booking.status}
+                </Badge>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      {format(
+                        new Date(booking.schedule.date),
+                        'EEEE, MMMM d, yyyy',
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      {formatTime(booking.schedule.startTime)} -{' '}
+                      {formatTime(booking.schedule.endTime)}
+                    </span>
+                  </div>
+                  {booking.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span>{booking.phone}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <UserIcon className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      Booked on{' '}
+                      <strong className="underline">
+                        {format(
+                          new Date(booking.schedule.createdAt),
+                          'MMMM d, yyyy',
+                        )}
+                      </strong>
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
