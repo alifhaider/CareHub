@@ -40,13 +40,13 @@ User
 - [ ] User can reset password
 - [x] User can book a schedule (With Special Note)
 - [ ] Make the `/search` route fully functional
-- [ ] User can see their booking history
+- [x] User can see their booking history
 - [ ] Can cancel a booking (at least before 6hrs)
 - [ ] integrate google map, with doctor location marks
 
 Doctor
 
-- [ ] Fix edit schedule
+- [x] Fix edit schedule
 - [ ] Dashboard Overview Contain real data
 - [ ] Doctor can see upcoming appointment schedule
 - [ ] Can apply discount all the schedules
