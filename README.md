@@ -5,6 +5,8 @@ Thinking of also making a mobile app
 To follow,
 [Link to Mobile App Repo ➡️](https://github.com/carehuborg/CareHub.git)
 
+And I stopped contributing to it. I'll finish this first
+
 # CareHub
 
 An app for people who are sick and want to book an appoinment with a doctor. It
