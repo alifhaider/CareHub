@@ -28,11 +28,13 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import { authSessionStorage } from '~/services/session.server'
 
 const SignupFormSchema = z
   .object({
     username: UsernameSchema,
     email: EmailSchema,
+    fullname: z.string().optional(),
     password: PasswordSchema,
     confirmPassword: ConfirmPasswordSchema,
     agreeToTermsOfServiceAndPrivacyPolicy: z
@@ -58,15 +60,30 @@ export async function action({ request }: ActionFunctionArgs) {
   // checkHoneypot(formData)
   const submission = await parseWithZod(formData, {
     schema: SignupFormSchema.superRefine(async (data, ctx) => {
-      const existingUser = await prisma.user.findUnique({
-        where: { username: data.username },
+      const existingEmail = await prisma.user.findFirst({
+        where: { email: data.email.toLowerCase() },
         select: { id: true },
       })
-      if (existingUser) {
+
+      if (existingEmail) {
+        ctx.addIssue({
+          path: ['email'],
+          code: z.ZodIssueCode.custom,
+          message: 'A user already exists with this email',
+        })
+        return
+      }
+
+      const existingUsername = await prisma.user.findFirst({
+        where: { username: data.username.toLowerCase() },
+        select: { id: true },
+      })
+
+      if (existingUsername) {
         ctx.addIssue({
           path: ['username'],
           code: z.ZodIssueCode.custom,
-          message: 'A user already exists with this username',
+          message: 'A user already exists with this username ',
         })
         return
       }
@@ -97,14 +114,14 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const { user, remember } = submission.value
 
-  const cookieSession = await sessionStorage.getSession(
+  const cookieSession = await authSessionStorage.getSession(
     request.headers.get('cookie'),
   )
   cookieSession.set('userId', user.id)
 
   return redirect('/', {
     headers: {
-      'set-cookie': await sessionStorage.commitSession(cookieSession, {
+      'set-cookie': await authSessionStorage.commitSession(cookieSession, {
         expires: remember === 'true' ? getSessionExpirationDate() : undefined,
       }),
     },
@@ -145,7 +162,7 @@ export default function SignupRoute() {
                 ...getInputProps(fields.email, { type: 'email' }),
                 autoComplete: 'email',
                 autoFocus: true,
-                className: 'lowercase',
+                className: 'lowercase placeholder:capitalize',
               }}
               errors={fields.email.errors}
             />
@@ -154,9 +171,21 @@ export default function SignupRoute() {
               inputProps={{
                 ...getInputProps(fields.username, { type: 'text' }),
                 autoComplete: 'username',
-                className: 'lowercase',
+                className: 'lowercase placeholder:capitalize',
               }}
               errors={fields.username.errors}
+            />
+
+            <Field
+              labelProps={{
+                htmlFor: fields.fullname.id,
+                children: 'Full Name',
+              }}
+              inputProps={{
+                ...getInputProps(fields.fullname, { type: 'text' }),
+                autoComplete: 'name',
+              }}
+              errors={fields.fullname.errors}
             />
 
             <Field
@@ -175,8 +204,6 @@ export default function SignupRoute() {
               }}
               inputProps={{
                 ...getInputProps(fields.confirmPassword, { type: 'password' }),
-
-                autoComplete: 'new-password',
               }}
               errors={fields.confirmPassword.errors}
             />
@@ -224,7 +251,7 @@ export default function SignupRoute() {
           <CardFooter>
             <p className="mt-4 text-sm">
               Already have an account?{' '}
-              <Link to="/login" className="text-cyan-400 hover:underline">
+              <Link to="/login" className="text-cyan-400 underline">
                 Log in
               </Link>
             </p>
