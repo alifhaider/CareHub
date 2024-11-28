@@ -72,7 +72,7 @@ export function LocationCombobox({
 
   return (
     <div className="relative">
-      <div className="group relative space-y-1">
+      <div className="group relative space-y-2">
         <Label htmlFor={id}>Location</Label>
         <div className="relative">
           <Input
