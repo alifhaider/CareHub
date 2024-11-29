@@ -40,10 +40,11 @@ npm run dev
 User
 
 - [ ] User can reset password
-- [x] User can book a schedule (With Special Note)
+- [x] book a schedule (With Special Note) without payment
+- [ ] Implement Payment gateway
 - [ ] Make the `/search` route fully functional
 - [x] User can see their booking history
-- [ ] Can cancel a booking (at least before 6hrs)
+- [ ] Cancel a booking (at least before 6hrs)
 - [ ] integrate google map, with doctor location marks
 
 Doctor
