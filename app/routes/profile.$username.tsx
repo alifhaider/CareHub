@@ -9,26 +9,23 @@ import {
   useActionData,
   useFetcher,
   useLoaderData,
-  useNavigation,
 } from '@remix-run/react'
 import { format } from 'date-fns'
 import {
   CalendarDays,
   Clock,
-  Clock10Icon,
-  LucideHistory,
-  Mail,
   MailIcon,
   MapPin,
   Phone,
   Settings,
+  Star,
   StarIcon,
   UserIcon,
 } from 'lucide-react'
 import React from 'react'
 import { DayProps } from 'react-day-picker'
 import { jsonWithError, jsonWithSuccess } from 'remix-toast'
-import { ErrorList, Field } from '~/components/forms'
+import { ErrorList, Field, TextareaField } from '~/components/forms'
 import { Spacer } from '~/components/spacer'
 import { PageTitle, SectionTitle } from '~/components/typography'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
@@ -37,7 +34,7 @@ import { Button } from '~/components/ui/button'
 import { Calendar, CustomCell } from '~/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { prisma } from '~/db.server'
-import { requireDoctor } from '~/services/auth.server'
+import { requireDoctor, requireUser } from '~/services/auth.server'
 import { authSessionStorage } from '~/services/session.server'
 import { invariantResponse } from '~/utils/misc'
 import { z } from 'zod'
@@ -48,6 +45,7 @@ import {
 } from '~/utils/schedule'
 import { getFormProps, getInputProps, Intent, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
+import { Label } from '~/components/ui/label'
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -57,6 +55,11 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 }
 
 const ReviewSchema = z.object({
+  rating: z
+    .number({ message: 'Please provide a rating' })
+    .int({ message: 'Rating must be a whole number' })
+    .min(1, 'Rating must be between 1 and 5')
+    .max(5, 'Rating must be between 1 and 5'),
   doctorId: z.string(),
   userId: z.string(),
   comment: z.string().min(10, 'Comment must be at least 10 characters'),
@@ -175,6 +178,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     include: {
       doctor: {
         include: {
+          _count: {
+            select: { reviews: true },
+          },
           specialties: { select: { id: true, name: true } },
           education: {
             select: {
@@ -243,41 +249,93 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   invariantResponse(user, 'User not found', { status: 404 })
   const isOwner = user?.id === loggedInUserId
   const isDoctor = user?.doctor || false
+  const totalReviewsCount = user.doctor?._count?.reviews
+  const totalRating = user.doctor?.reviews.reduce(
+    (acc, review) => acc + review.rating,
+    0,
+  )
+  const overallRating =
+    totalRating && totalReviewsCount
+      ? Number(totalRating) / totalReviewsCount
+      : 0
 
-  return json({ user, isOwner, isDoctor })
+  return json({
+    user,
+    isOwner,
+    isDoctor,
+    loggedInUserId,
+    overallRating: overallRating.toFixed(1),
+  })
 }
 
 export async function action({ request }: LoaderFunctionArgs) {
-  await requireDoctor(request)
+  await requireUser(request)
   const formData = await request.formData()
+  const { _action } = Object.fromEntries(formData)
 
-  const submission = await parseWithZod(formData, {
-    schema: CreateScheduleDeleteSchema(null, {
-      doesScheduleHaveBookings: async scheduleId => {
-        const bookings = await prisma.booking.findMany({
-          where: { scheduleId },
-        })
-        return bookings.length > 0
+  async function createReview(formData: FormData) {
+    const submission = parseWithZod(formData, { schema: ReviewSchema })
+
+    if (submission.status !== 'success') {
+      return jsonWithError(submission.reply(), {
+        message: 'There was an error creating the review',
+      })
+    }
+
+    const { doctorId, userId, comment, rating } = submission.value
+
+    await prisma.review.create({
+      data: {
+        rating,
+        comment,
+        doctorId,
+        userId,
       },
-    }),
-    async: true,
-  })
-
-  if (submission.status !== 'success') {
-    return jsonWithError(submission.reply(), {
-      message: 'Schedule has bookings and cannot be deleted',
     })
+
+    return jsonWithSuccess({}, { message: 'Review created successfully' })
   }
 
-  const scheduleId = submission.value.scheduleId
+  async function deleteSchedule(formData: FormData) {
+    await requireDoctor(request)
+    const submission = await parseWithZod(formData, {
+      schema: CreateScheduleDeleteSchema(null, {
+        doesScheduleHaveBookings: async scheduleId => {
+          const bookings = await prisma.booking.findMany({
+            where: { scheduleId },
+          })
+          return bookings.length > 0
+        },
+      }),
+      async: true,
+    })
 
-  await prisma.schedule.delete({ where: { id: scheduleId } })
+    if (submission.status !== 'success') {
+      return jsonWithError(submission.reply(), {
+        message: 'Schedule has bookings and cannot be deleted',
+      })
+    }
 
-  return jsonWithSuccess({}, { message: 'Schedule removed successfully' })
+    const scheduleId = submission.value.scheduleId
+
+    await prisma.schedule.delete({ where: { id: scheduleId } })
+
+    return jsonWithSuccess({}, { message: 'Schedule removed successfully' })
+  }
+
+  switch (_action) {
+    case 'create':
+      return createReview(formData)
+    case 'delete':
+      return deleteSchedule(formData)
+    default:
+      return jsonWithError({}, { message: 'Invalid action' })
+  }
 }
 
 export default function User() {
-  const { isDoctor, isOwner, user } = useLoaderData<typeof loader>()
+  const { isDoctor, isOwner, user, loggedInUserId, overallRating } =
+    useLoaderData<typeof loader>()
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>()
   const schedules = user.doctor?.schedules ?? []
 
@@ -408,11 +466,18 @@ export default function User() {
 
       {isOwner ? <BookedAppointments bookings={user.bookings} /> : null}
 
-      {isDoctor ? (
+      {isDoctor && user.doctor?.userId ? (
         <>
           <Spacer variant="lg" />
-          <hr className="mb-8 border-t border-gray-200 dark:border-gray-700" />
-          <Reviews reviews={user.doctor?.reviews} />
+          <hr className="border-t border-gray-200 dark:border-gray-700" />
+          <Spacer variant="sm" />
+          <Reviews
+            reviews={user.doctor?.reviews}
+            doctorId={user.doctor?.userId}
+            userId={loggedInUserId}
+            totalReviews={user.doctor?._count?.reviews}
+            overallRating={overallRating}
+          />
         </>
       ) : null}
       <Spacer variant="lg" />
@@ -445,15 +510,6 @@ const Schedules = ({
   isOwner,
   username,
 }: ScheduleProps) => {
-  const navigation = useNavigation()
-  const actionData = useActionData<typeof action>()
-  const [form, fields] = useForm({
-    lastResult: actionData,
-    onValidate({ formData }) {
-      return parseWithZod(formData, { schema: ScheduleDeleteSchema })
-    },
-    shouldRevalidate: 'onSubmit',
-  })
   return (
     <div className="flex-1">
       {schedules && schedules?.length > 0 && (
@@ -473,78 +529,13 @@ const Schedules = ({
 
       <ul className="max-h-[40rem] space-y-4 overflow-y-auto">
         {schedules?.map(schedule => (
-          <li
+          <ScheduleItem
             key={schedule.id}
-            className={`flex items-center rounded-md border transition-all ${navigation.formData?.get('scheduleId') === schedule.id ? 'opacity-25' : 'opacity-100'}`}
-          >
-            <div className="h-full w-full px-4 py-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-start gap-2">
-                  <MapPin className="h-8 w-8" />
-                  <div>
-                    <h6 className="flex items-end text-2xl font-bold leading-none">
-                      {schedule.location.name}
-                      <span className="text-xs font-normal">
-                        /{formatTime(schedule.startTime)} -{' '}
-                        {formatTime(schedule.endTime)}
-                      </span>
-                    </h6>
-                    <div className="mt-2 text-sm text-accent-foreground">
-                      {schedule.location.address}, {schedule.location.city},{' '}
-                      {schedule.location.state}, {schedule.location.zip}
-                    </div>
-                    <div className="mt-4">
-                      {!isOwner && (
-                        <Link
-                          to={`/profile/${username}/schedule/${schedule.id}`}
-                          className="flex w-max items-start rounded-md bg-amber-300 px-2 py-1 text-secondary"
-                        >
-                          Book Now
-                        </Link>
-                      )}
-                      {isOwner && isDoctor && (
-                        <div className="space-y-2">
-                          <div className="flex gap-2 text-sm">
-                            <button className="flex w-max items-start rounded-md border border-secondary-foreground bg-secondary px-2 py-1 text-secondary-foreground">
-                              <Link to={`/edit/schedule/${schedule.id}`}>
-                                Edit Schedule
-                              </Link>
-                            </button>
-                            <Form method="POST" {...getFormProps(form)}>
-                              <input
-                                {...getInputProps(fields.scheduleId, {
-                                  type: 'hidden',
-                                })}
-                                value={schedule.id}
-                              />
-                              <ErrorList errors={fields.scheduleId.errors} />
-                              <button className="flex w-max items-start rounded-md border border-destructive bg-destructive px-2 py-1 text-destructive-foreground transition-all">
-                                Remove Schedule
-                              </button>
-                            </Form>
-                          </div>
-                          <ErrorList errors={form.errors} />
-
-                          <p>Bookings: {schedule._count?.bookings}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <div className="font-bold text-accent-foreground">
-                    Visit Fee: {schedule.visitFee}tk
-                  </div>
-                  <div className="text-secondary-foreground">
-                    Serial Fee: {schedule.serialFee}tk
-                  </div>
-                  <div className="text-sm text-secondary-foreground">
-                    Discount: {schedule.discountFee}tk
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
+            schedule={schedule}
+            isDoctor={isDoctor}
+            isOwner={isOwner}
+            username={username}
+          />
         ))}
       </ul>
       {isDoctor && isOwner ? (
@@ -559,6 +550,10 @@ const Schedules = ({
 }
 
 type ReviewProps = {
+  doctorId: string
+  userId: string
+  totalReviews: number | undefined
+  overallRating: string | undefined
   reviews:
     | {
         user: {
@@ -573,12 +568,23 @@ type ReviewProps = {
     | undefined
 }
 
-const Reviews = ({ reviews }: ReviewProps) => {
-  const reviewFetcher = useFetcher()
+const Reviews = ({
+  reviews,
+  doctorId,
+  userId,
+  totalReviews,
+  overallRating,
+}: ReviewProps) => {
   if (!reviews) return null
-  const totalReviews = reviews.length
-  const overallRating =
-    reviews.reduce((acc, review) => acc + review.rating, 0) / totalReviews
+  const actionData = useActionData<typeof action>()
+
+  const [form, fields] = useForm({
+    lastResult: actionData,
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: ReviewSchema })
+    },
+    shouldRevalidate: 'onSubmit',
+  })
 
   return (
     <section>
@@ -586,7 +592,7 @@ const Reviews = ({ reviews }: ReviewProps) => {
 
       <div>
         <p className="flex items-center gap-2 text-6xl font-extrabold">
-          {overallRating}
+          {overallRating || 0}
           <span>
             <StarIcon className="h-6 w-6 fill-cyan-400 stroke-cyan-400" />
           </span>
@@ -642,7 +648,56 @@ const Reviews = ({ reviews }: ReviewProps) => {
       </div>
 
       <Spacer variant="md" />
-      {/* <reviewFetcher.Form method="POST"></reviewFetcher.Form> */}
+      <h6 className="text-lg font-extrabold uppercase text-secondary-foreground">
+        Write a Review
+      </h6>
+      <Spacer variant="sm" />
+      <Form method="post" {...getFormProps(form)}>
+        <input
+          {...getInputProps(fields.doctorId, { type: 'hidden' })}
+          value={doctorId}
+        />
+        <input
+          {...getInputProps(fields.userId, { type: 'hidden' })}
+          value={userId}
+        />
+        <Label htmlFor={fields.rating.id} className="text-sm font-semibold">
+          Rating
+        </Label>
+        <div className="flex gap-2">
+          {[1, 2, 3, 4, 5].map(star => (
+            <label key={star} className="cursor-pointer">
+              <input
+                {...getInputProps(fields.rating, { type: 'radio' })}
+                value={star}
+                className="peer sr-only"
+              />
+              <Star
+                className={`h-8 w-8 ${
+                  star <= Number(fields.rating.value)
+                    ? 'fill-yellow-400 text-yellow-400'
+                    : 'text-gray-300 hover:text-yellow-400'
+                } transition-colors duration-150`}
+              />
+            </label>
+          ))}
+        </div>
+        <ErrorList errors={fields.rating.errors} />
+        <Spacer variant="sm" />
+
+        <TextareaField
+          labelProps={{ htmlFor: fields.comment.id, children: 'Comment' }}
+          textareaProps={{
+            ...getInputProps(fields.comment, { type: 'text' }),
+            autoComplete: 'off',
+            rows: 4,
+          }}
+          errors={fields.comment.errors}
+        />
+        <Button type="submit" name="_action" value="create">
+          Submit
+        </Button>
+      </Form>
     </section>
   )
 }
@@ -746,5 +801,106 @@ const BookedAppointments = ({ bookings }: { bookings: Booking[] }) => {
         ))}
       </div>
     </section>
+  )
+}
+
+const ScheduleItem = ({
+  schedule,
+  isOwner,
+  isDoctor,
+  username,
+}: {
+  schedule: TSchedule
+  isOwner: boolean
+  isDoctor: boolean
+  username: string
+}) => {
+  const deleteFetcher = useFetcher()
+  const actionData = useActionData<typeof action>()
+  const [form, fields] = useForm({
+    lastResult: actionData,
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: ScheduleDeleteSchema })
+    },
+    shouldRevalidate: 'onSubmit',
+  })
+  const isDeleting = deleteFetcher.formData?.get('scheduleId') === schedule.id
+  return (
+    <li
+      className={`flex items-center rounded-md border transition-all ${isDeleting ? 'opacity-25' : 'opacity-100'}`}
+    >
+      <div className="h-full w-full px-4 py-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-start gap-2">
+            <MapPin className="h-8 w-8" />
+            <div>
+              <h6 className="flex items-end text-2xl font-bold leading-none">
+                {schedule.location.name}
+                <span className="text-xs font-normal">
+                  /{formatTime(schedule.startTime)} -{' '}
+                  {formatTime(schedule.endTime)}
+                </span>
+              </h6>
+              <div className="mt-2 text-sm text-accent-foreground">
+                {schedule.location.address}, {schedule.location.city},{' '}
+                {schedule.location.state}, {schedule.location.zip}
+              </div>
+              <div className="mt-4">
+                {!isOwner && (
+                  <Link
+                    to={`/profile/${username}/schedule/${schedule.id}`}
+                    className="flex w-max items-start rounded-md bg-amber-300 px-2 py-1 text-secondary"
+                  >
+                    Book Now
+                  </Link>
+                )}
+                {isOwner && isDoctor && (
+                  <div className="space-y-2">
+                    <div className="flex gap-2 text-sm">
+                      <button className="flex w-max items-start rounded-md border border-secondary-foreground bg-secondary px-2 py-1 text-secondary-foreground">
+                        <Link to={`/edit/schedule/${schedule.id}`}>
+                          Edit Schedule
+                        </Link>
+                      </button>
+                      <deleteFetcher.Form method="POST" {...getFormProps(form)}>
+                        <input
+                          {...getInputProps(fields.scheduleId, {
+                            type: 'hidden',
+                          })}
+                          value={schedule.id}
+                        />
+                        <ErrorList errors={fields.scheduleId.errors} />
+                        <button
+                          name="_action"
+                          value="delete"
+                          type="submit"
+                          className="flex w-max items-start rounded-md border border-destructive bg-destructive px-2 py-1 text-destructive-foreground transition-all"
+                        >
+                          Remove Schedule
+                        </button>
+                      </deleteFetcher.Form>
+                    </div>
+                    <ErrorList errors={form.errors} />
+
+                    <p>Bookings: {schedule._count?.bookings}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div>
+            <div className="font-bold text-accent-foreground">
+              Visit Fee: {schedule.visitFee}tk
+            </div>
+            <div className="text-secondary-foreground">
+              Serial Fee: {schedule.serialFee}tk
+            </div>
+            <div className="text-sm text-secondary-foreground">
+              Discount: {schedule.discountFee}tk
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
   )
 }
