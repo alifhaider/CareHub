@@ -5,6 +5,8 @@ Thinking of also making a mobile app
 To follow,
 [Link to Mobile App Repo ➡️](https://github.com/carehuborg/CareHub.git)
 
+And I stopped contributing to it. I'll finish this first
+
 # CareHub
 
 An app for people who are sick and want to book an appoinment with a doctor. It
@@ -38,10 +40,11 @@ npm run dev
 User
 
 - [ ] User can reset password
-- [x] User can book a schedule (With Special Note)
+- [x] book a schedule (With Special Note) without payment
+- [ ] Implement Payment gateway
 - [ ] Make the `/search` route fully functional
 - [x] User can see their booking history
-- [ ] Can cancel a booking (at least before 6hrs)
+- [ ] Cancel a booking (at least before 6hrs)
 - [ ] integrate google map, with doctor location marks
 
 Doctor
