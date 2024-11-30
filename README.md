@@ -52,4 +52,4 @@ Doctor
 - [ ] Can apply discount all the schedules
 - [ ] add balance and currency type
 - [ ] add social accounts
-- [ ] schedule location with lat and long (for better position at map)
+- [x] schedule location with lat and long (for better position at map)

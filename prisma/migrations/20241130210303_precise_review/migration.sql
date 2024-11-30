@@ -4,6 +4,8 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "username" TEXT NOT NULL,
     "fullName" TEXT,
+    "phone" TEXT,
+    "address" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
@@ -18,8 +20,9 @@ CREATE TABLE "Password" (
 -- CreateTable
 CREATE TABLE "Doctor" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "phone" TEXT,
     "image" TEXT,
+    "balance" INTEGER NOT NULL DEFAULT 0,
+    "currency" TEXT NOT NULL DEFAULT 'TAKA',
     "userId" TEXT NOT NULL,
     "bio" TEXT NOT NULL,
     "rating" INTEGER NOT NULL DEFAULT 0,
@@ -67,6 +70,9 @@ CREATE TABLE "ScheduleLocation" (
     "city" TEXT NOT NULL,
     "state" TEXT,
     "zip" TEXT,
+    "country" TEXT,
+    "latitude" REAL,
+    "longitude" REAL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
@@ -74,6 +80,9 @@ CREATE TABLE "ScheduleLocation" (
 -- CreateTable
 CREATE TABLE "Booking" (
     "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT,
+    "phone" TEXT,
+    "note" TEXT,
     "scheduleId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "doctorId" TEXT NOT NULL,
@@ -91,9 +100,11 @@ CREATE TABLE "Review" (
     "doctorId" TEXT NOT NULL,
     "rating" INTEGER NOT NULL,
     "comment" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Review_doctorId_fkey" FOREIGN KEY ("doctorId") REFERENCES "Doctor" ("userId") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Review_doctorId_fkey" FOREIGN KEY ("doctorId") REFERENCES "Doctor" ("userId") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Review_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -104,6 +115,20 @@ CREATE TABLE "DoctorSpecialty" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "DoctorSpecialty_doctorId_fkey" FOREIGN KEY ("doctorId") REFERENCES "Doctor" ("userId") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Verification" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "type" TEXT NOT NULL,
+    "target" TEXT NOT NULL,
+    "secret" TEXT NOT NULL,
+    "algorithm" TEXT NOT NULL,
+    "digits" INTEGER NOT NULL,
+    "period" INTEGER NOT NULL,
+    "charSet" TEXT NOT NULL,
+    "expiresAt" DATETIME
 );
 
 -- CreateIndex
@@ -117,3 +142,6 @@ CREATE UNIQUE INDEX "Password_userId_key" ON "Password"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Doctor_userId_key" ON "Doctor"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Verification_target_type_key" ON "Verification"("target", "type");

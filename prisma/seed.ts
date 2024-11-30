@@ -110,7 +110,7 @@ async function seed() {
   const totalAppointments = 20
   const totalScheduleLocations = 10
   const totalSchedules = 60
-  // const totalReviews = 40;
+  const totalReviews = 40
 
   console.time('👨‍⚕️ Creating users...')
   const users = await Promise.all(
@@ -238,6 +238,10 @@ async function seed() {
   )
   console.timeEnd('👨‍⚕️ Creating schedules...')
 
+  //filter doctors from users
+  const doctorsUserIds = doctors.map(doctor => doctor.userId)
+  const filteredUsers = users.filter(user => !doctorsUserIds.includes(user.id))
+
   console.time('👨‍⚕️ Creating bookings...')
   await Promise.all(
     Array.from({ length: totalAppointments }).map(async (_, index) => {
@@ -245,7 +249,7 @@ async function seed() {
         data: {
           status: 'PENDING',
           scheduleId: schedules[index % totalSchedules].id,
-          userId: users[index % totalUsers].id,
+          userId: filteredUsers[index % filteredUsers.length].id,
           doctorId: doctors[Math.floor(Math.random() * totalDoctors)].userId,
           name: users[index % totalUsers].fullName,
           phone: users[index % totalUsers].phone,
@@ -259,11 +263,12 @@ async function seed() {
 
   console.time('🌱 Seeding reviews...')
   await Promise.all(
-    Array.from({ length: totalAppointments }).map(async (_, index) => {
+    Array.from({ length: totalReviews }).map(async (_, index) => {
       const review = await prisma.review.create({
         data: {
           rating: Math.floor(Math.random() * 5),
           comment: faker.lorem.sentence(),
+          userId: filteredUsers[index % filteredUsers.length].id,
           doctorId: doctors[Math.floor(Math.random() * totalDoctors)].userId,
         },
       })
