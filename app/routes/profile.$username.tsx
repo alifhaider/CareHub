@@ -77,7 +77,7 @@ function CreateScheduleDeleteSchema(
         .object({
           scheduleId: z.string(),
         })
-        .superRefine((data, ctx) => {
+        .superRefine(async (data, ctx) => {
           const isValidatingSchedule =
             intent === null ||
             (intent.type === 'validate' && intent.payload.name === 'scheduleId')
@@ -85,7 +85,7 @@ function CreateScheduleDeleteSchema(
             ctx.addIssue({
               code: 'custom',
               path: ['form'],
-              message: 'This schedule can only be validated',
+              message: 'Schedule validation process is not properly initiated.',
             })
             return
           }
@@ -94,23 +94,35 @@ function CreateScheduleDeleteSchema(
             ctx.addIssue({
               code: 'custom',
               path: ['form'],
-              message: "This schedule can't be validated",
+              message: 'Booking check  validation function is not provided.',
               fatal: true,
             })
             return
           }
 
-          return options
-            .doesScheduleHaveBookings(data.scheduleId)
-            .then(hasBookings => {
-              if (hasBookings) {
-                ctx.addIssue({
-                  code: 'custom',
-                  path: ['form'],
-                  message: 'Schedule has bookings',
-                })
-              }
+          try {
+            // Check if the schedule has bookings
+            const hasBookings = await options.doesScheduleHaveBookings(
+              data.scheduleId,
+            )
+
+            if (hasBookings) {
+              ctx.addIssue({
+                code: 'custom',
+                path: ['scheduleId'],
+                message:
+                  'The schedule cannot be deleted because it has existing bookings.',
+              })
+            }
+          } catch (error) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['form'],
+              message:
+                'An error occurred while validating the schedule. Please try again later.',
+              fatal: true,
             })
+          }
         }),
     )
 }
