@@ -13,6 +13,9 @@ export type TSchedule = {
     state: string | null
     zip: string | null
   }
+  _count: {
+    bookings: number
+  }
   serialFee: number | null
   discountFee: number | null
   visitFee: number | null

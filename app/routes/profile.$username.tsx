@@ -3,7 +3,14 @@ import {
   type LoaderFunctionArgs,
   type MetaFunction,
 } from '@remix-run/node'
-import { Form, Link, useLoaderData } from '@remix-run/react'
+import {
+  Form,
+  Link,
+  useActionData,
+  useFetcher,
+  useLoaderData,
+  useNavigation,
+} from '@remix-run/react'
 import { format } from 'date-fns'
 import {
   CalendarDays,
@@ -21,6 +28,7 @@ import {
 import React from 'react'
 import { DayProps } from 'react-day-picker'
 import { jsonWithError, jsonWithSuccess } from 'remix-toast'
+import { ErrorList, Field } from '~/components/forms'
 import { Spacer } from '~/components/spacer'
 import { PageTitle, SectionTitle } from '~/components/typography'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
@@ -32,11 +40,14 @@ import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
 import { authSessionStorage } from '~/services/session.server'
 import { invariantResponse } from '~/utils/misc'
+import { z } from 'zod'
 import {
   formatTime,
   getUpcomingDateSchedules,
   TSchedule,
 } from '~/utils/schedule'
+import { getFormProps, getInputProps, Intent, useForm } from '@conform-to/react'
+import { parseWithZod } from '@conform-to/zod'
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -44,6 +55,69 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { name: 'description', content: `CareHub ${data?.user.username} Profile!` },
   ]
 }
+
+const ReviewSchema = z.object({
+  doctorId: z.string(),
+  userId: z.string(),
+  comment: z.string().min(10, 'Comment must be at least 10 characters'),
+})
+
+function CreateScheduleDeleteSchema(
+  intent: Intent | null,
+  options?: {
+    doesScheduleHaveBookings: (scheduleId: string) => Promise<boolean>
+  },
+) {
+  return z
+    .object({
+      scheduleId: z.string(),
+    })
+    .pipe(
+      z
+        .object({
+          scheduleId: z.string(),
+        })
+        .superRefine((data, ctx) => {
+          const isValidatingSchedule =
+            intent === null ||
+            (intent.type === 'validate' && intent.payload.name === 'scheduleId')
+          if (!isValidatingSchedule) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['form'],
+              message: 'This schedule can only be validated',
+            })
+            return
+          }
+
+          if (typeof options?.doesScheduleHaveBookings !== 'function') {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['form'],
+              message: "This schedule can't be validated",
+              fatal: true,
+            })
+            return
+          }
+
+          return options
+            .doesScheduleHaveBookings(data.scheduleId)
+            .then(hasBookings => {
+              if (hasBookings) {
+                ctx.addIssue({
+                  code: 'custom',
+                  path: ['form'],
+                  message: 'Schedule has bookings',
+                })
+              }
+            })
+        }),
+    )
+}
+
+const ScheduleDeleteSchema = z.object({
+  scheduleId: z.string(),
+})
 
 type Booking = {
   id: string
@@ -65,6 +139,8 @@ type Booking = {
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const url = new URL(request.url)
+  const page = url.searchParams.get('page')
   const username = params.username
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -98,6 +174,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           },
           schedules: {
             include: {
+              _count: {
+                select: { bookings: true },
+              },
               location: {
                 select: {
                   id: true,
@@ -108,6 +187,22 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
                   zip: true,
                 },
               },
+            },
+          },
+          reviews: {
+            skip: page ? (parseInt(page) - 1) * 5 : 0,
+            take: 5,
+            select: {
+              id: true,
+              rating: true,
+              comment: true,
+              user: {
+                select: {
+                  username: true,
+                  fullName: true,
+                },
+              },
+              createdAt: true,
             },
           },
         },
@@ -143,13 +238,28 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 export async function action({ request }: LoaderFunctionArgs) {
   await requireDoctor(request)
   const formData = await request.formData()
-  const scheduleId = formData.get('scheduleId')
 
-  if (!scheduleId) {
-    return jsonWithError({}, { message: 'Schedule not found' })
+  const submission = await parseWithZod(formData, {
+    schema: CreateScheduleDeleteSchema(null, {
+      doesScheduleHaveBookings: async scheduleId => {
+        const bookings = await prisma.booking.findMany({
+          where: { scheduleId },
+        })
+        return bookings.length > 0
+      },
+    }),
+    async: true,
+  })
+
+  if (submission.status !== 'success') {
+    return jsonWithError(submission.reply(), {
+      message: 'Schedule has bookings and cannot be deleted',
+    })
   }
 
-  await prisma.schedule.delete({ where: { id: String(scheduleId) } })
+  const scheduleId = submission.value.scheduleId
+
+  await prisma.schedule.delete({ where: { id: scheduleId } })
 
   return jsonWithSuccess({}, { message: 'Schedule removed successfully' })
 }
@@ -255,7 +365,7 @@ export default function User() {
       {isDoctor ? (
         <>
           <Spacer variant="lg" />
-          <div className="flex flex-col gap-10 md:flex-row">
+          <section className="flex flex-col gap-10 md:flex-row">
             <div>
               <Calendar
                 className="p-0"
@@ -280,17 +390,17 @@ export default function User() {
                 username={user.username}
               />
             ) : null}
-          </div>
+          </section>
         </>
       ) : null}
 
-      <Spacer variant="lg" />
-      <BookedAppointments bookings={user.bookings} />
+      {isOwner ? <BookedAppointments bookings={user.bookings} /> : null}
 
       {isDoctor ? (
         <>
           <Spacer variant="lg" />
-          <Reviews />
+          <hr className="mb-8 border-t border-gray-200 dark:border-gray-700" />
+          <Reviews reviews={user.doctor?.reviews} />
         </>
       ) : null}
       <Spacer variant="lg" />
@@ -323,6 +433,15 @@ const Schedules = ({
   isOwner,
   username,
 }: ScheduleProps) => {
+  const navigation = useNavigation()
+  const actionData = useActionData<typeof action>()
+  const [form, fields] = useForm({
+    lastResult: actionData,
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: ScheduleDeleteSchema })
+    },
+    shouldRevalidate: 'onSubmit',
+  })
   return (
     <div className="flex-1">
       {schedules && schedules?.length > 0 && (
@@ -344,7 +463,7 @@ const Schedules = ({
         {schedules?.map(schedule => (
           <li
             key={schedule.id}
-            className="flex items-center rounded-md border transition-all"
+            className={`flex items-center rounded-md border transition-all ${navigation.formData?.get('scheduleId') === schedule.id ? 'opacity-25' : 'opacity-100'}`}
           >
             <div className="h-full w-full px-4 py-6">
               <div className="flex items-center justify-between">
@@ -372,22 +491,29 @@ const Schedules = ({
                         </Link>
                       )}
                       {isOwner && isDoctor && (
-                        <div className="flex gap-2 text-sm">
-                          <button className="flex w-max items-start rounded-md border border-secondary-foreground bg-secondary px-2 py-1 text-secondary-foreground">
-                            <Link to={`/edit/schedule/${schedule.id}`}>
-                              Edit Schedule
-                            </Link>
-                          </button>
-                          <Form method="POST">
-                            <input
-                              type="hidden"
-                              name="scheduleId"
-                              value={schedule.id}
-                            />
-                            <button className="flex w-max items-start rounded-md border border-destructive bg-destructive px-2 py-1 text-destructive-foreground transition-all">
-                              Remove Schedule
+                        <div className="space-y-2">
+                          <div className="flex gap-2 text-sm">
+                            <button className="flex w-max items-start rounded-md border border-secondary-foreground bg-secondary px-2 py-1 text-secondary-foreground">
+                              <Link to={`/edit/schedule/${schedule.id}`}>
+                                Edit Schedule
+                              </Link>
                             </button>
-                          </Form>
+                            <Form method="POST" {...getFormProps(form)}>
+                              <input
+                                {...getInputProps(fields.scheduleId, {
+                                  type: 'hidden',
+                                })}
+                                value={schedule.id}
+                              />
+                              <ErrorList errors={fields.scheduleId.errors} />
+                              <button className="flex w-max items-start rounded-md border border-destructive bg-destructive px-2 py-1 text-destructive-foreground transition-all">
+                                Remove Schedule
+                              </button>
+                            </Form>
+                          </div>
+                          <ErrorList errors={form.errors} />
+
+                          <p>Bookings: {schedule._count?.bookings}</p>
                         </div>
                       )}
                     </div>
@@ -420,56 +546,45 @@ const Schedules = ({
   )
 }
 
-const Reviews = () => {
-  const overallRating = 4.8
-  const totalReviews = 2489
-  const reviews = [
-    {
-      id: 1,
-      author: 'Sarah Johnson',
-      avatar: '/placeholder.svg',
-      rating: 5,
-      date: 'February 02, 2024',
-      comment:
-        'Dr. Smith was incredibly thorough and patient. He took the time to explain everything in detail and answer all my questions. The appointment scheduling was smooth, and the wait time was minimal.',
-      verified: true,
-    },
-    {
-      id: 2,
-      author: 'Michael Chen',
-      avatar: '/placeholder.svg',
-      rating: 1,
-      date: 'January 2024',
-      comment:
-        'Very professional and knowledgeable. The online booking system was convenient, and the staff was friendly and helpful. Would definitely recommend!',
-      verified: true,
-    },
-    {
-      id: 3,
-      author: 'Emily Williams',
-      avatar: '/placeholder.svg',
-      rating: 4,
-      date: 'January 2024',
-      comment:
-        'Good experience overall. The doctor was knowledgeable and professional. The only minor issue was a slight delay in the appointment time.',
-      verified: true,
-    },
-  ]
+type ReviewProps = {
+  reviews:
+    | {
+        user: {
+          username: string
+          fullName: string | null
+        }
+        id: string
+        createdAt: string
+        rating: number
+        comment: string
+      }[]
+    | undefined
+}
+
+const Reviews = ({ reviews }: ReviewProps) => {
+  const reviewFetcher = useFetcher()
+  if (!reviews) return null
+  const totalReviews = reviews.length
+  const overallRating =
+    reviews.reduce((acc, review) => acc + review.rating, 0) / totalReviews
+
   return (
-    <div className="container">
+    <section>
       <h4 className="text-sm font-extrabold">RATINGS AND REVIEWS</h4>
 
-      <p className="flex items-center gap-2 text-6xl font-extrabold">
-        {overallRating}
-        <span>
-          <StarIcon className="h-6 w-6 fill-cyan-400 stroke-cyan-400" />
-        </span>
-      </p>
+      <div>
+        <p className="flex items-center gap-2 text-6xl font-extrabold">
+          {overallRating}
+          <span>
+            <StarIcon className="h-6 w-6 fill-cyan-400 stroke-cyan-400" />
+          </span>
+        </p>
 
-      <p className="mt-1 text-sm">
-        &#40;
-        {totalReviews} {Number(totalReviews) > 1 ? 'Ratings' : 'Rating'}&#41;
-      </p>
+        <p className="mt-1 text-sm">
+          &#40;
+          {totalReviews} {Number(totalReviews) > 1 ? 'Ratings' : 'Rating'}&#41;
+        </p>
+      </div>
 
       <Spacer variant="md" />
 
@@ -482,7 +597,6 @@ const Reviews = () => {
             key={review.id}
             className="flex items-start gap-4 border-b py-6 first:pt-0"
           >
-            <div className="h-10 w-10 rounded-full bg-primary-foreground" />
             <div className="flex-1 space-y-4">
               <div className="flex gap-2">
                 {Array.from({ length: 5 }, (_, i) => (
@@ -494,9 +608,9 @@ const Reviews = () => {
                 ))}
               </div>
               <p className="font-montserrat text-xs font-semibold text-secondary-foreground">
-                {review.author}
+                {review.user.fullName || review.user.username}
                 <span className="ml-2 text-[11px] font-medium text-muted-foreground">
-                  {review.date}
+                  {review.createdAt}
                 </span>
               </p>
 
@@ -514,13 +628,17 @@ const Reviews = () => {
           <Link to="/reviews">See More</Link>
         </Button>
       </div>
-    </div>
+
+      <Spacer variant="md" />
+      {/* <reviewFetcher.Form method="POST"></reviewFetcher.Form> */}
+    </section>
   )
 }
 
 const BookedAppointments = ({ bookings }: { bookings: Booking[] }) => {
   return (
     <section className="mx-auto w-full">
+      <Spacer variant="lg" />
       <SectionTitle>Booked Appointments</SectionTitle>
 
       <Spacer variant="sm" />
@@ -547,10 +665,15 @@ const BookedAppointments = ({ bookings }: { bookings: Booking[] }) => {
                   )}
                 </Avatar>
                 <div className="flex-1">
-                  <CardTitle>
-                    {booking.doctor.user.fullName ||
-                      booking.doctor.user.username}
-                  </CardTitle>
+                  <Link
+                    to={`/profile/${booking.doctor.user.username}`}
+                    className="hover:text-cyan-400 hover:underline"
+                  >
+                    <CardTitle>
+                      {booking.doctor.user.fullName ||
+                        booking.doctor.user.username}
+                    </CardTitle>
+                  </Link>
                   <p className="text-sm text-muted-foreground">
                     Appointment on{' '}
                     {format(new Date(booking.schedule.date), 'MMMM d, yyyy')}
