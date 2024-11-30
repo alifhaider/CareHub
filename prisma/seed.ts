@@ -245,12 +245,13 @@ async function seed() {
   console.time('👨‍⚕️ Creating bookings...')
   await Promise.all(
     Array.from({ length: totalAppointments }).map(async (_, index) => {
+      const schedule = schedules[Math.floor(Math.random() * totalSchedules)]
       const appointment = await prisma.booking.create({
         data: {
           status: 'PENDING',
-          scheduleId: schedules[index % totalSchedules].id,
+          scheduleId: schedule.id,
           userId: filteredUsers[index % filteredUsers.length].id,
-          doctorId: doctors[Math.floor(Math.random() * totalDoctors)].userId,
+          doctorId: schedule.doctorId,
           name: users[index % totalUsers].fullName,
           phone: users[index % totalUsers].phone,
           note: faker.lorem.sentence(),

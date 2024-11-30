@@ -1,11 +1,6 @@
 import { getFormProps, getInputProps, Intent, useForm } from '@conform-to/react'
-import { conformZodMessage, parseWithZod } from '@conform-to/zod'
-import {
-  ActionFunctionArgs,
-  json,
-  LoaderFunctionArgs,
-  redirect,
-} from '@remix-run/node'
+import { parseWithZod } from '@conform-to/zod'
+import { ActionFunctionArgs, json, LoaderFunctionArgs } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { redirectWithSuccess } from 'remix-toast'
 import { z } from 'zod'
@@ -36,9 +31,11 @@ function CreateLocationSchema(
 ) {
   return z
     .object({
-      name: z.string({ message: 'Enter name of your place' }),
-      address: z.string({ message: 'Enter an address' }),
-      city: z.string({ message: 'Enter a city' }),
+      name: z.string({ message: 'Please provide the name of your location.' }),
+      address: z.string({
+        message: 'Please provide the address of your location.',
+      }),
+      city: z.string({ message: 'Please specify the city of your location.' }),
       state: z.string().optional(),
       zip: z.string().optional(),
     })
@@ -51,7 +48,7 @@ function CreateLocationSchema(
           state: z.string().optional(),
           zip: z.string().optional(),
         })
-        .superRefine((data, ctx) => {
+        .superRefine(async (data, ctx) => {
           const isValidatingLocation =
             intent === null ||
             (intent.type === 'validate' &&
@@ -61,7 +58,9 @@ function CreateLocationSchema(
           if (!isValidatingLocation) {
             ctx.addIssue({
               code: 'custom',
-              message: conformZodMessage.VALIDATION_SKIPPED,
+              path: ['form'],
+              message:
+                'The location validation process is not properly initiated.',
             })
             return
           }
@@ -69,27 +68,40 @@ function CreateLocationSchema(
           if (typeof options?.isLocationUnique !== 'function') {
             ctx.addIssue({
               code: 'custom',
-              message: conformZodMessage.VALIDATION_UNDEFINED,
+              path: ['form'],
+              message:
+                'Location uniqueness validation function is not provided.',
               fatal: true,
             })
             return
           }
 
-          return options
-            .isLocationUnique(
+          try {
+            const isUnique = await options.isLocationUnique(
               data.name.toLowerCase(),
               data.address.toLowerCase(),
               data.city.toLowerCase(),
+              data.state?.toLowerCase(),
+              data.zip?.toLowerCase(),
             )
-            .then(isUnique => {
-              if (!isUnique) {
-                ctx.addIssue({
-                  code: 'custom',
-                  path: ['form'],
-                  message: 'Location already exists',
-                })
-              }
+
+            if (!isUnique) {
+              ctx.addIssue({
+                code: 'custom',
+                path: ['form'],
+                message:
+                  'A location with the same details already exists. Please provide unique details.',
+              })
+            }
+          } catch (error) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['form'],
+              message:
+                'An error occurred during location validation. Please try again later.',
+              fatal: true,
             })
+          }
         }),
     )
 }

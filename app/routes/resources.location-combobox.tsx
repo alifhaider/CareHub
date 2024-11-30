@@ -1,5 +1,5 @@
 import { type FieldMetadata, getInputProps } from '@conform-to/react'
-import { ScheduleLocation } from '@prisma/client'
+import { type ScheduleLocation } from '@prisma/client'
 import { json, LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import clsx from 'clsx'
