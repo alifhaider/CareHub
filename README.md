@@ -60,3 +60,10 @@ Doctor
 - [ ] add balance and currency type
 - [ ] add social accounts
 - [x] schedule location with lat and long (for better position at map)
+- [ ] Display balance and request to get paid
+
+Admin 
+- [ ] Dashboard to see how many bookings made everyday, week, month and year
+- [ ] List to see which doctors asked to get paid
+- [ ] How much of balance they got
+- [ ] Make the payment (Maybe automatic)
