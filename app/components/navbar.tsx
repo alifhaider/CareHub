@@ -34,7 +34,7 @@ export default function Navbar({
   )
   const [, setTheme] = useTheme()
   return (
-    <nav className="sticky inset-0 z-50 mx-auto flex h-[73px] items-center justify-between border-b bg-background px-4 py-4 lg:px-12">
+    <nav className="to red-500 ... sticky inset-0 z-50 mx-auto flex h-[73px] items-center justify-between border-b bg-background bg-gradient-to-r from-cyan-300 to-blue-300 px-4 py-4 opacity-75 lg:px-12">
       <div className="flex w-full items-center justify-between">
         <a href="/" className="font-bold">
           Care<span className="text-lime-500">Hub</span>
@@ -83,7 +83,7 @@ export default function Navbar({
               variant="outline"
               className="h-7 rounded-none border-primary py-0 text-sm font-bold"
             >
-              <Link to="/doctor/join">Become a doctor</Link>
+              <Link to="/doctor/join ">Become a doctor</Link>
             </Button>
           )}
 
@@ -101,7 +101,7 @@ export default function Navbar({
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="start"
-              className="space-y-1 py-2 text-sm"
+              className="space-y-1 bg-cyan-300 py-2 text-sm"
             >
               {username ? (
                 <>

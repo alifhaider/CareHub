@@ -26,7 +26,7 @@ export default function UserCard({
 }: UserCardProps) {
   return (
     <li className="h-full">
-      <div className="flex h-full flex-col justify-between rounded-sm border bg-background py-4 hover:shadow-lg">
+      <div className="flex h-full flex-col justify-between rounded-lg border bg-background bg-blue-400 py-4 hover:shadow-lg">
         <div className="relative mx-auto h-20 w-20 rounded-sm bg-secondary">
           <img
             src={doctor?.image ?? '/avatar.png'}
