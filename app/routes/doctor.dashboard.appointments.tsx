@@ -7,7 +7,7 @@ import { Label } from '~/components/ui/label'
 
 export default function DoctorAppointmentsPage() {
   return (
-    <div className="space-y-6 ">
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Appointment Calendar</CardTitle>
@@ -19,7 +19,7 @@ export default function DoctorAppointmentsPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Today's Appointments</CardTitle>
+            <CardTitle>Today&apos;s Appointments</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-4">

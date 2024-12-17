@@ -25,10 +25,10 @@ import {
 import React from 'react'
 import { DayProps } from 'react-day-picker'
 import { jsonWithError, jsonWithSuccess } from 'remix-toast'
-import { ErrorList, Field, TextareaField } from '~/components/forms'
+import { ErrorList, TextareaField } from '~/components/forms'
 import { Spacer } from '~/components/spacer'
 import { PageTitle, SectionTitle } from '~/components/typography'
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
+import { Avatar } from '~/components/ui/avatar'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Calendar, CustomCell } from '~/components/ui/calendar'
@@ -151,6 +151,32 @@ type Booking = {
       fullName: string | null
     }
   }
+}
+
+type ReviewProps = {
+  doctorId: string
+  userId: string
+  totalReviews: number | undefined
+  overallRating: string | undefined
+  reviews:
+    | {
+        user: {
+          username: string
+          fullName: string | null
+        }
+        id: string
+        createdAt: string
+        rating: number
+        comment: string
+      }[]
+    | undefined
+}
+
+type ScheduleProps = {
+  schedules: TSchedule[] | undefined
+  isOwner: boolean
+  isDoctor: boolean
+  username: string
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -497,13 +523,6 @@ export function ErrorBoundary() {
   )
 }
 
-type ScheduleProps = {
-  schedules: TSchedule[] | undefined
-  isOwner: boolean
-  isDoctor: boolean
-  username: string
-}
-
 const Schedules = ({
   schedules,
   isDoctor,
@@ -549,25 +568,6 @@ const Schedules = ({
   )
 }
 
-type ReviewProps = {
-  doctorId: string
-  userId: string
-  totalReviews: number | undefined
-  overallRating: string | undefined
-  reviews:
-    | {
-        user: {
-          username: string
-          fullName: string | null
-        }
-        id: string
-        createdAt: string
-        rating: number
-        comment: string
-      }[]
-    | undefined
-}
-
 const Reviews = ({
   reviews,
   doctorId,
@@ -575,7 +575,6 @@ const Reviews = ({
   totalReviews,
   overallRating,
 }: ReviewProps) => {
-  if (!reviews) return null
   const actionData = useActionData<typeof action>()
 
   const [form, fields] = useForm({
@@ -585,6 +584,7 @@ const Reviews = ({
     },
     shouldRevalidate: 'onSubmit',
   })
+  if (!reviews) return null
 
   return (
     <section>
@@ -827,7 +827,8 @@ const ScheduleItem = ({
   const isDeleting = deleteFetcher.formData?.get('scheduleId') === schedule.id
   return (
     <li
-      className={`flex items-center rounded-md border transition-all ${isDeleting ? 'opacity-25' : 'opacity-100'}`}
+      hidden={isDeleting}
+      className="flex items-center rounded-md border transition-all"
     >
       <div className="h-full w-full px-4 py-6">
         <div className="flex items-center justify-between">

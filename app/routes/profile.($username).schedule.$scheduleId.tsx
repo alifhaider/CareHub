@@ -29,11 +29,11 @@ import { formatTime } from '~/utils/schedule'
 import { Spacer } from '~/components/spacer'
 
 const BookingFormSchema = z.object({
-  doctorId: z.string(),
-  userId: z.string(),
-  scheduleId: z.string(),
-  name: z.string(),
-  phone: z.string(),
+  doctorId: z.string({ message: 'Doctor ID is required' }),
+  userId: z.string({ message: 'User ID is required' }),
+  scheduleId: z.string({ message: 'Schedule ID is required' }),
+  name: z.string({ message: 'Name is required' }),
+  phone: z.string({ message: 'Phone is required' }),
   note: z.string().optional(),
 })
 
@@ -44,7 +44,7 @@ export const meta: MetaFunction = () => {
   ]
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   await requireUser(request)
   const formData = await request.formData()
   const submission = parseWithZod(formData, {
@@ -202,7 +202,9 @@ export default function Booking() {
             <div className="space-y-4">
               <p className="py-2 text-sm">
                 Please add{' '}
-                <strong className="underline">your or the patient's</strong>{' '}
+                <strong className="underline">
+                  your or the patient&apos;s
+                </strong>{' '}
                 information below
               </p>
 

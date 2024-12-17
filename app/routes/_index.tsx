@@ -52,7 +52,7 @@ export default function Index() {
   return (
     <>
       <Spacer variant="lg" />
-      <section className="mx-auto flex flex-col gap-10 md:container md:flex-row ">
+      <section className="mx-auto flex flex-col gap-10 md:container md:flex-row">
         <div className="space-y-4">
           <h1 className="text-4xl font-extrabold md:text-6xl">
             Find and Book Your Doctor&apos;s Appointment
@@ -70,12 +70,12 @@ export default function Index() {
           </p>
         </div>
         <img
-          className="h-80 w-full max-w-5xl rounded-2xl bg-primary-foreground"
+          className="h-80 w-full max-w-5xl rounded-2xl"
           src="https://i.ibb.co.com/jG6D6bY/Screenshot-92.png"
           alt="Doctor Appointment"
         />
       </section>
-      <section className="mt-20 bg-primary-foreground py-20 bg-gradient-to-r bg-cyan-300">
+      <section className="mt-20 bg-primary-foreground py-20">
         <div className="container">
           <SectionTitle>Search for Top-Rated Doctors</SectionTitle>
           <p className="mt-6 w-3/4">
