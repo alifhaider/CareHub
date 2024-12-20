@@ -140,6 +140,7 @@ export const ScheduleSchema = z
   })
 
 export async function action({ request }: ActionFunctionArgs) {
+  await requireDoctor(request)
   const formData = await request.formData()
 
   const submission = await parseWithZod(formData, {

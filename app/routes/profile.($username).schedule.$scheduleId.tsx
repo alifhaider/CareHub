@@ -27,10 +27,12 @@ import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { formatTime } from '~/utils/schedule'
 import { Spacer } from '~/components/spacer'
+import { redirectWithSuccess } from 'remix-toast'
 
 const BookingFormSchema = z.object({
   doctorId: z.string({ message: 'Doctor ID is required' }),
   userId: z.string({ message: 'User ID is required' }),
+  username: z.string({ message: 'Username is required' }),
   scheduleId: z.string({ message: 'Schedule ID is required' }),
   name: z.string({ message: 'Name is required' }),
   phone: z.string({ message: 'Phone is required' }),
@@ -45,6 +47,7 @@ export const meta: MetaFunction = () => {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  console.log('Booking action')
   await requireUser(request)
   const formData = await request.formData()
   const submission = parseWithZod(formData, {
@@ -60,14 +63,21 @@ export async function action({ request }: ActionFunctionArgs) {
   // Save the booking
   // Send a confirmation email
 
-  const booking = await prisma.booking.create({
+  const { doctorId, userId, scheduleId, phone, note, username } =
+    submission.value
+
+  await prisma.booking.create({
     data: {
-      doctorId: submission.value.doctorId,
-      userId: submission.value.userId,
-      scheduleId: submission.value.scheduleId,
-      phone: submission.value.phone,
-      note: submission.value.note,
+      doctorId: doctorId,
+      userId: userId,
+      scheduleId: scheduleId,
+      phone: phone,
+      note: note,
     },
+  })
+
+  return redirectWithSuccess(`/profile/${username}`, {
+    message: 'Doctor Appointment Scheduled Successfully',
   })
 }
 
@@ -94,7 +104,6 @@ export default function Booking() {
   const actionData = useActionData<typeof action>()
 
   const [form, fields] = useForm({
-    id: 'booking-form',
     lastResult: actionData,
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: BookingFormSchema })
@@ -122,91 +131,94 @@ export default function Booking() {
     <div className="container">
       <Spacer variant="lg" />
       <Card className="mx-auto w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">
-            Book Your Appointment
-          </CardTitle>
-          <CardDescription>
-            Complete the form below to book your appointment with{' '}
-            <Link
-              rel="noreferrer"
-              target="_blank"
-              className="text-cyan-500 underline"
-              to={`/profile/${schedule.doctor.user.username}`}
-            >
-              {doctorName}
-            </Link>
-            .
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-6 rounded-lg bg-primary/5 p-4">
-            <div className="mb-2 flex items-center">
-              <UserIcon className="mr-2 h-5 w-5 text-primary" />
-              <span className="font-semibold">{doctorName}</span>
-            </div>
-            <div className="mb-2 flex items-center">
-              <CalendarIcon className="mr-2 h-5 w-5 text-primary" />
-              <span>{formattedDate}</span>
-            </div>
-            <div className="flex items-center">
-              <ClockIcon className="mr-2 h-5 w-5 text-primary" />
-              <span>
-                {scheduleStartTime} - {scheduleEndTime}
-              </span>
-            </div>
-          </div>
-
-          {/* Cost Breakdown Section */}
-          <div className="mb-6 rounded-lg bg-secondary/10">
-            <h3 className="mb-3 flex items-center text-lg font-semibold">
-              <DollarSignIcon className="mr-2 h-5 w-5 text-primary" />
-              Cost Breakdown
-            </h3>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Visit Fee:</span>
-                <span>{schedule.visitFee?.toFixed(2)} tk</span>
+        <Form method="POST" {...getFormProps(form)}>
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">
+              Book Your Appointment
+            </CardTitle>
+            <CardDescription>
+              Complete the form below to book your appointment with{' '}
+              <Link
+                rel="noreferrer"
+                target="_blank"
+                className="text-cyan-500 underline"
+                to={`/profile/${schedule.doctor.user.username}`}
+              >
+                {doctorName}
+              </Link>
+              .
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-6 rounded-lg bg-primary/5 p-4">
+              <div className="mb-2 flex items-center">
+                <UserIcon className="mr-2 h-5 w-5 text-primary" />
+                <span className="font-semibold">{doctorName}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Serial Fee:</span>
-                <span>{schedule.serialFee?.toFixed(2)} tk</span>
+              <div className="mb-2 flex items-center">
+                <CalendarIcon className="mr-2 h-5 w-5 text-primary" />
+                <span>{formattedDate}</span>
               </div>
-              <div className="flex justify-between text-green-600">
-                <span>Discount:</span>
-                <span>-{schedule.discountFee?.toFixed(2)} tk</span>
-              </div>
-              <div className="flex justify-between border-t pt-2 font-semibold">
-                <span>Total:</span>
-                <span>{totalCost.toFixed(2)} tk</span>
-              </div>
-              <div className="flex justify-between border-t pt-2 text-primary">
-                <span>Deposit:</span>
-                <span className="flex items-center gap-1">
-                  {' '}
-                  {schedule.depositAmount?.toFixed(2)} tk
-                </span>
-              </div>
-              <div className="flex justify-between border-t pt-2 text-primary">
-                <span>Remaining:</span>
-                <span className="flex items-center gap-1">
-                  {' '}
-                  {remainingAmount.toFixed(2)} tk
+              <div className="flex items-center">
+                <ClockIcon className="mr-2 h-5 w-5 text-primary" />
+                <span>
+                  {scheduleStartTime} - {scheduleEndTime}
                 </span>
               </div>
             </div>
-          </div>
 
-          <hr />
-          <Form method="POST" {...getFormProps(form)}>
+            {/* Cost Breakdown Section */}
+            <div className="mb-6 rounded-lg bg-secondary/10">
+              <h3 className="mb-3 flex items-center text-lg font-semibold">
+                <DollarSignIcon className="mr-2 h-5 w-5 text-primary" />
+                Cost Breakdown
+              </h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Visit Fee:</span>
+                  <span>{schedule.visitFee?.toFixed(2)} tk</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Serial Fee:</span>
+                  <span>{schedule.serialFee?.toFixed(2)} tk</span>
+                </div>
+                <div className="flex justify-between text-green-600">
+                  <span>Discount:</span>
+                  <span>-{schedule.discountFee?.toFixed(2)} tk</span>
+                </div>
+                <div className="flex justify-between border-t pt-2 font-semibold">
+                  <span>Total:</span>
+                  <span>{totalCost.toFixed(2)} tk</span>
+                </div>
+                <div className="flex justify-between border-t pt-2 text-primary">
+                  <span>Deposit:</span>
+                  <span className="flex items-center gap-1">
+                    {' '}
+                    {schedule.depositAmount?.toFixed(2)} tk
+                  </span>
+                </div>
+                <div className="flex justify-between border-t pt-2 text-primary">
+                  <span>Remaining:</span>
+                  <span className="flex items-center gap-1">
+                    {' '}
+                    {remainingAmount.toFixed(2)} tk
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <hr />
             <div className="space-y-4">
               <p className="py-2 text-sm">
-                Please add{' '}
-                <strong className="underline">
-                  your or the patient&apos;s
-                </strong>{' '}
+                Please, add <strong>your or the patient&apos;s</strong>{' '}
                 information below
               </p>
+
+              {/* BOOKING FORM */}
+              <input
+                {...getInputProps(fields.username, { type: 'hidden' })}
+                value={user.username}
+              />
 
               <input
                 {...getInputProps(fields.doctorId, { type: 'hidden' })}
@@ -248,19 +260,19 @@ export default function Booking() {
                 />
               </div>
             </div>
-          </Form>
-          <p className="text-xs">
-            <strong>Note: </strong>You will be charged{' '}
-            {schedule.depositAmount?.toFixed(2)} tk deposit now. The remaining
-            amount will be charged at the clinic.
-          </p>
-        </CardContent>
-        <CardFooter>
-          <Button className="w-full" type="submit">
-            Confirm Booking (Pay {schedule.depositAmount?.toFixed(2)} tk
-            Deposit)
-          </Button>
-        </CardFooter>
+            <p className="text-xs">
+              <strong>Note: </strong>You will be charged{' '}
+              {schedule.depositAmount?.toFixed(2)} tk deposit now. The remaining
+              amount will be charged at the clinic.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button className="w-full" type="submit">
+              Confirm Booking (Pay {schedule.depositAmount?.toFixed(2)} tk
+              Deposit)
+            </Button>
+          </CardFooter>
+        </Form>
       </Card>
 
       <Spacer variant="lg" />

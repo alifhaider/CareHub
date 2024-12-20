@@ -112,6 +112,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  await requireDoctor(request)
   const formData = await request.formData()
 
   const submission = await parseWithZod(formData, {

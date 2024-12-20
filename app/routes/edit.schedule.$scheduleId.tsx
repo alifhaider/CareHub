@@ -106,6 +106,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  await requireDoctor(request)
   const formData = await request.formData()
   const scheduleId = params.scheduleId
 
