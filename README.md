@@ -44,12 +44,13 @@ User
 - [ ] Implement Payment gateway
 - [ ] Make the `/search` route fully functional
 - [x] User can see their booking history
-- [ ] Cancel a booking (at least before 6hrs)
+- [x] Cancel a booking (at least before 6hrs)
 - [ ] integrate google map, with doctor location marks
 - [x] submit a review
 - [ ] get an invoice for booking (after payment)
 - [ ] email service for a successful booking
-- [ ] email service before a booking date, before 2 hours (if the booking is more than 2 days after)
+- [ ] email service before a booking date, before 2 hours (if the booking is
+      more than 2 days after)
 
 Doctor
 
@@ -62,7 +63,8 @@ Doctor
 - [x] schedule location with lat and long (for better position at map)
 - [ ] Display balance and request to get paid
 
-Admin 
+Admin
+
 - [ ] Dashboard to see how many bookings made everyday, week, month and year
 - [ ] List to see which doctors asked to get paid
 - [ ] How much of balance they got

@@ -741,125 +741,129 @@ const BookedAppointments = () => {
 
       <Spacer variant="sm" />
       <div className="space-y-8">
-        {bookings.map((booking, index) => (
-          <div key={booking.id} className="relative">
-            {index !== bookings.length - 1 && (
-              <div className="absolute bottom-0 left-8 top-16 w-px bg-gray-200 dark:bg-gray-700" />
-            )}
-            <Card>
-              <CardHeader className="flex flex-row items-center gap-4">
-                <Avatar className="h-16 w-16 border">
-                  {booking.doctor.image ? (
-                    <img
-                      className="h-16 w-16 rounded-full"
-                      src={booking.doctor.image}
-                      alt={
-                        booking.doctor.user.fullName ||
-                        booking.doctor.user.username
-                      }
-                    />
-                  ) : (
-                    <UserIcon className="h-8 w-8" />
-                  )}
-                </Avatar>
-                <div className="flex-1">
-                  <Link
-                    to={`/profile/${booking.doctor.user.username}`}
-                    className="hover:text-cyan-400 hover:underline"
-                  >
-                    <CardTitle>
-                      {booking.doctor.user.fullName ||
-                        booking.doctor.user.username}
-                    </CardTitle>
-                  </Link>
-                  <p className="text-sm text-muted-foreground">
-                    Appointment on{' '}
-                    {format(new Date(booking.schedule.date), 'MMMM d, yyyy')}
-                  </p>
-                </div>
-                {isPast(new Date(booking.schedule.date)) ? (
-                  <Button asChild variant="outline">
+        {bookings.map((booking, index) => {
+          const isInThePast = isPast(new Date(booking.schedule.date))
+          return (
+            <div key={booking.id} className="relative">
+              {index !== bookings.length - 1 && (
+                <div className="absolute bottom-0 left-8 top-16 w-px bg-gray-200 dark:bg-gray-700" />
+              )}
+              <Card>
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <Avatar className="h-16 w-16 border">
+                    {booking.doctor.image ? (
+                      <img
+                        className="h-16 w-16 rounded-full"
+                        src={booking.doctor.image}
+                        alt={
+                          booking.doctor.user.fullName ||
+                          booking.doctor.user.username
+                        }
+                      />
+                    ) : (
+                      <UserIcon className="h-8 w-8" />
+                    )}
+                  </Avatar>
+                  <div className="flex-1">
                     <Link
                       to={`/profile/${booking.doctor.user.username}`}
-                      className="flex w-max items-center gap-2 text-sm text-accent-foreground"
+                      className="hover:text-cyan-400 hover:underline"
                     >
-                      Leave a Review
+                      <CardTitle>
+                        {booking.doctor.user.fullName ||
+                          booking.doctor.user.username}
+                      </CardTitle>
                     </Link>
-                  </Button>
-                ) : null}
-                {!isScheduleInSixHours(
-                  booking.schedule.date,
-                  booking.schedule.startTime,
-                ) ? (
-                  <CancelBookingButton bookingId={booking.id} />
-                ) : null}
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <strong>Schedule Date: </strong>
-                      {format(
-                        new Date(booking.schedule.date),
-                        'EEEE, MMMM d, yyyy',
-                      )}
-                    </span>
+                    <p className="text-sm text-muted-foreground">
+                      Appointment on{' '}
+                      {format(new Date(booking.schedule.date), 'MMMM d, yyyy')}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <strong>Schedule Time: </strong>
-                      {formatTime(booking.schedule.startTime)} -{' '}
-                      {formatTime(booking.schedule.endTime)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <strong>Location: </strong>
-                      {booking.schedule.location.name},{' '}
-                      {booking.schedule.location.address},{' '}
-                      {booking.schedule.location.city},{' '}
-                      {booking.schedule.location.state}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CoinsIcon className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <strong>Total Cost: </strong>
-                      {totalCost(
-                        booking.schedule.serialFee,
-                        booking.schedule.visitFee,
-                        booking.schedule.discountFee,
-                      )}
-                      tk
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <BadgeDollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <strong>Paid Amount: </strong>
-                      {booking.schedule.depositAmount || 0}tk tk
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <UserIcon className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      Booked on{' '}
-                      <strong className="underline">
+                  {isInThePast ? (
+                    <Button asChild variant="outline">
+                      <Link
+                        to={`/profile/${booking.doctor.user.username}`}
+                        className="flex w-max items-center gap-2 text-sm text-accent-foreground"
+                      >
+                        Leave a Review
+                      </Link>
+                    </Button>
+                  ) : null}
+                  {!isInThePast &&
+                  !isScheduleInSixHours(
+                    booking.schedule.date,
+                    booking.schedule.startTime,
+                  ) ? (
+                    <CancelBookingButton bookingId={booking.id} />
+                  ) : null}
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                      <span>
+                        <strong>Schedule Date: </strong>
                         {format(
-                          new Date(booking.schedule.createdAt),
-                          'MMMM d, yyyy',
+                          new Date(booking.schedule.date),
+                          'EEEE, MMMM d, yyyy',
                         )}
-                      </strong>
-                    </span>
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span>
+                        <strong>Schedule Time: </strong>
+                        {formatTime(booking.schedule.startTime)} -{' '}
+                        {formatTime(booking.schedule.endTime)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span>
+                        <strong>Location: </strong>
+                        {booking.schedule.location.name},{' '}
+                        {booking.schedule.location.address},{' '}
+                        {booking.schedule.location.city},{' '}
+                        {booking.schedule.location.state}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CoinsIcon className="h-4 w-4 text-muted-foreground" />
+                      <span>
+                        <strong>Total Cost: </strong>
+                        {totalCost(
+                          booking.schedule.serialFee,
+                          booking.schedule.visitFee,
+                          booking.schedule.discountFee,
+                        )}
+                        tk
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <BadgeDollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span>
+                        <strong>Paid Amount: </strong>
+                        {booking.schedule.depositAmount || 0}tk tk
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <UserIcon className="h-4 w-4 text-muted-foreground" />
+                      <span>
+                        Booked on{' '}
+                        <strong className="underline">
+                          {format(
+                            new Date(booking.schedule.createdAt),
+                            'MMMM d, yyyy',
+                          )}
+                        </strong>
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        ))}
+                </CardContent>
+              </Card>
+            </div>
+          )
+        })}
       </div>
     </section>
   )

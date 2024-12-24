@@ -1,10 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
   formatTime,
-  getFormattedTimeDifference,
   getUpcomingDateSchedules,
+  isScheduleInSixHours,
 } from './schedule'
-import { parse, format } from 'date-fns'
 
 const sampleLocation = {
   location: {
@@ -28,6 +27,9 @@ const pastSchedules = [
     date: new Date(new Date().getTime() - 86400000).toISOString(), // Yesterday
     startTime: '08:00',
     endTime: '10:00',
+    _count: {
+      bookings: 1,
+    },
     ...sampleLocation,
     ...sampleFee,
   },
@@ -36,6 +38,9 @@ const pastSchedules = [
     date: new Date(new Date().getTime() - 172800000).toISOString(), // day before yesterday
     startTime: '14:00',
     endTime: '16:00',
+    _count: {
+      bookings: 1,
+    },
     ...sampleLocation,
     ...sampleFee,
   },
@@ -50,6 +55,9 @@ const todaySchedulesWithPassedEndTime = [
     date: todayString,
     startTime: `${today.getHours() - 2}:${today.getMinutes()}`,
     endTime: `${today.getHours() - 1}:${today.getMinutes()}`,
+    _count: {
+      bookings: 1,
+    },
     ...sampleLocation,
     ...sampleFee,
   },
@@ -58,6 +66,9 @@ const todaySchedulesWithPassedEndTime = [
     date: todayString,
     startTime: `${today.getHours() - 4}:${today.getMinutes()}`,
     endTime: `${today.getHours() - 3}:${today.getMinutes()}`,
+    _count: {
+      bookings: 1,
+    },
     ...sampleLocation,
     ...sampleFee,
   },
@@ -68,6 +79,9 @@ const futureFirstSchedule = {
   date: new Date(today.getTime() + 86400000).toISOString().split('T')[0], // Tomorrow
   startTime: '09:00',
   endTime: '11:00',
+  _count: {
+    bookings: 1,
+  },
   ...sampleLocation,
   ...sampleFee,
 }
@@ -77,6 +91,9 @@ const futureSecondSchedule = {
   date: new Date(today.getTime() + 86400000).toISOString().split('T')[0], // Tomorrow
   startTime: '14:00',
   endTime: '16:00',
+  _count: {
+    bookings: 1,
+  },
   ...sampleLocation,
   ...sampleFee,
 }
@@ -87,6 +104,9 @@ const dayAfterTomorrowSchedule = {
   date: new Date(today.getTime() + 172800000).toISOString().split('T')[0], // Day after tomorrow
   startTime: '09:00',
   endTime: '11:00',
+  _count: {
+    bookings: 1,
+  },
   ...sampleLocation,
   ...sampleFee,
 }
@@ -104,6 +124,9 @@ const invalidDateSchedules = [
     date: 'invalid-date',
     startTime: '09:00',
     endTime: '11:00',
+    _count: {
+      bookings: 1,
+    },
     ...sampleLocation,
     ...sampleFee,
   },
@@ -169,6 +192,9 @@ describe('getUpcomingDateSchedules', () => {
         date: new Date().toISOString(),
         startTime: 'invalid-time',
         endTime: '11:00',
+        _count: {
+          bookings: 1,
+        },
         ...sampleLocation,
         ...sampleFee,
       },
@@ -205,4 +231,37 @@ describe('getUpcomingDateSchedules', () => {
   //   ])
   //   expect(result).toEqual(todaySchedulesInFutureTime) // Today’s schedules
   // })
+})
+
+describe('isScheduleInSixHours', () => {
+  it('should return true if the schedule is in the next 6 hours', () => {
+    const now = new Date()
+    const schedule = {
+      date: now.toISOString(),
+      startTime: `${now.getHours() + 1}:${now.getMinutes()}`,
+    }
+    const result = isScheduleInSixHours(schedule.date, schedule.startTime)
+    expect(result).toBe(true)
+  })
+
+  it('should return false if the schedule is not in the next 6 hours', () => {
+    const now = new Date()
+    const schedule = {
+      date: now.toISOString(),
+      startTime: `${now.getHours() + 7}:${now.getMinutes()}`,
+    }
+    const result = isScheduleInSixHours(schedule.date, schedule.startTime)
+    expect(result).toBe(false)
+  })
+
+  it('should return true if the schedule is in the past', () => {
+    const now = new Date()
+    const schedule = {
+      date: new Date(now.getTime() - 86400000).toISOString(),
+      startTime: `${now.getHours() - 1}:${now.getMinutes()}`,
+    }
+    console.log(schedule)
+    const result = isScheduleInSixHours(schedule.date, schedule.startTime)
+    expect(result).toBe(true)
+  })
 })
