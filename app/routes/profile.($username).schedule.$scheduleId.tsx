@@ -46,6 +46,24 @@ export const meta: MetaFunction = () => {
   ]
 }
 
+export async function loader({ request, params }: LoaderFunctionArgs) {
+  const user = await requireUser(request)
+  const scheduleId = params.scheduleId
+  invariant(scheduleId, 'Schedule ID is required')
+  const schedule = await prisma.schedule.findUnique({
+    where: { id: scheduleId },
+    include: {
+      doctor: {
+        include: {
+          user: { select: { id: true, username: true, fullName: true } },
+        },
+      },
+    },
+  })
+
+  return { schedule, user }
+}
+
 export async function action({ request }: ActionFunctionArgs) {
   console.log('Booking action')
   await requireUser(request)
@@ -60,8 +78,7 @@ export async function action({ request }: ActionFunctionArgs) {
     )
   }
 
-  // Save the booking
-  // Send a confirmation email
+  // TODO: Send a confirmation email
 
   const { doctorId, userId, scheduleId, phone, note, username } =
     submission.value
@@ -79,24 +96,6 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirectWithSuccess(`/profile/${username}`, {
     message: 'Doctor Appointment Scheduled Successfully',
   })
-}
-
-export async function loader({ request, params }: LoaderFunctionArgs) {
-  const user = await requireUser(request)
-  const scheduleId = params.scheduleId
-  invariant(scheduleId, 'Schedule ID is required')
-  const schedule = await prisma.schedule.findUnique({
-    where: { id: scheduleId },
-    include: {
-      doctor: {
-        include: {
-          user: { select: { id: true, username: true, fullName: true } },
-        },
-      },
-    },
-  })
-
-  return { schedule, user }
 }
 
 export default function Booking() {
@@ -228,6 +227,11 @@ export default function Booking() {
               <input
                 {...getInputProps(fields.userId, { type: 'hidden' })}
                 value={user.id}
+              />
+
+              <input
+                {...getInputProps(fields.scheduleId, { type: 'hidden' })}
+                value={schedule.id}
               />
 
               <div className="grid grid-cols-2 gap-4">

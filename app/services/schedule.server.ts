@@ -1,6 +1,7 @@
 import { Schedule } from '@prisma/client'
 import { add, getDay, addMonths, addWeeks } from 'date-fns'
 import { DAYS } from '~/routes/add.schedule'
+import { getHoursAndMinutes } from '~/utils/schedule'
 
 export type ScheduleFormData = {
   startTime: string
@@ -94,8 +95,8 @@ export function checkOverlapSchedule(
     })
 
     // Convert the times to Date objects for comparison
-    const [formStartHour, formStartMin] = data.startTime.split(':').map(Number)
-    const [formEndHour, formEndMin] = data.endTime.split(':').map(Number)
+    const [formStartHour, formStartMin] = getHoursAndMinutes(data.startTime)
+    const [formEndHour, formEndMin] = getHoursAndMinutes(data.endTime)
 
     // Create time objects with the correct day
     const formStartTime = new Date(

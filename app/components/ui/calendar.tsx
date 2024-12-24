@@ -4,13 +4,15 @@ import { DayPicker, DayProps, useDayRender } from 'react-day-picker'
 
 import { cn } from '~/lib/utils'
 import { Button, buttonVariants } from '~/components/ui/button'
+import { Schedule } from '@prisma/client'
+import { getHoursAndMinutes } from '~/utils/schedule'
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 type ScheduleTime = {
   id: string
-  startTime: Date
-  endTime: Date
-  date: Date
+  startTime: Schedule['startTime']
+  endTime: Schedule['endTime']
+  date: Schedule['date']
 }
 
 type CustomCellProps = {
@@ -80,6 +82,13 @@ export function CustomCell({
   const dayRender = useDayRender(props.date, props.displayMonth, buttonRef)
   const modifires = dayRender.activeModifiers
 
+  const isPast = (schedule: ScheduleTime) => {
+    const [endHours, endMinutes] = getHoursAndMinutes(schedule.endTime)
+    const scheduleDate = new Date(schedule.date)
+    scheduleDate.setHours(endHours, endMinutes)
+    return schedule.date < new Date()
+  }
+
   const isSameDay = (schedule: ScheduleTime) => {
     return (
       props.date.getDate() === schedule.date.getDate() &&
@@ -140,6 +149,7 @@ export function CustomCell({
     >
       <Button
         ref={buttonRef}
+        disabled={isPast(currentDaySchedules[0])}
         className={cn(
           classNames.day,
           modifires.isToday && classNames.day_today,

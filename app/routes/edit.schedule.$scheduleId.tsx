@@ -34,7 +34,7 @@ import { Calendar } from '~/components/ui/calendar'
 import { cn } from '~/utils/misc'
 import { Spacer } from '~/components/spacer'
 import { checkOverlapSchedule } from '~/services/schedule.server'
-import { formatTimeToTwoDigits } from '~/utils/schedule'
+import { formatTimeToTwoDigits, getHoursAndMinutes } from '~/utils/schedule'
 
 export const UpdateScheduleSchema = z
   .object({
@@ -55,8 +55,8 @@ export const UpdateScheduleSchema = z
   })
   .refine(
     data => {
-      const [startHours, startMinutes] = data.startTime.split(':').map(Number)
-      const [endHours, endMinutes] = data.endTime.split(':').map(Number)
+      const [startHours, startMinutes] = getHoursAndMinutes(data.startTime)
+      const [endHours, endMinutes] = getHoursAndMinutes(data.endTime)
       const startTime = startHours * 60 + startMinutes
       const endTime = endHours * 60 + endMinutes
       return startTime < endTime

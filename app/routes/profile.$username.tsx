@@ -367,8 +367,8 @@ export default function User() {
 
   const scheduleTimes = schedules?.map(schedule => ({
     id: schedule.id,
-    startTime: new Date(schedule.startTime),
-    endTime: new Date(schedule.endTime),
+    startTime: schedule.startTime,
+    endTime: schedule.endTime,
     date: new Date(schedule.date),
   }))
 

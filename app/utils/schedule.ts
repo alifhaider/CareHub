@@ -22,6 +22,7 @@ export type TSchedule = {
 }
 
 const isValidTime = (time: string): boolean => {
+  if (!time) return false
   const [hour, minute] = time.split(':').map(Number)
   return (
     !isNaN(hour) &&
@@ -39,7 +40,7 @@ const isValidDate = (date: string): boolean => {
 
 // get a time string like 9:20 and return 09:20
 export function formatTimeToTwoDigits(time: string): string {
-  const [hour, minute] = time.split(':').map(Number)
+  const [hour, minute] = getHoursAndMinutes(time)
   return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
 }
 
@@ -72,7 +73,7 @@ export function getUpcomingDateSchedules(schedules: TSchedule[]): TSchedule[] {
     )
       return false
 
-    const [endHour, endMinute] = schedule.endTime.split(':').map(Number)
+    const [endHour, endMinute] = getHoursAndMinutes(schedule.endTime)
     const scheduleEndTime = new Date(scheduleDate)
     scheduleEndTime.setHours(endHour, endMinute)
 
@@ -120,8 +121,8 @@ export function getFormattedTimeDifference(
   const currentTime = new Date()
 
   // Extract hours and minutes from startTime and endTime
-  const [startHour, startMinute] = startTime.split(':').map(Number)
-  const [endHour, endMinute] = endTime.split(':').map(Number)
+  const [startHour, startMinute] = getHoursAndMinutes(startTime)
+  const [endHour, endMinute] = getHoursAndMinutes(endTime)
 
   // Create date objects for start and end times on the same day
   const start = new Date(scheduleDate)
@@ -137,4 +138,11 @@ export function getFormattedTimeDifference(
 
   // If not today, return the time difference (e.g., "in 14 hours", "3 days ago")
   return formatDistance(scheduleDate, currentTime, { addSuffix: true })
+}
+
+// takes a time string like "2: 14" or "14: 00" and returns { hour: 2, minute: 14 }
+export function getHoursAndMinutes(time: string) {
+  if (!isValidTime(time)) return [0, 0]
+  const [hour, minute] = time.split(':').map(Number)
+  return [hour, minute]
 }
