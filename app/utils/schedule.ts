@@ -146,3 +146,12 @@ export function getHoursAndMinutes(time: string) {
   const [hour, minute] = time.split(':').map(Number)
   return [hour, minute]
 }
+
+export const isScheduleInSixHours = (date: string, startTime: string) => {
+  if (!isValidDate(date) || !isValidTime(startTime)) return false
+  const scheduleTime = new Date(date)
+  const [hours, minutes] = getHoursAndMinutes(startTime)
+  scheduleTime.setHours(hours, minutes, 0, 0)
+  const diff = scheduleTime.getTime() - new Date().getTime()
+  return diff < 6 * 60 * 60 * 1000
+}

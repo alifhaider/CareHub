@@ -10,13 +10,14 @@ import {
   useFetcher,
   useLoaderData,
 } from '@remix-run/react'
-import { format } from 'date-fns'
+import { format, isPast } from 'date-fns'
 import {
+  BadgeDollarSign,
   CalendarDays,
   Clock,
+  CoinsIcon,
   MailIcon,
   MapPin,
-  Phone,
   Settings,
   Star,
   StarIcon,
@@ -29,7 +30,6 @@ import { ErrorList, TextareaField } from '~/components/forms'
 import { Spacer } from '~/components/spacer'
 import { PageTitle, SectionTitle } from '~/components/typography'
 import { Avatar } from '~/components/ui/avatar'
-import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Calendar, CustomCell } from '~/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
@@ -41,6 +41,7 @@ import { z } from 'zod'
 import {
   formatTime,
   getUpcomingDateSchedules,
+  isScheduleInSixHours,
   TSchedule,
 } from '~/utils/schedule'
 import { getFormProps, getInputProps, Intent, useForm } from '@conform-to/react'
@@ -133,25 +134,6 @@ function CreateScheduleDeleteSchema(
 const ScheduleDeleteSchema = z.object({
   scheduleId: z.string(),
 })
-
-type Booking = {
-  id: string
-  phone: string | null
-  status: string | null
-  schedule: {
-    createdAt: string
-    date: string
-    startTime: string
-    endTime: string
-  }
-  doctor: {
-    image: string | null
-    user: {
-      username: string
-      fullName: string | null
-    }
-  }
-}
 
 type ReviewProps = {
   doctorId: string
@@ -259,6 +241,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
               date: true,
               startTime: true,
               endTime: true,
+              location: {
+                select: {
+                  name: true,
+                  address: true,
+                  city: true,
+                  state: true,
+                  zip: true,
+                },
+              },
+              depositAmount: true,
+              serialFee: true,
+              visitFee: true,
+              discountFee: true,
             },
           },
           doctor: {
@@ -349,11 +344,34 @@ export async function action({ request }: LoaderFunctionArgs) {
     return jsonWithSuccess({}, { message: 'Schedule removed successfully' })
   }
 
+  async function cancelBooking(formData: FormData) {
+    await requireUser(request)
+    const submission = parseWithZod(formData, {
+      schema: z.object({
+        bookingId: z.string(),
+      }),
+    })
+
+    if (submission.status !== 'success') {
+      return jsonWithError(submission.reply(), {
+        message: 'There was an error cancelling the booking',
+      })
+    }
+
+    const bookingId = submission.value.bookingId
+
+    await prisma.booking.delete({ where: { id: bookingId } })
+
+    return jsonWithSuccess({}, { message: 'Booking cancelled successfully' })
+  }
+
   switch (_action) {
-    case 'create':
+    case 'create-review':
       return createReview(formData)
-    case 'delete':
+    case 'delete-schedule':
       return deleteSchedule(formData)
+    case 'cancel-booking':
+      return cancelBooking(formData)
     default:
       return jsonWithError({}, { message: 'Invalid action' })
   }
@@ -490,7 +508,7 @@ export default function User() {
         </>
       ) : null}
 
-      {isOwner ? <BookedAppointments bookings={user.bookings} /> : null}
+      {isOwner ? <BookedAppointments /> : null}
 
       {isDoctor && user.doctor?.userId ? (
         <>
@@ -694,7 +712,7 @@ const Reviews = ({
           }}
           errors={fields.comment.errors}
         />
-        <Button type="submit" name="_action" value="create">
+        <Button type="submit" name="_action" value="create-review">
           Submit
         </Button>
       </Form>
@@ -702,7 +720,20 @@ const Reviews = ({
   )
 }
 
-const BookedAppointments = ({ bookings }: { bookings: Booking[] }) => {
+const BookedAppointments = () => {
+  const { user } = useLoaderData<typeof loader>()
+  const bookings = user.bookings
+  const getAmount = (fee: number | null) => Number(fee) || 0
+  function totalCost(
+    serialFee: number | null,
+    visitFee: number | null,
+    discountFee: number | null,
+  ) {
+    return (
+      getAmount(serialFee) + getAmount(visitFee) + getAmount(discountFee) || 0
+    )
+  }
+
   return (
     <section className="mx-auto w-full">
       <Spacer variant="lg" />
@@ -746,23 +777,29 @@ const BookedAppointments = ({ bookings }: { bookings: Booking[] }) => {
                     {format(new Date(booking.schedule.date), 'MMMM d, yyyy')}
                   </p>
                 </div>
-                <Badge
-                  variant={
-                    booking.status === 'completed'
-                      ? 'default'
-                      : booking.status === 'upcoming'
-                        ? 'secondary'
-                        : 'destructive'
-                  }
-                >
-                  {booking.status}
-                </Badge>
+                {isPast(new Date(booking.schedule.date)) ? (
+                  <Button asChild variant="outline">
+                    <Link
+                      to={`/profile/${booking.doctor.user.username}`}
+                      className="flex w-max items-center gap-2 text-sm text-accent-foreground"
+                    >
+                      Leave a Review
+                    </Link>
+                  </Button>
+                ) : null}
+                {!isScheduleInSixHours(
+                  booking.schedule.date,
+                  booking.schedule.startTime,
+                ) ? (
+                  <CancelBookingButton bookingId={booking.id} />
+                ) : null}
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4">
                   <div className="flex items-center gap-2">
                     <CalendarDays className="h-4 w-4 text-muted-foreground" />
                     <span>
+                      <strong>Schedule Date: </strong>
                       {format(
                         new Date(booking.schedule.date),
                         'EEEE, MMMM d, yyyy',
@@ -772,16 +809,40 @@ const BookedAppointments = ({ bookings }: { bookings: Booking[] }) => {
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
                     <span>
+                      <strong>Schedule Time: </strong>
                       {formatTime(booking.schedule.startTime)} -{' '}
                       {formatTime(booking.schedule.endTime)}
                     </span>
                   </div>
-                  {booking.phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{booking.phone}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      <strong>Location: </strong>
+                      {booking.schedule.location.name},{' '}
+                      {booking.schedule.location.address},{' '}
+                      {booking.schedule.location.city},{' '}
+                      {booking.schedule.location.state}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CoinsIcon className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      <strong>Total Cost: </strong>
+                      {totalCost(
+                        booking.schedule.serialFee,
+                        booking.schedule.visitFee,
+                        booking.schedule.discountFee,
+                      )}
+                      tk
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <BadgeDollarSign className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      <strong>Paid Amount: </strong>
+                      {booking.schedule.depositAmount || 0}tk tk
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <UserIcon className="h-4 w-4 text-muted-foreground" />
                     <span>
@@ -873,7 +934,7 @@ const ScheduleItem = ({
                         <ErrorList errors={fields.scheduleId.errors} />
                         <button
                           name="_action"
-                          value="delete"
+                          value="delete-schedule"
                           type="submit"
                           className="flex w-max items-start rounded-md border border-destructive bg-destructive px-2 py-1 text-destructive-foreground transition-all"
                         >
@@ -903,5 +964,34 @@ const ScheduleItem = ({
         </div>
       </div>
     </li>
+  )
+}
+
+function CancelBookingButton({ bookingId }: { bookingId: string }) {
+  const deleteFetcher = useFetcher()
+  const [form, fields] = useForm({
+    onValidate({ formData }) {
+      return parseWithZod(formData, {
+        schema: z.object({ bookingId: z.string() }),
+      })
+    },
+    shouldRevalidate: 'onSubmit',
+  })
+
+  return (
+    <deleteFetcher.Form method="POST" {...getFormProps(form)}>
+      <input
+        {...getInputProps(fields.bookingId, { type: 'hidden' })}
+        value={bookingId}
+      />
+      <button
+        name="_action"
+        value="cancel-booking"
+        type="submit"
+        className="flex w-max items-start rounded-md border border-destructive bg-destructive px-2 py-1 text-destructive-foreground transition-all"
+      >
+        Cancel Booking
+      </button>
+    </deleteFetcher.Form>
   )
 }
