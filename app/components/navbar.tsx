@@ -32,7 +32,6 @@ export default function Navbar({
   const isHidden = hideSearchFieldForRoutes.some(route =>
     location.pathname.includes(route),
   )
-  const [, setTheme] = useTheme()
   return (
     <nav className="sticky inset-0 z-50 mx-auto flex h-[73px] items-center justify-between border-b bg-background px-4 py-4 lg:px-12">
       <div className="flex w-full items-center justify-between">
@@ -87,94 +86,102 @@ export default function Navbar({
             </Button>
           )}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-auto px-3 py-2 transition-all"
-              >
-                <MenuIcon className="w-h-5 h-5" />
-                <User2 className="w-h-5 h-5" />
-
-                <span className="sr-only">Toggle Menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="start"
-              className="space-y-1 py-2 text-sm"
-            >
-              {username ? (
-                <>
-                  <Link to={`/profile/${username}`}>
-                    <DropdownMenuItem>
-                      <User2 className="h-4 w-4" />
-                      Profile
-                    </DropdownMenuItem>
-                  </Link>
-                </>
-              ) : (
-                <div className="flex flex-col px-1">
-                  <Link to="/login">
-                    <DropdownMenuItem>Login</DropdownMenuItem>
-                  </Link>
-                  <Link to="/signup">
-                    <DropdownMenuItem>Sign Up</DropdownMenuItem>
-                  </Link>
-                </div>
-              )}
-              {isDoctor ? (
-                <Link to="/doctor/dashboard/overview">
-                  <DropdownMenuItem>
-                    <BriefcaseMedical className="h-4 w-4" />
-                    Dashboard
-                  </DropdownMenuItem>
-                </Link>
-              ) : (
-                <Link to="/doctor/join">
-                  <DropdownMenuItem>
-                    <BriefcaseMedical className="h-4 w-4" />
-                    Become a doctor
-                  </DropdownMenuItem>
-                </Link>
-              )}
-
-              <hr className="border-primary-foreground" />
-
-              <DropdownMenuItem onClick={() => setTheme(Theme.LIGHT)}>
-                <Sun className="h-4 w-4" />
-                Light
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme(Theme.DARK)}>
-                <Moon className="h-4 w-4" />
-                Dark
-              </DropdownMenuItem>
-
-              <hr className="border-primary-foreground" />
-
-              <Link to="/works">
-                <DropdownMenuItem>
-                  <WorkflowIcon className="h-4 w-4" />
-                  How CareHub works
-                </DropdownMenuItem>
-              </Link>
-
-              {username && (
-                <>
-                  <hr className="border-primary-foreground" />
-                  <Form action="/logout" method="POST" className="w-full">
-                    <button type="submit" className="w-full">
-                      <DropdownMenuItem>
-                        <LogOut className="h-4 w-4" />
-                        Logout
-                      </DropdownMenuItem>
-                    </button>
-                  </Form>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Menu username={username} isDoctor={isDoctor} />
         </div>
       </div>
     </nav>
+  )
+}
+
+export function Menu({
+  username,
+  isDoctor,
+}: {
+  username?: string
+  isDoctor?: boolean
+}) {
+  const [, setTheme] = useTheme()
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-auto px-3 py-2 transition-all">
+          <MenuIcon className="w-h-5 h-5" />
+          <User2 className="w-h-5 h-5" />
+
+          <span className="sr-only">Toggle Menu</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="space-y-1 py-2 text-sm">
+        {username ? (
+          <>
+            <Link to={`/profile/${username}`}>
+              <DropdownMenuItem>
+                <User2 className="h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+            </Link>
+          </>
+        ) : (
+          <div className="flex flex-col px-1">
+            <Link to="/login">
+              <DropdownMenuItem>Login</DropdownMenuItem>
+            </Link>
+            <Link to="/signup">
+              <DropdownMenuItem>Sign Up</DropdownMenuItem>
+            </Link>
+          </div>
+        )}
+        {isDoctor ? (
+          <Link to="/doctor/dashboard/overview">
+            <DropdownMenuItem>
+              <BriefcaseMedical className="h-4 w-4" />
+              Dashboard
+            </DropdownMenuItem>
+          </Link>
+        ) : (
+          <Link to="/doctor/join">
+            <DropdownMenuItem>
+              <BriefcaseMedical className="h-4 w-4" />
+              Become a doctor
+            </DropdownMenuItem>
+          </Link>
+        )}
+
+        <hr className="border-primary-foreground" />
+
+        <DropdownMenuItem onClick={() => setTheme(Theme.LIGHT)}>
+          <Sun className="h-4 w-4" />
+          Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme(Theme.DARK)}>
+          <Moon className="h-4 w-4" />
+          Dark
+        </DropdownMenuItem>
+
+        <hr className="border-primary-foreground" />
+
+        <Link to="/works">
+          <DropdownMenuItem>
+            <WorkflowIcon className="h-4 w-4" />
+            How CareHub works
+          </DropdownMenuItem>
+        </Link>
+
+        {username && (
+          <>
+            <hr className="border-primary-foreground" />
+            <Form action="/logout" method="POST" className="w-full">
+              <button type="submit" className="w-full">
+                <DropdownMenuItem>
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </button>
+            </Form>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

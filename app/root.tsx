@@ -6,6 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useLocation,
 } from '@remix-run/react'
 import stylesheet from '~/tailwind.css?url'
 import Navbar from './components/navbar'
@@ -21,7 +22,6 @@ import { useEffect } from 'react'
 import { useToast } from './hooks/use-toast'
 import { Toaster } from './components/ui/toaster'
 import Footer from './components/footer'
-import { Spacer } from './components/spacer'
 import Banner from './components/banner'
 
 export const links: LinksFunction = () => [
@@ -77,6 +77,8 @@ export function App() {
   } = useLoaderData<typeof loader>()
   const [theme] = useTheme()
   const { toast: notify } = useToast()
+  const location = useLocation()
+  const isSearchPage = location.pathname === '/search'
 
   useEffect(() => {
     if (toast) {
@@ -99,10 +101,14 @@ export function App() {
       <body className="bg-background">
         <div>
           <Toaster />
-          <Banner />
-          <Navbar username={user?.username} isDoctor={isDoctor} />
+          {!isSearchPage ? (
+            <>
+              <Banner />
+              <Navbar username={user?.username} isDoctor={isDoctor} />
+            </>
+          ) : null}
           <Outlet />
-          <Footer />
+          {!isSearchPage && <Footer />}
         </div>
         <ScrollRestoration />
         <Scripts />
