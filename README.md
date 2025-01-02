@@ -67,5 +67,5 @@ Admin
 
 - [ ] Dashboard to see how many bookings made everyday, week, month and year
 - [ ] List to see which doctors asked to get paid
-- [ ] How much of balance they got
-- [ ] Make the payment (Maybe automatic)
+- [ ] How much of balance a doctor have
+- [ ] Make the payment for doctors (Maybe automatic)
