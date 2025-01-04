@@ -43,6 +43,13 @@ User
 - [x] book a schedule (With Special Note) without payment
 - [ ] Implement Payment gateway
 - [ ] Make the `/search` route fully functional
+- [ ] Infinite scroll on `/search` route
+- [ ] Search by name
+- [ ] Search by location
+- [ ] Search by date range
+- [ ] Add filters for Doctor Specialty
+- [ ] Price Range
+- [ ] Display doctor name and price in map
 - [x] User can see their booking history
 - [x] Cancel a booking (at least before 6hrs)
 - [ ] integrate google map, with doctor location marks
