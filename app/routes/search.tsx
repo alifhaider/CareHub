@@ -43,9 +43,8 @@ export const meta: MetaFunction = () => {
 }
 
 export const SearchPageSchema = z.object({
+  name: z.string().optional(),
   locationId: z.string().optional(),
-  from: z.date().optional(),
-  to: z.date().optional(),
 })
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -140,9 +139,8 @@ export default function Search() {
     <div className="flex h-screen w-full flex-col">
       <Form method="GET" action="/search" className="sticky top-0 z-50">
         <SearchNavbar
+          nameField={fields.name}
           locationField={fields.locationId}
-          fromField={fields.from}
-          toField={fields.to}
         />
         <Filters />
       </Form>
