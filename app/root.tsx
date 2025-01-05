@@ -50,8 +50,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     : null
   return json(
     {
-      user: user,
-      isDoctor: Boolean(user?.doctor?.id),
+      user: user, // the logged in user
+      isDoctor: Boolean(user?.doctor?.id), // if the logged in user is a doctor
       theme: getTheme(),
       toast,
     },

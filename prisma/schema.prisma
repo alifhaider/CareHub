@@ -54,6 +54,8 @@ model Doctor {
   education Education[]
   bio       String
 
+  doctorPopularty DoctorPopularty?
+
   schedules Schedule[]
   bookings Booking[]
 
@@ -166,6 +168,8 @@ model DoctorSpecialty {
 
   name String
 
+  specialtyPopularty SpecialtyPopularty?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -199,4 +203,33 @@ model Verification {
   expiresAt DateTime?
 
   @@unique([target, type])
+}
+
+
+model DoctorPopularty {
+  id String @id @default(cuid())
+
+  doctor Doctor @relation(fields: [doctorId], references: [userId])
+  doctorId String @unique
+
+  views Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([views])
+}
+
+model SpecialtyPopularty {
+  id String @id @default(cuid())
+
+  doctorSpecialty DoctorSpecialty @relation(fields: [doctorSpecialtyId], references: [id])
+  doctorSpecialtyId String @unique
+
+  views Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([views])
 }

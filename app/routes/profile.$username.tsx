@@ -740,14 +740,24 @@ const BookedAppointments = () => {
       <SectionTitle>Booked Appointments</SectionTitle>
 
       <Spacer variant="sm" />
+
+      {bookings.length === 0 ? (
+        <p className="text-lg text-accent-foreground">
+          No booked appointments yet.{' '}
+          <Link
+            to="/search"
+            className="text-center text-lg text-brand underline"
+          >
+            Book now!
+          </Link>
+        </p>
+      ) : null}
+
       <div className="space-y-8">
-        {bookings.map((booking, index) => {
+        {bookings.map(booking => {
           const isInThePast = isPast(new Date(booking.schedule.date))
           return (
             <div key={booking.id} className="relative">
-              {index !== bookings.length - 1 && (
-                <div className="absolute bottom-0 left-8 top-16 w-px bg-gray-200 dark:bg-gray-700" />
-              )}
               <Card>
                 <CardHeader className="flex flex-row items-center gap-4">
                   <Avatar className="h-16 w-16 border">
