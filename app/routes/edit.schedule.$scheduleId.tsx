@@ -146,9 +146,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
         // Check if any of the results are `true`
         const hasOverlap = isScheduleOverlapped.some(Boolean)
 
+        console.log('hasOverlap', hasOverlap)
         if (hasOverlap) {
+          console.log('hasOverlap', hasOverlap, 'adding issue')
           ctx.addIssue({
-            path: ['form'],
+            path: ['date'],
             code: 'custom',
             message: 'Schedule is overlapped with another schedule',
           })
@@ -171,6 +173,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
         if (!schedule) {
           ctx.addIssue({
+            path: ['form'],
             code: 'custom',
             message: 'Could not update schedule',
           })
@@ -183,7 +186,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
   })
 
   if (submission.status !== 'success') {
-    return json(submission.reply({ formErrors: ['Could not update schedule'] }))
+    const customError = submission.error?.form
+    return json(
+      submission.reply({
+        formErrors: customError ?? ['Could not update the schedule'],
+      }),
+    )
   }
   const { username } = submission.value
   return redirectWithSuccess(`/profile/${username}`, {
