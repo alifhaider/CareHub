@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { DayPicker, DayProps, useDayRender } from 'react-day-picker'
 
 import { cn } from '~/lib/utils'
-import { Button, buttonVariants } from '~/components/ui/button'
+import { buttonVariants } from '~/components/ui/button'
 import { Schedule } from '@prisma/client'
 import { getHoursAndMinutes } from '~/utils/schedule'
 
@@ -75,7 +75,7 @@ type CustomCellProps = {
   highlightedDate?: Date
 }
 
-export function CustomCell({
+export const CustomCell = React.memo(function CustomCell({
   className,
   scheduleTimes = [],
   highlightedDate,
@@ -208,6 +208,6 @@ export function CustomCell({
       </button>
     </td>
   )
-}
+})
 
 export { Calendar }
