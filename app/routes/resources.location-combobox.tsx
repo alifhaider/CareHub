@@ -124,8 +124,10 @@ export function LocationCombobox({
                 {...cb.getItemProps({ item: item, index })}
               >
                 <div
-                  className={`flex w-full items-center gap-2 px-2 py-2 ${
-                    cb.highlightedIndex === index ? 'text-brand' : ''
+                  className={`flex w-full items-center gap-2 rounded-sm border border-transparent px-2 py-2 transition-all ${
+                    cb.highlightedIndex === index
+                      ? 'border-brand text-brand'
+                      : ''
                   }`}
                 >
                   <div className="flex items-end">

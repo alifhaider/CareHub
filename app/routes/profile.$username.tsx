@@ -16,11 +16,13 @@ import {
   CalendarDays,
   Clock,
   CoinsIcon,
+  GraduationCap,
   MailIcon,
   MapPin,
   Settings,
   Star,
   StarIcon,
+  Stethoscope,
   UserIcon,
 } from 'lucide-react'
 import React from 'react'
@@ -396,7 +398,7 @@ export default function User() {
   }
 
   // Filter out schedules for the nearest day
-  const upcomingSchedules = getUpcomingDateSchedules(schedules)
+  const upcomingDateSchedules = getUpcomingDateSchedules(schedules)
 
   const selectedSchedule = user.doctor?.schedules?.filter(schedule => {
     if (!selectedDate) return
@@ -408,7 +410,12 @@ export default function User() {
     )
   })
 
-  const displayedSchedules = selectedDate ? selectedSchedule : upcomingSchedules
+  // TODO: fix selectedDate calendar UI may be get the selected date from loader
+  const displayedSchedules = selectedDate
+    ? selectedSchedule
+    : upcomingDateSchedules
+
+  const specialties = user.doctor?.specialties.map(specialty => specialty.name)
 
   return (
     <main className="container">
@@ -428,7 +435,7 @@ export default function User() {
             </div>
           )}
 
-          <div className="w-full space-y-4">
+          <div className="w-full space-y-2">
             <div className="flex items-center justify-between">
               <SectionTitle>{user.fullName ?? user.username}</SectionTitle>
 
@@ -452,22 +459,44 @@ export default function User() {
 
             {isDoctor ? (
               <>
-                <ul className="mt-2 flex items-center gap-4">
-                  {user.doctor?.specialties.map(specialty => (
-                    <li key={specialty.id} className="flex items-center gap-1">
-                      <div className="h-2 w-2 rounded-full bg-amber-300"></div>
-                      {specialty.name}
-                    </li>
-                  ))}
-                </ul>
-                <ul className="text-accent-foreground">
-                  {user.doctor?.education.map(education => (
-                    <li key={education.id}>
-                      {education.degree} | {education.institute}
-                      <span className="ml-1 text-sm">({education.year})</span>
-                    </li>
-                  ))}
-                </ul>
+                <div
+                  className="flex items-center gap-2 text-brand"
+                  title="specialty"
+                >
+                  <div className="flex items-center rounded-lg border p-1.5">
+                    <Stethoscope className="h-4 w-4" />
+                  </div>
+                  <ul className="flex items-center gap-4 text-primary">
+                    {specialties && specialties.length > 0 ? (
+                      specialties.map((specialty, index) => (
+                        <>
+                          <li key={index}>{specialty}</li>
+                          {index < specialties.length - 1 && (
+                            <span className="text-accent-foreground">|</span>
+                          )}
+                        </>
+                      ))
+                    ) : (
+                      <li>No specialties</li>
+                    )}
+                  </ul>
+                </div>
+                <div
+                  className="flex items-start gap-2 text-brand"
+                  title="education"
+                >
+                  <div className="flex items-center rounded-lg border p-1.5">
+                    <GraduationCap className="h-4 w-4" />
+                  </div>
+                  <ul className="text-accent-foreground">
+                    {user.doctor?.education.map(education => (
+                      <li key={education.id}>
+                        {education.degree} | {education.institute}
+                        <span className="ml-1 text-sm">({education.year})</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </>
             ) : null}
           </div>
@@ -479,22 +508,26 @@ export default function User() {
       {isDoctor ? (
         <>
           <Spacer variant="lg" />
-          <section className="flex flex-col gap-10 md:flex-row">
-            <div>
-              <Calendar
-                className="p-0"
-                onSelect={handleDateClick}
-                components={{
-                  Day: (props: DayProps) => (
-                    <CustomCell scheduleTimes={scheduleTimes} {...props} />
-                  ),
-                }}
-                formatters={{
-                  formatCaption: (date: Date) => format(date, 'MMMM yyyy'),
-                }}
-                mode="single"
-              />
-            </div>
+          <section className="grid grid-cols-1 gap-8 lg:grid-cols-5">
+            <Calendar
+              className="col-span-1 place-content-center p-0 lg:col-span-2 lg:items-start"
+              onSelect={handleDateClick}
+              modifiers={{
+                selectedDate: selectedDate ? [new Date(selectedDate)] : [],
+                schedules: scheduleTimes?.map(
+                  schedule => new Date(schedule.date),
+                ),
+              }}
+              components={{
+                Day: (props: DayProps) => (
+                  <CustomCell scheduleTimes={scheduleTimes} {...props} />
+                ),
+              }}
+              formatters={{
+                formatCaption: (date: Date) => format(date, 'MMMM yyyy'),
+              }}
+              mode="single"
+            />
 
             {displayedSchedules && isDoctor ? (
               <Schedules
@@ -548,7 +581,7 @@ const Schedules = ({
   username,
 }: ScheduleProps) => {
   return (
-    <div className="flex-1">
+    <div className="col-span-1 lg:col-span-3">
       {schedules && schedules?.length > 0 && (
         <div className="relative flex items-center">
           <span className="h-0.5 w-full border"></span>
@@ -743,7 +776,7 @@ const BookedAppointments = () => {
 
       {bookings.length === 0 ? (
         <p className="text-lg text-accent-foreground">
-          No booked appointments yet.{' '}
+          Looks like you haven&apos;t booked any appointments yet.{' '}
           <Link
             to="/search"
             className="text-center text-lg text-brand underline"

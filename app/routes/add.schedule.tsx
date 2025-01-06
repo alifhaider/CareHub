@@ -386,8 +386,8 @@ export default function AddSchedule() {
               <p className="mt-2 text-sm text-secondary-foreground">
                 <ul className="list-disc space-y-2">
                   <li>
-                    <strong>Note: </strong>Repeated schedules can be created all
-                    at once.
+                    <strong>Note: </strong> By checking the repeat option, this
+                    schedule will be repeated for the selected days.
                   </li>
                   <li>
                     For weekly schedules, 52 individual schedules will be

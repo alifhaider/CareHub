@@ -54,7 +54,7 @@ function Calendar({
         day_range_end: 'day-range-end',
         day_selected:
           'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
-        day_today: 'bg-accent text-accent-foreground',
+        day_today: 'bg-accent text-accent-foreground border border-brand',
         day_outside:
           'day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30',
         day_disabled: 'text-muted-foreground opacity-50',
@@ -106,16 +106,17 @@ export function CustomCell({
       'h-16 w-16 p-0 font-normal aria-selected:opacity-100',
     ),
     day_range_end: 'day-range-end',
-    day_selected:
-      'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
-    day_today: 'bg-accent text-accent-foreground',
+    day_selected: 'bg-brand text-primary',
+    day_today:
+      'bg-accent text-accent-foreground rounded-md border border-brand',
     day_outside:
       'day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30',
     day_disabled:
       'text-muted-foreground opacity-50 cursor-not-allowed bg-transparent hover:bg-transparent',
     day_range_middle:
       'aria-selected:bg-accent aria-selected:text-accent-foreground',
-    day_has_schedule: 'bg-primary text-primary-foreground',
+    day_has_schedule:
+      'unset bg-primary text-brand hover:bg-primary hover:text-brand focus:bg-primary focus:text-brand font-bold text-xl rounded-md',
     day_hidden: 'invisible',
   }
 
@@ -126,38 +127,46 @@ export function CustomCell({
   if (!dayRender.isButton || currentDaySchedules.length <= 0) {
     return (
       <td
+        {...props}
         className={cn(
           classNames.cell,
           classNames.day_disabled,
           modifires.isOutside && classNames.day_outside,
           modifires.isToday && classNames.day_today,
         )}
-        {...props}
       >
         <div className={classNames.day}>{props.date.getDate()}</div>
       </td>
     )
   }
 
+  console.log('selectedDate', modifires.selectedDate, props.date.getDate())
+
   return (
     <td
+      {...props}
       className={cn(
         classNames.cell,
         modifires.isOutside && classNames.day_outside,
+        modifires.isToday && classNames.day_today,
+        modifires.schedules && classNames.day_has_schedule,
+        modifires.selectedDate && classNames.day_selected,
       )}
-      {...props}
     >
-      <Button
+      <button
         ref={buttonRef}
         disabled={isPast(currentDaySchedules[0])}
+        {...dayRender.buttonProps}
         className={cn(
+          classNames.cell,
           classNames.day,
           modifires.isToday && classNames.day_today,
+          modifires.schedules && classNames.day_has_schedule,
+          modifires.selectedDate && classNames.day_selected,
         )}
-        {...dayRender.buttonProps}
       >
         {props.date.getDate()}
-      </Button>
+      </button>
     </td>
   )
 }
