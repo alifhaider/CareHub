@@ -82,6 +82,15 @@ export function CustomCell({
   const dayRender = useDayRender(props.date, props.displayMonth, buttonRef)
   const modifires = dayRender.activeModifiers
 
+  const isToday = () => {
+    const today = new Date()
+    return (
+      props.date.getDate() === today.getDate() &&
+      props.date.getMonth() === today.getMonth() &&
+      props.date.getFullYear() === today.getFullYear()
+    )
+  }
+
   const isPast = (schedule: ScheduleTime) => {
     const [endHours, endMinutes] = getHoursAndMinutes(schedule.endTime)
     const scheduleDate = new Date(schedule.date)
@@ -103,7 +112,7 @@ export function CustomCell({
     cell: 'h-16 w-16 text-center text-2xl p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
     day: cn(
       buttonVariants({ variant: 'ghost' }),
-      'h-16 w-16 p-0 font-normal aria-selected:opacity-100',
+      'h-16 w-16 p-0 font-normal aria-selected:opacity-100 rounded-md',
     ),
     day_range_end: 'day-range-end',
     day_selected: 'bg-brand text-primary',
@@ -124,6 +133,8 @@ export function CustomCell({
     return <td className={cn(className, 'invisible')} {...props} />
   }
 
+  const isTodayFlag = isToday()
+
   if (!dayRender.isButton || currentDaySchedules.length <= 0) {
     return (
       <td
@@ -132,10 +143,13 @@ export function CustomCell({
           classNames.cell,
           classNames.day_disabled,
           modifires.isOutside && classNames.day_outside,
-          modifires.isToday && classNames.day_today,
         )}
       >
-        <div className={classNames.day}>{props.date.getDate()}</div>
+        <div
+          className={cn(classNames.day, isTodayFlag && classNames.day_today)}
+        >
+          {props.date.getDate()}
+        </div>
       </td>
     )
   }
@@ -148,7 +162,6 @@ export function CustomCell({
       className={cn(
         classNames.cell,
         modifires.isOutside && classNames.day_outside,
-        modifires.isToday && classNames.day_today,
         modifires.schedules && classNames.day_has_schedule,
         modifires.selectedDate && classNames.day_selected,
       )}
@@ -160,7 +173,7 @@ export function CustomCell({
         className={cn(
           classNames.cell,
           classNames.day,
-          modifires.isToday && classNames.day_today,
+          isTodayFlag && classNames.day_today,
           modifires.schedules && classNames.day_has_schedule,
           modifires.selectedDate && classNames.day_selected,
         )}
