@@ -8,17 +8,6 @@ import { Schedule } from '@prisma/client'
 import { getHoursAndMinutes } from '~/utils/schedule'
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
-type ScheduleTime = {
-  id: string
-  startTime: Schedule['startTime']
-  endTime: Schedule['endTime']
-  date: Schedule['date']
-}
-
-type CustomCellProps = {
-  scheduleTimes: ScheduleTime[] | undefined
-  className?: string
-}
 
 function Calendar({
   className,
@@ -73,9 +62,23 @@ function Calendar({
 }
 Calendar.displayName = 'Calendar'
 
+type ScheduleTime = {
+  id: string
+  startTime: Schedule['startTime']
+  endTime: Schedule['endTime']
+  date: Schedule['date']
+}
+
+type CustomCellProps = {
+  scheduleTimes: ScheduleTime[] | undefined
+  className?: string
+  highlightedDate?: Date
+}
+
 export function CustomCell({
   className,
   scheduleTimes = [],
+  highlightedDate,
   ...props
 }: CustomCellProps & DayProps) {
   const buttonRef = React.useRef<HTMLButtonElement>(null)
@@ -90,6 +93,27 @@ export function CustomCell({
       props.date.getFullYear() === today.getFullYear()
     )
   }
+
+  // Helper to determine if a date is selected
+  const isSelected = () => {
+    return (
+      highlightedDate &&
+      props.date.getDate() === highlightedDate.getDate() &&
+      props.date.getMonth() === highlightedDate.getMonth() &&
+      props.date.getFullYear() === highlightedDate.getFullYear()
+    )
+  }
+
+  // Helper to determine if a date has schedules
+  const hasSchedule = () =>
+    scheduleTimes.some(schedule => {
+      const scheduleDate = new Date(schedule.date)
+      return (
+        props.date.getDate() === scheduleDate.getDate() &&
+        props.date.getMonth() === scheduleDate.getMonth() &&
+        props.date.getFullYear() === scheduleDate.getFullYear()
+      )
+    })
 
   const isPast = (schedule: ScheduleTime) => {
     const [endHours, endMinutes] = getHoursAndMinutes(schedule.endTime)
@@ -115,7 +139,7 @@ export function CustomCell({
       'h-16 w-16 p-0 font-normal aria-selected:opacity-100 rounded-md',
     ),
     day_range_end: 'day-range-end',
-    day_selected: 'bg-brand text-primary',
+    day_selected: 'bg-brand text-primary rounded-md font-bold text-xl',
     day_today:
       'bg-accent text-accent-foreground rounded-md border border-brand',
     day_outside:
@@ -154,16 +178,14 @@ export function CustomCell({
     )
   }
 
-  console.log('selectedDate', modifires.selectedDate, props.date.getDate())
-
   return (
     <td
       {...props}
       className={cn(
         classNames.cell,
         modifires.isOutside && classNames.day_outside,
-        modifires.schedules && classNames.day_has_schedule,
-        modifires.selectedDate && classNames.day_selected,
+        isSelected() && classNames.day_selected, // Apply selected style first
+        !isSelected() && modifires.schedules && classNames.day_has_schedule,
       )}
     >
       <button
@@ -174,8 +196,8 @@ export function CustomCell({
           classNames.cell,
           classNames.day,
           isTodayFlag && classNames.day_today,
-          modifires.schedules && classNames.day_has_schedule,
-          modifires.selectedDate && classNames.day_selected,
+          isSelected() && classNames.day_selected, // Apply selected style first
+          !isSelected() && modifires.schedules && classNames.day_has_schedule, //
         )}
       >
         {props.date.getDate()}

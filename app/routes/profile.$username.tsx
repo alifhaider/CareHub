@@ -400,7 +400,7 @@ export default function User() {
   // Filter out schedules for the nearest day
   const upcomingDateSchedules = getUpcomingDateSchedules(schedules)
 
-  const selectedSchedule = user.doctor?.schedules?.filter(schedule => {
+  const selectedDateSchedules = user.doctor?.schedules?.filter(schedule => {
     if (!selectedDate) return
     const scheduleDate = new Date(schedule.date)
     return (
@@ -410,12 +410,12 @@ export default function User() {
     )
   })
 
-  // TODO: fix selectedDate calendar UI may be get the selected date from loader
   const displayedSchedules = selectedDate
-    ? selectedSchedule
+    ? selectedDateSchedules
     : upcomingDateSchedules
 
   const specialties = user.doctor?.specialties.map(specialty => specialty.name)
+  const highlightedDate = displayedSchedules && displayedSchedules[0]?.date
 
   return (
     <main className="container">
@@ -511,16 +511,30 @@ export default function User() {
           <section className="grid grid-cols-1 gap-8 lg:grid-cols-5">
             <Calendar
               className="col-span-1 place-content-center p-0 lg:col-span-2 lg:items-start"
-              onSelect={handleDateClick}
+              onDayClick={handleDateClick}
               modifiers={{
-                selectedDate: selectedDate ? [new Date(selectedDate)] : [],
-                schedules: scheduleTimes?.map(
-                  schedule => new Date(schedule.date),
-                ),
+                selectedDate: date =>
+                  !!selectedDate &&
+                  date.getDate() === selectedDate.getDate() &&
+                  date.getMonth() === selectedDate.getMonth() &&
+                  date.getFullYear() === selectedDate.getFullYear(),
+                schedules: date =>
+                  scheduleTimes.some(
+                    schedule =>
+                      date.getDate() === schedule.date.getDate() &&
+                      date.getMonth() === schedule.date.getMonth() &&
+                      date.getFullYear() === schedule.date.getFullYear(),
+                  ),
               }}
               components={{
                 Day: (props: DayProps) => (
-                  <CustomCell scheduleTimes={scheduleTimes} {...props} />
+                  <CustomCell
+                    scheduleTimes={scheduleTimes}
+                    highlightedDate={
+                      highlightedDate ? new Date(highlightedDate) : undefined
+                    }
+                    {...props}
+                  />
                 ),
               }}
               formatters={{
