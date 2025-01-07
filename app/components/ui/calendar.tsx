@@ -5,7 +5,7 @@ import { DayPicker, DayProps, useDayRender } from 'react-day-picker'
 import { cn } from '~/lib/utils'
 import { buttonVariants } from '~/components/ui/button'
 import { Schedule } from '@prisma/client'
-import { getHoursAndMinutes } from '~/utils/schedule'
+import { isPast, isToday } from 'date-fns'
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -85,15 +85,6 @@ export const CustomCell = React.memo(function CustomCell({
   const dayRender = useDayRender(props.date, props.displayMonth, buttonRef)
   const modifires = dayRender.activeModifiers
 
-  const isToday = () => {
-    const today = new Date()
-    return (
-      props.date.getDate() === today.getDate() &&
-      props.date.getMonth() === today.getMonth() &&
-      props.date.getFullYear() === today.getFullYear()
-    )
-  }
-
   // Helper to determine if a date is selected
   const isSelected = () => {
     return (
@@ -115,13 +106,6 @@ export const CustomCell = React.memo(function CustomCell({
       )
     })
 
-  const isPast = (schedule: ScheduleTime) => {
-    const [endHours, endMinutes] = getHoursAndMinutes(schedule.endTime)
-    const scheduleDate = new Date(schedule.date)
-    scheduleDate.setHours(endHours, endMinutes)
-    return schedule.date < new Date()
-  }
-
   const isSameDay = (schedule: ScheduleTime) => {
     return (
       props.date.getDate() === schedule.date.getDate() &&
@@ -140,8 +124,7 @@ export const CustomCell = React.memo(function CustomCell({
     ),
     day_range_end: 'day-range-end',
     day_selected: 'bg-brand text-primary rounded-md font-bold text-xl',
-    day_today:
-      'bg-accent text-accent-foreground rounded-md border border-brand',
+    day_today: 'text-accent-foreground rounded-md border border-brand',
     day_outside:
       'day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30',
     day_disabled:
@@ -157,7 +140,7 @@ export const CustomCell = React.memo(function CustomCell({
     return <td className={cn(className, 'invisible')} {...props} />
   }
 
-  const isTodayFlag = isToday()
+  const isTodayFlag = isToday(props.date)
 
   if (!dayRender.isButton || currentDaySchedules.length <= 0) {
     return (
@@ -166,6 +149,7 @@ export const CustomCell = React.memo(function CustomCell({
         className={cn(
           classNames.cell,
           classNames.day_disabled,
+          isTodayFlag && classNames.day_today,
           modifires.isOutside && classNames.day_outside,
         )}
       >
@@ -178,7 +162,7 @@ export const CustomCell = React.memo(function CustomCell({
     )
   }
 
-  const isDisabled = isPast(currentDaySchedules[0]) || !hasSchedule()
+  const isDisabled = !isTodayFlag && isPast(props.date) && !hasSchedule()
 
   return (
     <td
@@ -198,7 +182,6 @@ export const CustomCell = React.memo(function CustomCell({
         className={cn(
           classNames.cell,
           classNames.day,
-          isTodayFlag && classNames.day_today,
           isSelected() && classNames.day_selected,
           !isSelected() && modifires.schedules && classNames.day_has_schedule,
           isDisabled && classNames.day_disabled,
