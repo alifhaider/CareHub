@@ -58,9 +58,9 @@ describe('getWeeklyScheduleDates', () => {
       false,
     )
     expect(result).toHaveLength(3)
-    expect(result[0].toISOString()).toBe('2024-09-08T00:00:00.000Z') // Next Sunday
-    expect(result[1].toISOString()).toBe('2024-09-04T00:00:00.000Z') // Same Wednesday
-    expect(result[2].toISOString()).toBe('2024-09-06T00:00:00.000Z') // Next Friday
+    expect(result[0].toISOString()).toBe('2024-09-04T00:00:00.000Z') // Same Wednesday
+    expect(result[1].toISOString()).toBe('2024-09-06T00:00:00.000Z') // Next Friday
+    expect(result[2].toISOString()).toBe('2024-09-08T00:00:00.000Z') // Next Sunday
   })
 
   it(`should return the next ${REPEAT_WEEKS} occurrences for a single day (repetitive)`, () => {

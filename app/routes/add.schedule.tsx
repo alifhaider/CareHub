@@ -155,8 +155,8 @@ export async function action({ request }: ActionFunctionArgs) {
         const locationId = data.locationId
 
         const scheduleDates = oneDay
-          ? getMonthlyScheduleDates(oneDay, isRepetiveMonth)
-          : getWeeklyScheduleDates(weeklyDays, isRepetiveWeek)
+          ? getMonthlyScheduleDates(oneDay, isRepetiveMonth ?? false)
+          : getWeeklyScheduleDates(weeklyDays, isRepetiveWeek ?? false)
 
         const existingSchedules = await prisma.schedule.findMany({
           where: {

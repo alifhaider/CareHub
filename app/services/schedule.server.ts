@@ -1,5 +1,5 @@
 import { Schedule } from '@prisma/client'
-import { add, getDay, addMonths, addWeeks } from 'date-fns'
+import { addMonths, addDays } from 'date-fns'
 import { DAYS } from '~/routes/add.schedule'
 import { getHoursAndMinutes } from '~/utils/schedule'
 
@@ -27,57 +27,60 @@ export function getMonthlyScheduleDates(
   )
 }
 
-function getDayByNumber(day: (typeof DAYS)[number]) {
-  const daysOfWeek = {
-    sunday: 0,
-    monday: 1,
-    tuesday: 2,
-    wednesday: 3,
-    thursday: 4,
-    friday: 5,
-    saturday: 6,
-  }
-  return daysOfWeek[day]
-}
-
-export function getWeeklyScheduleDates(
-  days?: TDay[],
-  isRepetitiveWeek?: boolean,
-) {
-  if (!days) return []
+export function getWeeklyScheduleDates(daysArray?: TDay[], isRepetive = false) {
+  if (!daysArray?.length) return []
   const today = new Date()
-  const currentDayIndex = getDay(today)
+  const dayNames = [
+    'sunday',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+  ]
 
-  // Calculate the next occurrence for each day
-  const nextOccurrences = days.map(day => {
-    const targetDayIndex = getDayByNumber(day)
-    let daysUntilNextOccurrence = (targetDayIndex - currentDayIndex + 7) % 7
-    if (daysUntilNextOccurrence === 0 && today.getDay() !== targetDayIndex) {
-      daysUntilNextOccurrence = 7
+  // Function to find the next occurrences for a given weekday name
+  const getOccurrences = (dayName: string) => {
+    const dayIndex = dayNames.indexOf(dayName.toLocaleLowerCase())
+    const occurrences = []
+    let currentDate = today
+
+    // Check if today matches the target day
+    if (currentDate.getDay() === dayIndex) {
+      occurrences.push(currentDate)
     }
-    const nextDate = add(today, { days: daysUntilNextOccurrence })
-    nextDate.setUTCHours(0, 0, 0, 0)
-    return nextDate
-  })
 
-  if (!isRepetitiveWeek) return nextOccurrences
+    // Generate future occurrences
+    const targetOccurrences = isRepetive ? REPEAT_WEEKS : 1
+    while (occurrences.length < targetOccurrences) {
+      currentDate = addDays(currentDate, 1)
 
-  // Generate the next 52 occurrences for each selected day
-  const occurrences = days.flatMap(day => {
-    const targetDayIndex = getDayByNumber(day)
-    return Array.from({ length: REPEAT_WEEKS }, (_, week) => {
-      const baseDate = nextOccurrences.find(
-        occurrence => getDay(occurrence) === targetDayIndex,
-      )!
-      // Calculate the occurrence date for this week + week offset
-      return addWeeks(baseDate, week)
-    })
-  })
+      if (currentDate.getDay() === dayIndex) {
+        occurrences.push(new Date(currentDate)) // Add occurrence
+      }
 
-  // Sort occurrences by date to ensure they're in the correct order
-  occurrences.sort((a, b) => a.getTime() - b.getTime())
+      // Safety check to avoid infinite loop
+      if (occurrences.length > 366) {
+        console.error('Infinite loop detected')
+        break
+      }
+    }
 
-  return occurrences
+    return occurrences
+  }
+
+  // Generate all occurrences for the input days
+  const allOccurrences = daysArray.flatMap(dayName => getOccurrences(dayName))
+
+  // Remove duplicates, sort, and format the dates
+  const uniqueDates = Array.from(
+    new Set(allOccurrences.map(date => date.getTime())),
+  )
+    .sort((a, b) => a - b)
+    .map(date => new Date(date))
+
+  return uniqueDates
 }
 
 export function checkOverlapSchedule(
