@@ -2,13 +2,16 @@ import { Link } from '@remix-run/react'
 import { Menu } from './navbar'
 import { LocationCombobox } from '~/routes/resources.location-combobox'
 import { getInputProps, type FieldMetadata } from '@conform-to/react'
+import { SpecialtyCombobox } from '~/routes/resources.specialty-combobox'
 
 export default function SearchNavbar({
   locationField,
   nameField,
+  specialtyField,
 }: {
   nameField: FieldMetadata
   locationField: FieldMetadata
+  specialtyField: FieldMetadata
 }) {
   return (
     <nav className="sticky inset-0 z-50 flex w-full items-center justify-between border-b bg-background px-4 py-4 lg:px-8">
@@ -29,6 +32,7 @@ export default function SearchNavbar({
           </div>
 
           <LocationCombobox field={locationField} variant="search" />
+          <SpecialtyCombobox field={specialtyField} />
         </div>
       </div>
 

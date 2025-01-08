@@ -30,6 +30,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       name: true,
       address: true,
     },
+    distinct: ['name', 'address', 'city', 'state', 'zip'],
   })
   return json({ items: locations })
 }
