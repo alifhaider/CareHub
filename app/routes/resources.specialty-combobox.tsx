@@ -20,7 +20,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ items: specialties })
 }
 
-export function SpecialtyCombobox({ field }: { field: FieldMetadata }) {
+export function SpecialtyCombobox() {
   const specialtyFetcher = useFetcher<typeof loader>()
   const id = useId()
 
@@ -46,7 +46,6 @@ export function SpecialtyCombobox({ field }: { field: FieldMetadata }) {
     delay: 150,
     minDuration: 300,
   })
-  const errorId = field.errors?.length ? `${id}-error` : undefined
   return (
     <div className="relative max-w-[350px] flex-1">
       <div className="flex w-full max-w-[350px] flex-1 items-center gap-4 border-b">
@@ -55,8 +54,6 @@ export function SpecialtyCombobox({ field }: { field: FieldMetadata }) {
         </label>
         <div className="relative w-full">
           <input
-            aria-invalid={errorId ? true : undefined}
-            aria-describedby={errorId}
             className="relative w-full bg-transparent outline-none"
             {...cb.getInputProps({
               id,
@@ -96,10 +93,7 @@ export function SpecialtyCombobox({ field }: { field: FieldMetadata }) {
             ))
           : null}
       </ul>
-      <input
-        {...getInputProps(field, { type: 'hidden' })}
-        value={cb.selectedItem?.id}
-      />
+      <input name="specialty" type="hidden" value={cb.selectedItem?.id} />
     </div>
   )
 }

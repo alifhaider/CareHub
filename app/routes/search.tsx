@@ -1,5 +1,11 @@
 import { json, LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { Form, Link, useLoaderData, useSearchParams } from '@remix-run/react'
+import {
+  Form,
+  Link,
+  useLoaderData,
+  useSearchParams,
+  useSubmit,
+} from '@remix-run/react'
 import { Input } from '~/components/ui/input'
 import { prisma } from '~/db.server'
 import { Card, CardContent } from '~/components/ui/card'
@@ -51,10 +57,11 @@ export const SearchPageSchema = z.object({
 export async function loader({ request }: LoaderFunctionArgs) {
   const searchParams = new URL(request.url).searchParams
   const query = searchParams.get('s') ?? ''
-  const specialtiesQuery = searchParams.get('specialties') ?? ''
+  const nameQuery = searchParams.get('name') ?? ''
+  const specialtiesQuery = searchParams.get('specialty') ?? ''
   const locationQuery = searchParams.get('location') ?? ''
 
-  //make queries case-insensitive
+  console.log('query', query, nameQuery, specialtiesQuery, locationQuery)
 
   const doctors = await prisma.doctor.findMany({
     where: {
@@ -125,8 +132,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ doctors })
 }
 
+export async function action({ request }: LoaderFunctionArgs) {
+  const formData = await request.formData()
+  const submission = parseWithZod(formData, { schema: SearchPageSchema })
+
+  if (submission.status !== 'success') {
+    return json(submission.reply({ formErrors: ['Could not submit search'] }))
+  }
+}
+
 export default function Search() {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const submit = useSubmit()
   const { doctors } = useLoaderData<typeof loader>()
 
   const [form, fields] = useForm({
@@ -138,13 +155,22 @@ export default function Search() {
 
   return (
     <div className="flex h-screen w-full flex-col">
-      <Form method="GET" action="/search" className="sticky top-0 z-50">
+      <Form
+        method="get"
+        className="sticky top-0 z-50"
+        onChange={event => {
+          event.preventDefault()
+          console.log('submit')
+          submit(event.currentTarget)
+        }}
+      >
         <SearchNavbar
           nameField={fields.name}
           locationField={fields.locationId}
           specialtyField={fields.specialtyId}
         />
         <Filters />
+        <button type="submit" className="hidden" />
       </Form>
 
       <div className="flex divide-x overflow-y-hidden">

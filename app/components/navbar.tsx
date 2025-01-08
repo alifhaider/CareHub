@@ -52,10 +52,6 @@ export default function Navbar({
                     aria-hidden="true"
                   />
                 </button>
-                {/* 
-                <button type="submit" className="sr-only">
-                  Search
-                </button> */}
               </div>
               <Input
                 className="w-full rounded-full border-2 border-transparent bg-secondary py-2 pr-10 text-sm leading-6 text-foreground transition-all duration-300 ease-in-out focus:border-primary focus:bg-background focus-visible:ring-offset-2 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-primary-foreground dark:focus:bg-gray-700"
