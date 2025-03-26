@@ -1,10 +1,4 @@
-import {
-  Form,
-  MetaFunction,
-  useActionData,
-  useLoaderData,
-} from '@remix-run/react'
-import { Plus, Space, Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { ErrorList, Field, TextareaField } from '~/components/forms'
 import { Button, buttonVariants } from '~/components/ui/button'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -16,12 +10,7 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import { z } from 'zod'
-import {
-  ActionFunctionArgs,
-  json,
-  LoaderFunctionArgs,
-  redirect,
-} from '@remix-run/node'
+import { data, redirect, Form, MetaFunction } from 'react-router'
 import { parseWithZod } from '@conform-to/zod'
 import {
   getFieldsetProps,
@@ -34,6 +23,7 @@ import { prisma } from '~/db.server'
 import { requireUser } from '~/services/auth.server'
 import { redirectWithSuccess } from 'remix-toast'
 import { Spacer } from '~/components/spacer'
+import { Route } from './+types/doctor.onboarding'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Onboarding / CH' }]
@@ -62,7 +52,7 @@ export const OnboardingSchema = z.object({
   profilePicture: z.string().optional(),
 })
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireUser(request)
   const isAlreadyOnboarded = await prisma.doctor.findUnique({
     where: {
@@ -74,10 +64,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect(`/profile/${user.username}`)
   }
 
-  return json({ user })
+  return data({ user })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const user = await requireUser(request)
   const formData = await request.formData()
   const submission = parseWithZod(formData, {
@@ -85,7 +75,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (submission.status !== 'success') {
-    return json(submission.reply({ formErrors: ['Could not onboard doctor'] }))
+    return data(submission.reply({ formErrors: ['Could not onboard doctor'] }))
   }
 
   await prisma.doctor.create({
@@ -117,12 +107,14 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 }
 
-export default function DoctorOnboarding() {
-  const lastResult = useActionData<typeof action>()
-  const { user } = useLoaderData<typeof loader>()
+export default function DoctorOnboarding({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
+  const { user } = loaderData
 
   const [form, fields] = useForm({
-    lastResult,
+    lastResult: actionData,
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: OnboardingSchema })
     },

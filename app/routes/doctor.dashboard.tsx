@@ -1,6 +1,5 @@
-import { Link, type MetaFunction, Outlet, redirect } from '@remix-run/react'
+import { Link, type MetaFunction, Outlet } from 'react-router'
 import { Spacer } from '~/components/spacer'
-import { PageTitle } from '~/components/typography'
 import { Tabs, TabsList, TabsTrigger } from '~/components/ui/tabs'
 
 export const meta: MetaFunction = () => {

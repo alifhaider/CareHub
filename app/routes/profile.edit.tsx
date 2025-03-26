@@ -1,11 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import {
-  ActionFunctionArgs,
-  json,
-  LoaderFunctionArgs,
-  MetaFunction,
-} from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { data, MetaFunction, Form } from 'react-router'
 import { prisma } from '~/db.server'
 import { requireDoctor } from '~/services/auth.server'
 import { AnimateHeight, OnboardingSchema } from './doctor.onboarding'
@@ -23,12 +17,13 @@ import { cn } from '~/lib/utils'
 import { Button, buttonVariants } from '~/components/ui/button'
 import { Plus, Trash2 } from 'lucide-react'
 import { Spacer } from '~/components/spacer'
+import { Route } from './+types/profile.edit'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Edit Profile / CH' }]
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireDoctor(request)
   const doctor = await prisma.doctor.findUnique({
     where: {
@@ -48,7 +43,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return { doctor }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const doctor = await requireDoctor(request)
   const formData = await request.formData()
   const submission = parseWithZod(formData, {
@@ -56,7 +51,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (submission.status !== 'success') {
-    return json(
+    return data(
       submission.reply({ formErrors: ['Could not edit doctor profile'] }),
     )
   }
@@ -96,12 +91,14 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 }
 
-export default function ProfileEdit() {
-  const lastResult = useActionData<typeof action>()
-  const { doctor } = useLoaderData<typeof loader>()
+export default function ProfileEdit({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
+  const { doctor } = loaderData
 
   const [form, fields] = useForm({
-    lastResult,
+    lastResult: actionData,
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: OnboardingSchema })
     },

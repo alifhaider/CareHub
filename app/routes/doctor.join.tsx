@@ -1,5 +1,5 @@
 import { Calendar, Clock, Users, CheckCircle } from 'lucide-react'
-import { Link, MetaFunction } from '@remix-run/react'
+import { Link, MetaFunction } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Spacer } from '~/components/spacer'

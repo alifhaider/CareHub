@@ -1,10 +1,4 @@
-import {
-  ActionFunctionArgs,
-  json,
-  LoaderFunctionArgs,
-  MetaFunction,
-} from '@remix-run/node'
-import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
+import { data, MetaFunction, Form, Link } from 'react-router'
 import { format } from 'date-fns'
 import invariant from 'tiny-invariant'
 import { PageTitle } from '~/components/typography'
@@ -28,6 +22,7 @@ import { parseWithZod } from '@conform-to/zod'
 import { formatTime } from '~/utils/schedule'
 import { Spacer } from '~/components/spacer'
 import { redirectWithSuccess } from 'remix-toast'
+import { Route } from './+types/profile.($username).schedule.$scheduleId'
 
 const BookingFormSchema = z.object({
   doctorId: z.string({ message: 'Doctor ID is required' }),
@@ -46,7 +41,7 @@ export const meta: MetaFunction = () => {
   ]
 }
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireUser(request)
   const scheduleId = params.scheduleId
   invariant(scheduleId, 'Schedule ID is required')
@@ -64,7 +59,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return { schedule, user }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   console.log('Booking action')
   await requireUser(request)
   const formData = await request.formData()
@@ -73,7 +68,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (submission.status !== 'success') {
-    return json(
+    return data(
       submission.reply({ formErrors: ['Could not complete booking'] }),
     )
   }
@@ -98,9 +93,11 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 }
 
-export default function Booking() {
-  const { schedule, user } = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
+export default function Booking({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
+  const { schedule, user } = loaderData
 
   const [form, fields] = useForm({
     lastResult: actionData,

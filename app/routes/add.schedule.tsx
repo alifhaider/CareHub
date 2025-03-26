@@ -1,10 +1,10 @@
 import {
-  ActionFunctionArgs,
-  json,
-  LoaderFunctionArgs,
+  type LoaderFunctionArgs,
+  data,
   MetaFunction,
-} from '@remix-run/node'
-import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
+  Form,
+  Link,
+} from 'react-router'
 import { PageTitle } from '~/components/typography'
 import { requireDoctor } from '~/services/auth.server'
 import { LocationCombobox } from './resources.location-combobox'
@@ -51,6 +51,7 @@ import {
 } from '~/services/schedule.server'
 import { prisma } from '~/db.server'
 import { Spacer } from '~/components/spacer'
+import { Route } from './+types/add.schedule'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Schedule / CH' }]
@@ -58,7 +59,7 @@ export const meta: MetaFunction = () => {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const doctor = await requireDoctor(request)
-  return json({ userId: doctor.userId, username: doctor.user.username })
+  return data({ userId: doctor.userId, username: doctor.user.username })
 }
 
 export const DAYS = [
@@ -139,7 +140,7 @@ export const ScheduleSchema = z
     }
   })
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   await requireDoctor(request)
   const formData = await request.formData()
 
@@ -215,7 +216,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (submission.status !== 'success') {
     const formErrors = submission.error?.form
-    return json(
+    return data(
       submission.reply({
         formErrors: formErrors ?? ['Could not create schedule'],
       }),
@@ -227,9 +228,12 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 }
 
-export default function AddSchedule() {
-  const data = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
+export default function AddSchedule({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
+  const { userId, username } = loaderData
+
   const [scheduleType, setScheduleType] = useState<ScheduleType>(
     ScheduleType.REPEAT_WEEKS,
   )
@@ -254,12 +258,12 @@ export default function AddSchedule() {
           <div className="grid grid-cols-1 gap-12 align-top md:grid-cols-2">
             <input
               {...getInputProps(fields.userId, { type: 'hidden' })}
-              value={data.userId}
+              value={userId}
             />
             {/* this is to make the navigation after successful creation */}
             <input
               {...getInputProps(fields.username, { type: 'hidden' })}
-              value={data.username}
+              value={username}
             />
             <LocationCombobox field={fields.locationId} />
             <div className="space-y-1">

@@ -1,11 +1,11 @@
 import {
-  json,
-  LoaderFunctionArgs,
+  data,
+  Form,
+  Link,
+  MetaFunction,
   redirect,
-  type ActionFunctionArgs,
-  type MetaFunction,
-} from '@remix-run/node'
-import { Form, Link, useActionData, useSearchParams } from '@remix-run/react'
+  useSearchParams,
+} from 'react-router'
 import { parseWithZod } from '@conform-to/zod'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
@@ -29,6 +29,7 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import { Route } from './+types/login'
 
 const LoginFormSchema = z.object({
   username: UsernameSchema,
@@ -41,12 +42,12 @@ export const meta: MetaFunction = () => {
   return [{ title: 'Login / CH' }]
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   await requireAnonymous(request)
-  return json({})
+  return data({})
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   await requireAnonymous(request)
   const formData = await request.formData()
   // await validateCSRF(formData, request.headers)
@@ -70,7 +71,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (submission.status !== 'success') {
-    return json(submission.reply())
+    return data(submission.reply())
   }
 
   const { user, remember, redirectTo } = submission.value
@@ -89,8 +90,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 }
 
-export default function LoginPage() {
-  const actionData = useActionData<typeof action>()
+export default function LoginPage({ actionData }: Route.ComponentProps) {
   const isPending = useIsPending()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirectTo')

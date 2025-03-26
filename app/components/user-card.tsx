@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react'
+import { Link } from 'react-router';
 import { Star } from 'lucide-react'
 import { Button } from './ui/button'
 

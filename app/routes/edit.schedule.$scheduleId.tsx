@@ -1,15 +1,11 @@
 import {
   ActionFunctionArgs,
-  json,
+  data,
   LoaderFunctionArgs,
   redirect,
-} from '@remix-run/node'
-import {
   Form,
   MetaFunction,
-  useActionData,
-  useLoaderData,
-} from '@remix-run/react'
+} from 'react-router'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { PageTitle } from '~/components/typography'
 import { prisma } from '~/db.server'
@@ -35,6 +31,7 @@ import { cn } from '~/utils/misc'
 import { Spacer } from '~/components/spacer'
 import { checkOverlapSchedule } from '~/services/schedule.server'
 import { formatTimeToTwoDigits, getHoursAndMinutes } from '~/utils/schedule'
+import { Route } from './+types/edit.schedule.$scheduleId'
 
 export const UpdateScheduleSchema = z
   .object({
@@ -71,7 +68,7 @@ export const meta: MetaFunction = () => {
   return [{ title: 'Edit Schedule / CH' }]
 }
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const doctor = await requireDoctor(request)
   const scheduleId = params.scheduleId
   const schedule = await prisma.schedule.findUnique({
@@ -98,14 +95,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   if (!schedule) {
     return redirect('/')
   }
-  return json({
+  return data({
     schedule,
     userId: doctor.userId,
     username: doctor.user.username,
   })
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   await requireDoctor(request)
   const formData = await request.formData()
   const scheduleId = params.scheduleId
@@ -187,7 +184,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (submission.status !== 'success') {
     const customError = submission.error?.form
-    return json(
+    return data(
       submission.reply({
         formErrors: customError ?? ['Could not update the schedule'],
       }),
@@ -199,10 +196,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
   })
 }
 
-export default function EditSchedule() {
-  const data = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
-  const [date, setDate] = useState<Date>(new Date(data.schedule.date))
+export default function EditSchedule({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
+  const { schedule, userId, username } = loaderData
+  const [date, setDate] = useState<Date>(new Date(schedule.date))
 
   const [form, fields] = useForm({
     lastResult: actionData,
@@ -221,22 +220,22 @@ export default function EditSchedule() {
         <div className="grid grid-cols-1 gap-12 align-top md:grid-cols-2">
           <input
             {...getInputProps(fields.userId, { type: 'hidden' })}
-            value={data.userId}
+            value={userId}
           />
           <input
             {...getInputProps(fields.username, { type: 'hidden' })}
-            value={data.username}
+            value={username}
           />
 
           <input
             {...getInputProps(fields.scheduleId, { type: 'hidden' })}
-            value={data.schedule.id}
+            value={schedule.id}
           />
 
           <div className="space-y-8">
             <LocationCombobox
               field={fields.locationId}
-              selectedLocation={data.schedule.location}
+              selectedLocation={schedule.location}
             />
 
             <div className="flex flex-col gap-2">
@@ -283,7 +282,7 @@ export default function EditSchedule() {
               <Field
                 labelProps={{ children: 'Start time', className: 'mb-1' }}
                 inputProps={{
-                  defaultValue: formatTimeToTwoDigits(data.schedule.startTime),
+                  defaultValue: formatTimeToTwoDigits(schedule.startTime),
                   ...getInputProps(fields.startTime, { type: 'time' }),
                 }}
                 errors={fields.startTime.errors}
@@ -291,7 +290,7 @@ export default function EditSchedule() {
               <Field
                 labelProps={{ children: 'End time', className: 'mb-1' }}
                 inputProps={{
-                  defaultValue: formatTimeToTwoDigits(data.schedule.endTime),
+                  defaultValue: formatTimeToTwoDigits(schedule.endTime),
                   ...getInputProps(fields.endTime, { type: 'time' }),
                 }}
                 errors={fields.endTime.errors}
@@ -300,7 +299,7 @@ export default function EditSchedule() {
             <Field
               labelProps={{ children: 'Maximum Appointments per day' }}
               inputProps={{
-                defaultValue: data.schedule.maxAppointments,
+                defaultValue: schedule.maxAppointments,
                 ...getInputProps(fields.maxAppointment, { type: 'number' }),
               }}
               errors={fields.maxAppointment.errors}
@@ -313,7 +312,7 @@ export default function EditSchedule() {
               labelProps={{ children: 'Visiting Fee' }}
               inputProps={{
                 placeholder: '2000',
-                defaultValue: data.schedule.visitFee || 0,
+                defaultValue: schedule.visitFee || 0,
                 ...getInputProps(fields.visitingFee, { type: 'number' }),
               }}
               errors={fields.visitingFee.errors}
@@ -323,7 +322,7 @@ export default function EditSchedule() {
               labelProps={{ children: 'Serial Fee' }}
               inputProps={{
                 placeholder: '1000',
-                defaultValue: data.schedule.serialFee || 0,
+                defaultValue: schedule.serialFee || 0,
                 ...getInputProps(fields.serialFee, { type: 'number' }),
               }}
               errors={fields.serialFee.errors}
@@ -332,7 +331,7 @@ export default function EditSchedule() {
             <Field
               labelProps={{ children: 'Discount' }}
               inputProps={{
-                defaultValue: data.schedule.discountFee || 0,
+                defaultValue: schedule.discountFee || 0,
                 ...getInputProps(fields.discount, { type: 'number' }),
               }}
               errors={fields.discount.errors}

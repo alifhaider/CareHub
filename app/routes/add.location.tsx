@@ -1,7 +1,13 @@
 import { getFormProps, getInputProps, Intent, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
-import { ActionFunctionArgs, json, LoaderFunctionArgs } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import {
+  ActionFunctionArgs,
+  data,
+  LoaderFunctionArgs,
+  Form,
+  useActionData,
+  useLoaderData,
+} from 'react-router'
 import { redirectWithSuccess } from 'remix-toast'
 import { z } from 'zod'
 import { ErrorList, Field } from '~/components/forms'
@@ -108,7 +114,7 @@ function CreateLocationSchema(
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const doctor = await requireDoctor(request)
-  return json({ doctor })
+  return data({ doctor })
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -134,7 +140,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (submission.status !== 'success') {
     const customError = submission.error?.form
-    return json(
+    return data(
       submission.reply({
         formErrors: customError ?? ['There was an error creating the location'],
       }),

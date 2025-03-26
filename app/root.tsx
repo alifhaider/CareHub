@@ -1,13 +1,15 @@
-import { json, LoaderFunctionArgs, type LinksFunction } from '@remix-run/node'
 import {
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  data,
+  type LoaderFunctionArgs,
+  type LinksFunction,
   useLoaderData,
   useLocation,
-} from '@remix-run/react'
+} from 'react-router'
 import stylesheet from '~/tailwind.css?url'
 import Navbar from './components/navbar'
 import {
@@ -23,6 +25,8 @@ import { useToast } from './hooks/use-toast'
 import { Toaster } from './components/ui/toaster'
 import Footer from './components/footer'
 import Banner from './components/banner'
+import { wrapUseRoutesV7 } from '@sentry/react'
+import { GeneralErrorBoundary } from './components/error-boundary'
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: stylesheet },
@@ -48,7 +52,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         where: { id: userId },
       })
     : null
-  return json(
+  return data(
     {
       user: user, // the logged in user
       isDoctor: Boolean(user?.doctor?.id), // if the logged in user is a doctor
@@ -59,7 +63,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   )
 }
 
-export default function AppWithProviders() {
+function AppWithProviders() {
   const data = useLoaderData<typeof loader>()
   return (
     <ThemeProvider specifiedTheme={data.theme} themeAction="/action/set-theme">
@@ -67,6 +71,8 @@ export default function AppWithProviders() {
     </ThemeProvider>
   )
 }
+
+export default wrapUseRoutesV7(AppWithProviders)
 
 export function App() {
   const {
@@ -116,3 +122,5 @@ export function App() {
     </html>
   )
 }
+
+export const ErrorBoundary = GeneralErrorBoundary

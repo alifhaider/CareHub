@@ -1,15 +1,11 @@
 import {
-  json,
+  data,
   type LoaderFunctionArgs,
   type MetaFunction,
-} from '@remix-run/node'
-import {
   Form,
   Link,
-  useActionData,
   useFetcher,
-  useLoaderData,
-} from '@remix-run/react'
+} from 'react-router'
 import { format, isPast } from 'date-fns'
 import {
   BadgeDollarSign,
@@ -49,8 +45,9 @@ import {
 import { getFormProps, getInputProps, Intent, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { Label } from '~/components/ui/label'
+import { Route } from './+types/profile.$username'
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
+export const meta = ({ data }: Route.MetaArgs) => {
   return [
     { title: `${data?.user.username} / CH` },
     { name: 'description', content: `CareHub ${data?.user.username} Profile!` },
@@ -163,7 +160,7 @@ type ScheduleProps = {
   username: string
 }
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const page = url.searchParams.get('page')
   const username = params.username
@@ -282,7 +279,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       ? Number(totalRating) / totalReviewsCount
       : 0
 
-  return json({
+  return data({
     user,
     isOwner,
     isDoctor,
@@ -291,7 +288,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   })
 }
 
-export async function action({ request }: LoaderFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   await requireUser(request)
   const formData = await request.formData()
   const { _action } = Object.fromEntries(formData)
@@ -379,9 +376,8 @@ export async function action({ request }: LoaderFunctionArgs) {
   }
 }
 
-export default function User() {
-  const { isDoctor, isOwner, user, loggedInUserId, overallRating } =
-    useLoaderData<typeof loader>()
+export default function User({ loaderData }: Route.ComponentProps) {
+  const { isDoctor, isOwner, user, loggedInUserId, overallRating } = loaderData
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>()
   const schedules = user.doctor?.schedules ?? []
 

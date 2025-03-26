@@ -1,45 +1,18 @@
-import { json, LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import {
-  Form,
-  Link,
-  useLoaderData,
+  data,
+  MetaFunction,
   useSearchParams,
   useSubmit,
-} from '@remix-run/react'
-import { Input } from '~/components/ui/input'
+  Form,
+} from 'react-router'
 import { prisma } from '~/db.server'
-import { Card, CardContent } from '~/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
-import { Badge } from '~/components/ui/badge'
-import {
-  ArrowDown,
-  ChevronDown,
-  FilterIcon,
-  MapPin,
-  SlidersHorizontal,
-  Star,
-} from 'lucide-react'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '~/components/ui/tooltip'
-import {
-  formatTime,
-  getFormattedTimeDifference,
-  getUpcomingDateSchedules,
-} from '~/utils/schedule'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '~/components/ui/popover'
+import { ChevronDown, SlidersHorizontal } from 'lucide-react'
 import SearchNavbar from '~/components/search-navbar'
 import { useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { z } from 'zod'
 import { Button } from '~/components/ui/button'
+import { Route } from './+types/search'
 
 export const meta: MetaFunction = () => {
   return [
@@ -54,7 +27,7 @@ export const SearchPageSchema = z.object({
   specialtyId: z.string().optional(),
 })
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const searchParams = new URL(request.url).searchParams
   const query = searchParams.get('s') ?? ''
   const nameQuery = searchParams.get('name') ?? ''
@@ -129,22 +102,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
     },
   })
 
-  return json({ doctors })
+  return data({ doctors })
 }
 
-export async function action({ request }: LoaderFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData()
   const submission = parseWithZod(formData, { schema: SearchPageSchema })
 
   if (submission.status !== 'success') {
-    return json(submission.reply({ formErrors: ['Could not submit search'] }))
+    return data(submission.reply({ formErrors: ['Could not submit search'] }))
   }
 }
 
-export default function Search() {
+export default function Search({ loaderData }: Route.ComponentProps) {
   const [searchParams, setSearchParams] = useSearchParams()
   const submit = useSubmit()
-  const { doctors } = useLoaderData<typeof loader>()
+  const { doctors } = loaderData
 
   const [form, fields] = useForm({
     onValidate({ formData }) {

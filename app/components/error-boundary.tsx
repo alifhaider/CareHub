@@ -1,9 +1,11 @@
+import { useEffect } from 'react'
+import { captureException } from '@sentry/react'
 import {
   isRouteErrorResponse,
   useParams,
   useRouteError,
   type ErrorResponse,
-} from '@remix-run/react'
+} from 'react-router'
 import { getErrorMessage } from '~/utils/misc'
 
 type StatusHandler = (info: {
@@ -30,6 +32,10 @@ export function GeneralErrorBoundary({
   if (typeof document !== 'undefined') {
     console.error(error)
   }
+
+  useEffect(() => {
+    captureException(error)
+  }, [error])
 
   return (
     <div className="text-h2 container flex h-full w-full items-center justify-center bg-destructive p-20 text-destructive-foreground">

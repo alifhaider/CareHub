@@ -1,15 +1,14 @@
-import { getInputProps, type FieldMetadata } from '@conform-to/react'
 import { DoctorSpecialty } from '@prisma/client'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import { useFetcher } from '@remix-run/react'
+import { useFetcher, data } from 'react-router'
 import clsx from 'clsx'
 import { useCombobox } from 'downshift'
 import { useId } from 'react'
 import { useSpinDelay } from 'spin-delay'
 import { Spinner } from '~/components/spinner'
 import { prisma } from '~/db.server'
+import { Route } from './+types/resources.specialty-combobox'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const searchParams = new URL(request.url).searchParams
   const query = searchParams.get('query')?.toLocaleLowerCase() ?? ''
   const specialties = await prisma.doctorSpecialty.findMany({
@@ -17,7 +16,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     distinct: ['name'],
   })
 
-  return json({ items: specialties })
+  return data({ items: specialties })
 }
 
 export function SpecialtyCombobox() {

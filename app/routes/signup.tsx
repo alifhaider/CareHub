@@ -1,12 +1,6 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
-import {
-  json,
-  redirect,
-  type ActionFunctionArgs,
-  type MetaFunction,
-} from '@remix-run/node'
-import { Form, Link, useActionData } from '@remix-run/react'
+import { data, redirect, type MetaFunction, Form, Link } from 'react-router'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { prisma } from '~/db.server'
@@ -29,6 +23,7 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import { authSessionStorage } from '~/services/session.server'
+import { Route } from './+types/signup'
 
 const SignupFormSchema = z
   .object({
@@ -54,7 +49,7 @@ const SignupFormSchema = z
     }
   })
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData()
   // await validateCSRF(formData, request.headers)
   // checkHoneypot(formData)
@@ -109,7 +104,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (submission.status !== 'success') {
-    return json(submission.reply())
+    return data(submission.reply())
   }
 
   const { user, remember } = submission.value
@@ -132,8 +127,7 @@ export const meta: MetaFunction = () => {
   return [{ title: 'Signup / CH' }]
 }
 
-export default function SignupRoute() {
-  const actionData = useActionData<typeof action>()
+export default function SignupRoute({ actionData }: Route.ComponentProps) {
   const isPending = useIsPending()
 
   const [form, fields] = useForm({

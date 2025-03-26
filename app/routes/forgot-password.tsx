@@ -2,16 +2,16 @@ import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import {
   type ActionFunctionArgs,
-  json,
+  data,
   type MetaFunction,
   redirect,
-} from '@remix-run/node'
-import { Form, Link, useActionData, useFetcher } from '@remix-run/react'
+  Form,
+  Link,
+  useFetcher,
+} from 'react-router'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { ErrorList, Field } from '~/components/forms'
-import { Spacer } from '~/components/spacer'
-import { Button } from '~/components/ui/button'
 import {
   Card,
   CardContent,
@@ -23,8 +23,8 @@ import {
 import { StatusButton } from '~/components/ui/status-button'
 import { prisma } from '~/db.server'
 import { prepareVerification } from '~/services/verify.server'
-import { useIsPending } from '~/utils/misc'
 import { EmailSchema, UsernameSchema } from '~/utils/user-validation'
+import { Route } from './+types/forgot-password'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Forgot Password / CH' }]
@@ -34,7 +34,7 @@ const ForgotPasswordSchema = z.object({
   usernameOrEmail: z.union([EmailSchema, UsernameSchema]),
 })
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData()
   const submission = await parseWithZod(formData, {
     schema: ForgotPasswordSchema.superRefine(async (data, ctx) => {
@@ -59,7 +59,7 @@ export async function action({ request }: ActionFunctionArgs) {
     async: true,
   })
   if (submission.status !== 'success') {
-    return json(
+    return data(
       { result: submission.reply() },
       { status: submission.status === 'error' ? 400 : 200 },
     )
@@ -110,7 +110,7 @@ export async function action({ request }: ActionFunctionArgs) {
   if (response.status === 'success') {
     return redirect(redirectTo.toString())
   } else {
-    return json(
+    return data(
       { result: submission.reply({ formErrors: [response.error.message] }) },
       { status: 500 },
     )
@@ -145,7 +145,7 @@ function ForgotPasswordEmail({
   )
 }
 
-export default function ForgotPassword() {
+export default function ForgotPassword({ actionData }: Route.ComponentProps) {
   const forgotPassword = useFetcher<typeof action>()
   const [form, fields] = useForm({
     id: 'forgot-password-form',

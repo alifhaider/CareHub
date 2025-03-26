@@ -1,13 +1,6 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import {
-  type ActionFunctionArgs,
-  json,
-  LoaderFunctionArgs,
-  type MetaFunction,
-  redirect,
-} from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { Form, data, type MetaFunction, redirect } from 'react-router'
 import { redirectWithSuccess } from 'remix-toast'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { ErrorList, Field } from '~/components/forms'
@@ -25,6 +18,7 @@ import { useIsPending } from '~/utils/misc'
 import { PasswordAndConfirmPasswordSchema } from '~/utils/user-validation'
 import { requireAnonymous, resetUserPassword } from '~/services/auth.server'
 import { verifySessionStorage } from '~/utils/verification.server'
+import { Route } from './+types/reset-password'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Reset Password / CH' }]
@@ -48,12 +42,12 @@ async function requireResetPasswordUsername(request: Request) {
   return resetPasswordUsername
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const resetPasswordUsername = await requireResetPasswordUsername(request)
-  return json({ resetPasswordUsername })
+  return data({ resetPasswordUsername })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const resetPasswordUsername = await requireResetPasswordUsername(request)
   const formData = await request.formData()
   const submission = parseWithZod(formData, {
@@ -61,7 +55,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (submission.status !== 'success') {
-    return json(
+    return data(
       { result: submission.reply() },
       { status: submission.status === 'error' ? 400 : 200 },
     )
@@ -77,15 +71,15 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 }
 
-export default function ForgotPassword() {
-  const data = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
+export default function ForgotPassword({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
   const isPending = useIsPending()
 
   const [form, fields] = useForm({
     id: 'reset-password',
     constraint: getZodConstraint(ResetPasswordSchema),
-    lastResult: actionData?.result,
     onValidate({ formData }) {
       console.log('formData', Object.fromEntries(formData))
       return parseWithZod(formData, { schema: ResetPasswordSchema })

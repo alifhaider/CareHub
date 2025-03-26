@@ -1,7 +1,6 @@
 import { type FieldMetadata, getInputProps } from '@conform-to/react'
 import { type ScheduleLocation } from '@prisma/client'
-import { json, LoaderFunctionArgs } from '@remix-run/node'
-import { Link, useFetcher } from '@remix-run/react'
+import { data, Link, useFetcher } from 'react-router'
 import clsx from 'clsx'
 import { useCombobox } from 'downshift'
 import { useId } from 'react'
@@ -11,8 +10,9 @@ import { Spinner } from '~/components/spinner'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { prisma } from '~/db.server'
+import { Route } from './+types/resources.location-combobox'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const searchParams = new URL(request.url).searchParams
   const query = searchParams.get('query')?.toLocaleLowerCase() ?? ''
   const locations = await prisma.scheduleLocation.findMany({
@@ -32,7 +32,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     },
     distinct: ['name', 'address', 'city', 'state', 'zip'],
   })
-  return json({ items: locations })
+  return data({ items: locations })
 }
 
 export function LocationCombobox({

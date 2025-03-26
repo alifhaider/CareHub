@@ -16,7 +16,7 @@ import {
   User2,
   WorkflowIcon,
 } from 'lucide-react'
-import { Form, Link, useLocation } from '@remix-run/react'
+import { Form, Link, useLocation } from 'react-router'
 import { Input } from './ui/input'
 
 const hideSearchFieldForRoutes = ['search', 'login', 'signup']
@@ -96,7 +96,7 @@ export function Menu({
   username?: string
   isDoctor?: boolean
 }) {
-  const [, setTheme] = useTheme()
+  // const [, setTheme] = useTheme()
 
   return (
     <DropdownMenu>
@@ -146,14 +146,14 @@ export function Menu({
 
         <hr className="border-primary-foreground" />
 
-        <DropdownMenuItem onClick={() => setTheme(Theme.LIGHT)}>
+        {/* <DropdownMenuItem onClick={() => setTheme(Theme.LIGHT)}>
           <Sun className="h-4 w-4" />
           Light
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme(Theme.DARK)}>
           <Moon className="h-4 w-4" />
           Dark
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
 
         <hr className="border-primary-foreground" />
 
