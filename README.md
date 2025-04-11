@@ -1,11 +1,8 @@
 # Note
 
-Thinking of also making a mobile app
+Moved to a new app. Since the domain name was not available, and remix is in a funky state, and I have made some mistakes in schema definition, I decided to start a new app with more built in capabilities. 
 
-To follow,
-[Link to Mobile App Repo ➡️](https://github.com/carehuborg/CareHub.git)
-
-And I stopped contributing to it. I'll finish this first
+Keep your eye on this to get the new repo link
 
 # CareHub
 
